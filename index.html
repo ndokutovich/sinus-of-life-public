@@ -44,8 +44,8 @@
   .doors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:34px 0 8px}
   .door{display:block;text-decoration:none;color:inherit;border-radius:14px;padding:18px 16px 16px;border:1px solid var(--line);background:var(--card);transition:transform .15s,box-shadow .15s}
   .door:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(20,22,31,.08)}
-  .door .n{font-family:var(--mono);font-size:12px;letter-spacing:.1em}
-  .door .t{font-family:var(--disp);font-weight:600;font-size:21px;margin:6px 0 4px}
+  .door .n{font-family:var(--mono);font-size:12px;letter-spacing:.1em;white-space:nowrap}
+  .door .t{font-family:var(--disp);font-weight:600;font-size:clamp(17px,2.4vw,21px);margin:6px 0 4px}
   .door .e{font-size:13.5px;color:var(--muted);line-height:1.45}
   .door.d1{border-top:3px solid var(--coral)} .door.d1 .n{color:var(--coral-d)}
   .door.d2{border-top:3px solid var(--teal)} .door.d2 .n{color:var(--teal-d)}
@@ -95,9 +95,12 @@
   .lblk{font-family:var(--mono);font-size:12px;fill:var(--ink)}
 
   @media(max-width:680px){
-    .doors{grid-template-columns:1fr}
+    .doors{grid-template-columns:repeat(2,1fr)}
     .synth .grid3{grid-template-columns:1fr}
     .lead{font-size:17px}
+  }
+  @media(max-width:430px){
+    .doors{grid-template-columns:1fr}
   }
   @media(prefers-reduced-motion:reduce){
     #phasor-arm,#phasor-dot{animation:none!important}
@@ -116,7 +119,9 @@
 .rdt b{color:var(--ink);font-weight:500}
 .s1 .fig{--accent:var(--coral)}.s2 .fig{--accent:var(--teal)}.s3 .fig{--accent:var(--violet)}
 :root{--gold:#c98a1b;--gold-d:#8a5e12;--gold-bg:#f7efe0;--slate:#4a5568;--slate-d:#2f3947;--slate-bg:#eceef1}
-.doors{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.doors{grid-template-columns:repeat(3,1fr)}
+@media(max-width:680px){.doors{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.doors{grid-template-columns:1fr}}
 .door.d4{border-top:3px solid var(--gold)}.door.d4 .n{color:var(--gold-d)}
 .door.d5{border-top:3px solid var(--slate)}.door.d5 .n{color:var(--slate-d)}
 .s4 .dhead::before{background:var(--gold)}.s4 .dhead .num{color:var(--gold-d)}.s4 .dhead h2{color:var(--gold-d)}
