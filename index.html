@@ -410,7 +410,9 @@
 
 <script>
 (function(){
-var PI=Math.PI, RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var PI=Math.PI, RMQ=window.matchMedia('(prefers-reduced-motion: reduce)').matches, ANIMPREF='';
+try{ANIMPREF=localStorage.getItem('sinmap-anim')||''}catch(e){}
+var RM=RMQ&&ANIMPREF!=='on';
 var C={co:'#d65f37',cod:'#9c3f1f',te:'#138a64',ted:'#0c5a41',vi:'#6a5bd6',vid:'#473aa3',go:'#c98a1b',god:'#8a5e12',sl:'#4a5568',sld:'#2f3947',ink:'#15171f',mut:'#8a8e9c'};
 function n(x){return (Math.round(x*10)/10);}
 function L(a,b,c,d,col,w,m){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"'+(m?' marker-end="url(#ah)"':'')+'/>';}
@@ -942,6 +944,16 @@ if(arm){
     var pp=[];for(var i=0;i<=N;i++){var ph=tt-i*0.03; pp.push((x0+i*dx).toFixed(1)+' '+(cy-r*Math.sin(ph)).toFixed(1));}
     wave.setAttribute('d','M '+pp.join(' L ')); dot.setAttribute('cx',x0); dot.setAttribute('cy',(cy-r*Math.sin(tt)).toFixed(1));}
   if(RM){hframe(1.1);} else {var ht=0;(function hl(){ht+=0.024; hframe(ht); requestAnimationFrame(hl);})();}
+}
+
+/* система просит reduced-motion — даём читателю кнопку-перекрытие */
+if(RMQ){
+  var ab=document.createElement('button');
+  ab.textContent=RM?'▶ включить анимацию':'⏸ анимация: вкл';
+  ab.title='Система сообщает prefers-reduced-motion, и карта показывает статичные кадры. Кнопка перекрывает это для данной страницы.';
+  ab.style.cssText='position:fixed;right:14px;bottom:14px;z-index:50;font:600 12px system-ui,sans-serif;padding:9px 14px;border-radius:999px;border:1px solid #2a2d3a;background:#15171f;color:#f3f2ee;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)';
+  ab.onclick=function(){try{localStorage.setItem('sinmap-anim',RM?'on':'off')}catch(e){}location.reload();};
+  document.body.appendChild(ab);
 }
 })();
 
