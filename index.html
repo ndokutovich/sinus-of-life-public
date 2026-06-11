@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта синуса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --ink:#15171f; --ink2:#2a2d3a; --paper:#f6f5f0; --card:#fffefb;
+    --muted:#6c7080; --line:#e4e2da; --grid:#ebe9e1;
+    --coral:#d65f37; --coral-d:#9c3f1f; --coral-bg:#fbeee7;
+    --teal:#138a64; --teal-d:#0c5a41; --teal-bg:#e6f4ee;
+    --violet:#6a5bd6; --violet-d:#473aa3; --violet-bg:#eeebfa;
+    --sans:'Inter',system-ui,sans-serif;
+    --disp:'Space Grotesk',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  svg{display:block;max-width:100%;height:auto}
+
+  /* HERO */
+  .hero{background:var(--ink);color:#f3f2ee;padding:64px 24px 56px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--ink2) 1px,transparent 1px),linear-gradient(90deg,var(--ink2) 1px,transparent 1px);
+    background-size:34px 34px;opacity:.35;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000,transparent)}
+  .hero-in{max-width:860px;margin:0 auto;position:relative}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#8d93b0}
+  .hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(40px,8vw,76px);line-height:.98;letter-spacing:-.02em;margin:14px 0 16px}
+  .hero h1 em{font-style:normal;color:#7fd0b4}
+  .hero p{max-width:560px;color:#c3c6d4;font-size:17px}
+  .hero-fig{margin:30px auto 0;max-width:560px}
+
+  /* WRAP */
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  .lead{font-size:19px;padding:52px 0 8px;color:#33353f}
+  .lead b{font-weight:600}
+
+  /* DOORS OVERVIEW */
+  .doors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:34px 0 8px}
+  .door{display:block;text-decoration:none;color:inherit;border-radius:14px;padding:18px 16px 16px;border:1px solid var(--line);background:var(--card);transition:transform .15s,box-shadow .15s}
+  .door:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(20,22,31,.08)}
+  .door .n{font-family:var(--mono);font-size:12px;letter-spacing:.1em}
+  .door .t{font-family:var(--disp);font-weight:600;font-size:21px;margin:6px 0 4px}
+  .door .e{font-size:13.5px;color:var(--muted);line-height:1.45}
+  .door.d1{border-top:3px solid var(--coral)} .door.d1 .n{color:var(--coral-d)}
+  .door.d2{border-top:3px solid var(--teal)} .door.d2 .n{color:var(--teal-d)}
+  .door.d3{border-top:3px solid var(--violet)} .door.d3 .n{color:var(--violet-d)}
+
+  /* SECTION */
+  section{padding-top:30px}
+  .dhead{margin:46px 0 22px;padding-left:18px;position:relative}
+  .dhead::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:5px;border-radius:3px}
+  .dhead .num{font-family:var(--mono);font-size:13px;letter-spacing:.12em}
+  .dhead h2{font-family:var(--disp);font-weight:700;font-size:clamp(28px,5vw,40px);line-height:1.02;letter-spacing:-.01em;margin:4px 0 8px}
+  .dhead p{font-size:16px;color:#41434d;max-width:640px}
+  .s1 .dhead::before{background:var(--coral)} .s1 .dhead .num{color:var(--coral-d)} .s1 .dhead h2{color:var(--coral-d)}
+  .s2 .dhead::before{background:var(--teal)} .s2 .dhead .num{color:var(--teal-d)} .s2 .dhead h2{color:var(--teal-d)}
+  .s3 .dhead::before{background:var(--violet)} .s3 .dhead .num{color:var(--violet-d)} .s3 .dhead h2{color:var(--violet-d)}
+
+  /* CASE */
+  .case{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 8px;margin-bottom:18px}
+  .case-h{font-family:var(--disp);font-weight:600;font-size:20px;letter-spacing:-.01em}
+  .formula{font-family:var(--mono);font-size:15px;margin:12px 0;padding:12px 14px;border-radius:10px;overflow-x:auto;white-space:nowrap}
+  .s1 .formula{background:var(--coral-bg);color:var(--coral-d)}
+  .s2 .formula{background:var(--teal-bg);color:var(--teal-d)}
+  .s3 .formula{background:var(--violet-bg);color:var(--violet-d)}
+  .case p{font-size:15.5px;color:#3a3c46;margin-bottom:14px}
+  .case p b{font-weight:600;color:var(--ink)}
+  .fig{display:flex;justify-content:center;padding:6px 0 16px}
+  .fig svg{width:100%;max-width:380px}
+  .cap{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:center;margin:-8px 0 16px}
+
+  /* SYNTHESIS */
+  .synth{background:var(--ink);color:#ecebf3;border-radius:20px;padding:40px 30px;margin:46px 0 30px;position:relative;overflow:hidden}
+  .synth h2{font-family:var(--disp);font-weight:700;font-size:clamp(26px,5vw,38px);margin-bottom:14px;letter-spacing:-.01em}
+  .synth p{color:#c4c6d6;font-size:16.5px;margin-bottom:12px;max-width:680px}
+  .synth b{color:#7fd0b4;font-weight:600}
+  .synth .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0 6px}
+  .synth .g{border-radius:12px;padding:14px;background:#20232f;border:1px solid #2c2f3c}
+  .synth .g .gl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .synth .g.x1 .gl{color:#e29274} .synth .g.x2 .gl{color:#6fc7a6} .synth .g.x3 .gl{color:#a99bf0}
+  .synth .g p{font-size:14px;color:#b9bcca;margin:6px 0 0}
+
+  footer{text-align:center;padding:30px 24px 60px;color:var(--muted);font-size:13px;font-family:var(--mono)}
+
+  /* svg helpers */
+  .axis{stroke:#c7c5bc;stroke-width:1}
+  .dash{stroke:#b7b5ac;stroke-width:1;stroke-dasharray:4 4}
+  .lbl{font-family:var(--mono);font-size:12px;fill:var(--muted)}
+  .lblk{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+
+  @media(max-width:680px){
+    .doors{grid-template-columns:1fr}
+    .synth .grid3{grid-template-columns:1fr}
+    .lead{font-size:17px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    #phasor-arm,#phasor-dot{animation:none!important}
+    html{scroll-behavior:auto}
+  }
+
+.fig{flex-direction:column;align-items:stretch;padding:6px 0 18px}
+.figbox{display:flex;justify-content:center;padding:2px 0 10px}
+.figbox svg{width:100%;max-width:400px;height:auto}
+.ctrls{display:flex;flex-direction:column;gap:9px;max-width:430px;width:100%;margin:0 auto}
+.ctrl{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+.ctrl label{flex:0 0 122px}
+.ctrl input[type=range]{flex:1;accent-color:var(--accent,#999);height:3px}
+.ctrl .v{flex:0 0 60px;text-align:right;font-family:var(--mono);color:var(--ink)}
+.rdt{max-width:430px;width:100%;margin:10px auto 0;text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.55}
+.rdt b{color:var(--ink);font-weight:500}
+.s1 .fig{--accent:var(--coral)}.s2 .fig{--accent:var(--teal)}.s3 .fig{--accent:var(--violet)}
+:root{--gold:#c98a1b;--gold-d:#8a5e12;--gold-bg:#f7efe0;--slate:#4a5568;--slate-d:#2f3947;--slate-bg:#eceef1}
+.doors{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.door.d4{border-top:3px solid var(--gold)}.door.d4 .n{color:var(--gold-d)}
+.door.d5{border-top:3px solid var(--slate)}.door.d5 .n{color:var(--slate-d)}
+.s4 .dhead::before{background:var(--gold)}.s4 .dhead .num{color:var(--gold-d)}.s4 .dhead h2{color:var(--gold-d)}
+.s4 .formula{background:var(--gold-bg);color:var(--gold-d)}.s4 .fig{--accent:var(--gold)}
+.s5 .dhead::before{background:var(--slate)}.s5 .dhead .num{color:var(--slate-d)}.s5 .dhead h2{color:var(--slate-d)}
+.s5 .formula{background:var(--slate-bg);color:var(--slate-d)}.s5 .fig{--accent:var(--slate)}
+:root{--steel:#3d6b9e;--steel-d:#274a73;--steel-bg:#e8eef6}
+.door.d6{border-top:3px solid var(--steel)}.door.d6 .n{color:var(--steel-d)}
+.s6 .dhead::before{background:var(--steel)}.s6 .dhead .num{color:var(--steel-d)}.s6 .dhead h2{color:var(--steel-d)}
+.s6 .formula{background:var(--steel-bg);color:var(--steel-d)}.s6 .fig{--accent:var(--steel)}
+</style>
+</head>
+<body>
+
+<!-- shared svg defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+    <path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs></svg>
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="eyebrow">синусы и косинусы · единая система</div>
+    <h1>Карта <em>синуса</em></h1>
+    <p>За каждым синусом в физике стоит одна и та же крутящаяся стрелка. Она входит в законы природы через несколько дверей — вот их карта, дверь за дверью, кейс за кейсом.</p>
+    <div class="hero-fig">
+      <svg viewBox="0 0 560 240" role="img" aria-label="Крутящаяся стрелка на окружности проецируется в синусоиду">
+        <line x1="40" y1="120" x2="180" y2="120" stroke="#3a3e4e" stroke-width="1" stroke-dasharray="4 4"/>
+        <circle cx="110" cy="120" r="62" fill="none" stroke="#3a3e4e" stroke-width="1.2"/>
+        <g id="phasor-arm" style="transform-origin:110px 120px">
+          <line x1="110" y1="120" x2="172" y2="120" stroke="#e29274" stroke-width="2.5" marker-end="url(#ah)"/>
+        </g>
+        <line x1="200" y1="120" x2="540" y2="120" stroke="#3a3e4e" stroke-width="1"/>
+        <path id="phasor-wave" d="" fill="none" stroke="#7fd0b4" stroke-width="2.5"/>
+        <circle id="phasor-dot" r="4.5" fill="#7fd0b4"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="lead">Синус не «превращается» в формулу — синус <b>и есть</b> формула: машинка, что берёт угол и выдаёт долю. Вектор, вращающийся по окружности; его «тень» на ось — это и есть синус с косинусом. Дальше всё зависит от того, что делать с этой стрелкой. <b>Заморозить</b> — проекция. <b>Пустить во времени</b> — колебание. <b>Сложить несколько</b> — волны. Три главные двери и одна стрелка. А дальше — поворот как операция, дикие появления и третья роль на кривых пространствах.</p>
+
+  <div class="doors">
+    <a class="door d1" href="#g1"><div class="n">01 · cos / sin</div><div class="t">Проекция</div><div class="e">Угол между вектором и осью. cos — доля вдоль, sin — доля поперёк.</div></a>
+    <a class="door d2" href="#g2"><div class="n">02 · φ = ωt</div><div class="t">Вращение</div><div class="e">Угол — это время. Синус времени — тень крутящейся точки.</div></a>
+    <a class="door d3" href="#g3"><div class="n">03 · Σ</div><div class="t">Суперпозиция</div><div class="e">Складываем и раскладываем волны. Кто усилит, кто погасит — решает фаза.</div></a><a class="door d4" href="#g4"><div class="n">04 · R(θ)</div><div class="t">Поворот</div><div class="e">Синус как оператор: берёт объект и поворачивает его — на плоскости и в пространстве.</div></a><a class="door d6" href="#g6"><div class="n">05 · ±κ</div><div class="t">Кривизна</div><div class="e">Сфера, Евклид, Лобачевский: sin для углов, sin/a/sinh для сторон — знак кривизны решает.</div></a><a class="door d5" href="#g5"><div class="n">★</div><div class="t">Дикие случаи</div><div class="e">Маятник Фуко и аналемма — где синус всплывает совсем неожиданно.</div></a>
+  </div>
+</div>
+
+<div class="wrap">
+<section class="s1" id="g1">
+  <div class="dhead">
+    <div class="num">ДВЕРЬ 01</div>
+    <h2>Проекция</h2>
+    <p>Здесь угол стоит между вектором и осью, а время заморожено. Один вопрос на всю группу: «какая доля этой стрелки смотрит вон в ту сторону?» Косинус берёт долю вдоль направления, синус — поперёк него.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Разложение вектора</div>
+    <div class="formula">Fₓ = F·cos θ   ·   F_y = F·sin θ</div>
+    <p>Атом всей двери. Любой вектор распадается на две перпендикулярные доли: косинус отмеряет, сколько его лежит вдоль оси, синус — сколько поперёк. Всё остальное в этой группе — частные случаи этого деления.</p>
+    <div class="fig" data-fig="vector"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Наклонная плоскость</div>
+    <div class="formula">a = g·sin θ   ·   N = mg·cos θ</div>
+    <p>Сила тяжести делится по склону: <b>вдоль</b> ската тянет доля sin, <b>в</b> поверхность давит доля cos. Круче склон — больше sin, быстрее скатывается; положе — больше cos, сильнее прижимает. Лыжи, горки, трение.</p>
+    <div class="fig" data-fig="incline"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Работа силы</div>
+    <div class="formula">W = F·s·cos θ</div>
+    <p>Работу делает только доля силы <b>вдоль перемещения</b> — её берёт косинус. Перпендикулярная часть не двигает и не работает совсем. Сила, направленная точно вбок (θ = 90°) — труд впустую, cos 90° = 0.</p>
+    <div class="fig" data-fig="work"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Момент силы</div>
+    <div class="formula">τ = r·F·sin θ</div>
+    <p>Крутит только <b>поперечная</b> доля силы — её отмеряет синус. То, что вдоль рычага, не поворачивает ничего. Поэтому ключ жмут перпендикулярно, а ручку двери — у дальнего края.</p>
+    <div class="fig" data-fig="torque"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Скалярное и векторное произведение</div>
+    <div class="formula">a·b = ab·cos θ    ·    |a×b| = ab·sin θ</div>
+    <p>Те же две доли, поднятые в ранг операций. Скалярное произведение меряет <b>совпадение</b> двух векторов — это косинус. Векторное меряет <b>разворот</b>, площадь между ними — это синус. cos для «насколько вместе», sin для «насколько врозь».</p>
+    <div class="fig" data-fig="dotcross"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Мощность в цепи переменного тока</div>
+    <div class="formula">P = U·I·cos φ   ·   Q = U·I·sin φ</div>
+    <p>Сдвиг фазы φ между током и напряжением делит мощность. Доля <b>cos φ</b> делает полезную работу — её так и зовут «коэффициент мощности». Доля <b>sin φ</b> (реактивная) не доходит до нагрузки, а плещется туда-сюда вхолостую.</p>
+    <div class="fig" data-fig="acpower"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Закон Малюса</div>
+    <div class="formula">I = I₀·cos² θ</div>
+    <p>Свет проходит через второй поляроид той долей поля, что совпала с его осью — это cos θ. Интенсивность ∝ квадрату амплитуды, отсюда <b>cos² θ</b>. Ровно так работают поляризационные очки и любой ЖК-экран.</p>
+    <div class="fig" data-fig="malus"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Закон Снеллиуса</div>
+    <div class="formula">n₁·sin θ₁ = n₂·sin θ₂</div>
+    <p>На границе двух сред сохраняется <b>касательная</b> доля волнового вектора — а это синус угла к нормали. Поэтому луч преломляется. Отсюда надломленная ложка в стакане, фокус линзы, мираж и радуга.</p>
+    <div class="fig" data-fig="snell"></div>
+  </div>
+  <div class="case"><div class="case-h">Сложение векторов</div><div class="formula">v = v_лодка + v_течение</div><p>Лодка гребёт поперёк реки, течение сносит вдоль — результат складывается из двух перпендикулярных долей. Самый базовый случай проекции — фундамент всей векторной механики.</p><div class="fig" data-fig="vecadd"></div></div>
+  <div class="case"><div class="case-h">Теорема косинусов</div><div class="formula">c² = a² + b² − 2ab·cos C</div><p>Длина третьей стороны зависит от угла между двумя другими через косинус. При C = 90° косинус обнуляется и остаётся теорема Пифагора — это её обобщение на любой угол.</p><div class="fig" data-fig="lawcos"></div></div>
+  <div class="case"><div class="case-h">Угол Брюстера</div><div class="formula">tan θ_Б = n</div><p>Под этим углом отражённый от поверхности свет полностью поляризован. Именно поэтому поляризационные очки срезают блики с воды и дороги.</p><div class="fig" data-fig="brewster"></div></div>
+</section>
+</div>
+
+<div class="wrap">
+<section class="s2" id="g2">
+  <div class="dhead">
+    <div class="num">ДВЕРЬ 02</div>
+    <h2>Вращение и колебание</h2>
+    <p>Теперь угол — это время: φ = ωt. Та же стрелка из первой двери, но её отпустили крутиться. Её тень на ось, отложенная во времени, чертит синусоиду. Всякое колебание — это вращение, увиденное сбоку.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Движение по кругу</div>
+    <div class="formula">x = R·cos ωt   ·   y = R·sin ωt</div>
+    <p>Координаты равномерно крутящейся точки — это прямо cos и sin времени. Тень точки на горизонтальную ось ходит по косинусу, на вертикальную — по синусу. Отсюда и берётся вся синусоидальность мира.</p>
+    <div class="fig" data-fig="circular"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Гармонический осциллятор</div>
+    <div class="formula">x(t) = A·cos(ωt + φ₀)</div>
+    <p>Пружина, груз, качание — смещение ходит по косинусу времени. Это та же тень кругового движения: синусоида — это «развёрнутый» во времени оборот стрелки.</p>
+    <div class="fig" data-fig="shm"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Маятник (малый угол)</div>
+    <div class="formula">ω = √(g / L)   ·   возвращающая сила ∝ sin θ</div>
+    <p>Маятник возвращает доля силы тяжести ∝ sin θ. При малом угле sin θ ≈ θ — и качание становится чистой синусоидой. Тот самый случай, где синус «съедается» приближением и в итоговой формуле его уже не видно.</p>
+    <div class="fig" data-fig="pendulum"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Переменный ток</div>
+    <div class="formula">I(t) = I₀·sin(ωt − φ)</div>
+    <p>Ток в розетке — это синус времени. Он не случайно такой: его рождает вращение, и форма волны наследует круг.</p>
+    <div class="fig" data-fig="ac"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">ЭДС генератора</div>
+    <div class="formula">ε = ε₀·sin ωt</div>
+    <p>Катушка крутится в магнитном поле — и наведённое напряжение идёт синусом. Вот прямая причина, почему ток вообще синусоидальный: круговое движение, превращённое в электричество.</p>
+    <div class="fig" data-fig="generator"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Бегущая волна</div>
+    <div class="formula">y(x, t) = A·sin(kx − ωt)</div>
+    <p>Синус сразу по пространству и по времени — горб, бегущий вперёд. Свет, звук, рябь на воде. В застывший момент это синусоида в пространстве; в неподвижной точке — синусоида во времени.</p>
+    <div class="fig" data-fig="traveling"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Формула Эйлера</div>
+    <div class="formula">e^(iωt) = cos ωt + i·sin ωt</div>
+    <p>Корень всей системы. Это одна стрелка, крутящаяся по единичной окружности в комплексной плоскости. Её тень на вещественную ось — косинус, на мнимую — синус. cos и sin — это просто две тени одного вращения.</p>
+    <div class="fig" data-fig="euler"></div>
+  </div>
+  <div class="case"><div class="case-h">Центростремительное ускорение</div><div class="formula">a = v²/R</div><p>Скорость по модулю постоянна, но её вектор всё время поворачивается — значит ускорение есть, и направлено оно к центру.</p><div class="fig" data-fig="centripetal"></div></div>
+  <div class="case"><div class="case-h">Затухающие колебания</div><div class="formula">x = e^(−γt)·A·cos ωt</div><p>Реальный звон не вечен: синус сидит под убывающей экспонентой. Так гаснет струна, качели без подкачки, любой удар по колоколу.</p><div class="fig" data-fig="damped"></div></div>
+  <div class="case"><div class="case-h">Вынужденные колебания и резонанс</div><div class="formula">A(ω) — пик у собственной частоты</div><p>Толкай систему на её частоте — амплитуда взлетает. Качели, мост, бокал от голоса, настройка радио на станцию.</p><div class="fig" data-fig="resonance"></div></div>
+  <div class="case"><div class="case-h">Комплексный импеданс</div><div class="formula">Z = R + iX</div><p>Ток и напряжение в цепи — вращающиеся стрелки со сдвигом фазы. Катушка заставляет ток отставать, конденсатор — опережать.</p><div class="fig" data-fig="impedance"></div></div>
+</section>
+</div>
+
+<div class="wrap">
+<section class="s3" id="g3">
+  <div class="dhead">
+    <div class="num">ДВЕРЬ 03</div>
+    <h2>Суперпозиция</h2>
+    <p>Теперь крутящихся стрелок несколько, и они складываются. Волны накладываются, и кто кого усилит, а кто погасит — решает разность фаз. Эта же дверь работает и наоборот: из синусов можно собрать любую форму.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Принцип суперпозиции</div>
+    <div class="formula">y = y₁ + y₂</div>
+    <p>Волны в одной точке просто складываются. В фазе — горб на горб, усиление; в противофазе — горб на впадину, гашение. Вся группа — следствия этого сложения.</p>
+    <div class="fig" data-fig="superposition"></div>
+    <div class="cap">бледные — слагаемые, жирная — их сумма</div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Биения</div>
+    <div class="formula">sin α + sin β = 2·sin((α+β)/2)·cos((α−β)/2)</div>
+    <p>Две близкие частоты дают медленную пульсацию громкости — биения. Слышно при настройке гитары: чем ближе струны, тем реже «уханье», и в унисон оно исчезает.</p>
+    <div class="fig" data-fig="beats"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Стоячая волна</div>
+    <div class="formula">y = 2A·sin(kx)·cos ωt</div>
+    <p>Встречные волны дают узлы и пучности, стоящие на месте: точки-узлы не движутся вовсе, между ними всё качается. Струна гитары, столб воздуха в трубе.</p>
+    <div class="fig" data-fig="standing"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Условие интерференции</div>
+    <div class="formula">Δ = m·λ (максимум)   ·   (m + ½)·λ (минимум)</div>
+    <p>Всё решает разность хода Δ двух волн. Целое число длин волн — приходят в фазе, ярко. Полуцелое — в противофазе, гасятся, темно. Между этими крайностями — весь рисунок интерференции.</p>
+    <div class="fig" data-fig="interference"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Дифракция · две щели</div>
+    <div class="formula">d·sin θ = m·λ</div>
+    <p>Угол, под которым волны от двух щелей приходят в фазе, даёт яркие полосы. Здесь sin θ — это проекция геометрии в разность хода: первая дверь кормит третью.</p>
+    <div class="fig" data-fig="diffraction"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Закон Брэгга</div>
+    <div class="formula">2d·sin θ = n·λ</div>
+    <p>То же для атомных плоскостей кристалла. По углам, под которыми рентген отражается в фазе, читают расстояния между атомами. Этим синусом расшифровали структуру ДНК.</p>
+    <div class="fig" data-fig="bragg"></div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">Ряд Фурье</div>
+    <div class="formula">f(t) = Σ (aₙ·cos nωt + bₙ·sin nωt)</div>
+    <p>Любой сигнал — любую форму, любой звук — можно собрать из суммы чистых синусов. Прямоугольник складывается из нечётных гармоник; чем больше слагаемых, тем острее угол. На этом стоят MP3, JPEG, человеческий голос.</p>
+    <div class="fig" data-fig="fourier"></div>
+    <div class="cap">пунктир — идеальный прямоугольник, линия — сумма синусов</div>
+  </div>
+  <div class="case"><div class="case-h">Гласные «а» и «и» · форманты</div><div class="formula">тембр = какие гармоники громкие</div><p>Высота голоса — основная частота, и у «а», и у «и» она одна. Различает их спектр: «горбы громкости» — форманты. Ухо делает Фурье-разбор каждого звука — на этом стоит распознавание речи. Двигайте ползунок: нота та же, тембр другой.</p><div class="fig" data-fig="vowels"></div></div>
+  <div class="case"><div class="case-h">Эффект Доплера</div><div class="formula">f′ = f·(c ± v)/(c ∓ v)</div><p>Источник движется — волны спереди сжимаются (частота выше), сзади растягиваются (ниже). Сирена скорой, тон гудка проезжающей машины.</p><div class="fig" data-fig="doppler"></div></div>
+  <div class="case"><div class="case-h">Круговая поляризация</div><div class="formula">E = (cos ωt, cos(ωt − δ))</div><p>Два перпендикулярных синуса со сдвигом фазы: при δ = 90° кончик поля чертит круг. На этом стоят 3D-очки и оптическая связь.</p><div class="fig" data-fig="circpol"></div></div>
+  <div class="case"><div class="case-h">Групповая и фазовая скорость</div><div class="formula">v_гр = dω/dk · v_ф = ω/k</div><p>Пакет волн: огибающая (группа, несёт энергию) и несущая под ней бегут с разной скоростью. Иногда рябь внутри пакета обгоняет сам пакет.</p><div class="fig" data-fig="groupvel"></div></div>
+  <div class="case"><div class="case-h">Квантовая амплитуда</div><div class="formula">ψ ~ e^(i(kx − ωt))</div><p>Волна частицы — комплексная: её Re и Im это два синуса в квадратуре, а квадрат модуля даёт вероятность найти частицу. Прямое продолжение формулы Эйлера.</p><div class="fig" data-fig="quantum"></div></div>
+</section>
+</div>
+
+<div class="wrap">
+<section class="s4" id="g4">
+  <div class="dhead"><div class="num">ДВЕРЬ 04</div><h2>Поворот как операция</h2><p>Здесь синус играет четвёртую роль — не «долю» и не «волну», а оператор: он берёт объект и поворачивает его. Та же крутящаяся стрелка, но теперь она крутит не себя, а мир вокруг.</p></div>
+  <div class="case"><div class="case-h">Матрица поворота</div><div class="formula">[cos θ  −sin θ ; sin θ  cos θ]</div><p>Эта матрица из синусов и косинусов поворачивает любую точку на угол θ. Каждый кадр в играх и графике — это умножение на неё.</p><div class="fig" data-fig="rotmatrix"></div></div>
+  <div class="case"><div class="case-h">Комплексное умножение</div><div class="formula">z · e^(iθ)</div><p>Умножить комплексное число на e^(iθ) — значит повернуть его вокруг нуля на угол θ. Комплексные числа буквально и есть повороты плоскости.</p><div class="fig" data-fig="complexmul"></div></div>
+  <div class="case"><div class="case-h">Кватернионы · повороты в 3D</div><div class="formula">sin и cos на оси вращения</div><p>Повороты в трёхмерном пространстве без сбоев и заклиниваний. Синусы и косинусы вращают объект — на этом держатся дроны, роботы и вся 3D-анимация.</p><div class="fig" data-fig="quaternion"></div></div>
+</section>
+</div>
+<div class="wrap">
+<section class="s6" id="g6">
+  <div class="dhead"><div class="num">ДВЕРЬ 05</div><h2>Кривизна: семья из трёх</h2><p>Геометрий постоянной кривизны ровно три, и различаются они знаком: сфера (+), плоскость Евклида (0), плоскость Лобачевского (−). Углы везде меряет обычный круговой синус, а вот стороны — по-разному: sin(a/R) на сфере, голая a на плоскости, sinh(a/k) у Лобачевского. При малых размерах обе кривые формулы вырождаются в плоскую: евклидова геометрия — это малоугловое приближение, как sin θ ≈ θ у маятника.</p></div>
+  <div class="case"><div class="case-h">Корень всего · y″ = ∓y</div><div class="formula">y″ = −y → sin (круг) · y″ = +y → sinh (гипербола)</div><p>Один знак в уравнении: минус — возвращающая сила и колебание в коридоре ±1, плюс — разгоняющая сила и экспоненциальный уход. sin и sinh — решения одного уравнения с противоположным знаком.</p><div class="fig" data-fig="koren"></div></div>
+  <div class="case"><div class="case-h">Круг против гиперболы</div><div class="formula">cos²+sin²=1 · cosh²−sinh²=1</div><p>Один параметр гонит две точки: по окружности (проекции cos и sin, обе в коридоре ±1) и по гиперболе (cosh и sinh, растут как eˣ/2). Это и есть синус мнимого угла: sin(ix) = i·sinh(x).</p><div class="fig" data-fig="kruggip"></div></div>
+  <div class="case"><div class="case-h">Сферическая теорема синусов</div><div class="formula">sin A / sin(a/R) = sin B / sin(b/R) = sin C / sin(c/R)</div><p>Положительная кривизна: стороны треугольника выгнуты, сумма углов больше 180°, и избыток пропорционален площади. На этой геометрии стоят навигация, авиамаршруты и трек спутника по карте.</p><div class="fig" data-fig="spherical"></div></div>
+  <div class="case"><div class="case-h">Теорема синусов Лобачевского</div><div class="formula">sin A / sinh(a/k) = sin B / sinh(b/k) = sin C / sinh(c/k)</div><p>Отрицательная кривизна: каждая точка — седло, и места экспоненциально много (длина окружности 2π·sinh r ~ eʳ). Углы обслуживает sin, расстояния — его гиперболический близнец sinh = (eˣ−e⁻ˣ)/2, связанный с круговым через мнимый угол: sin(ix) = i·sinh(x). Угол параллельности связывает их в одной строке: sin Π(x) = 1/cosh(x).</p><div class="fig" data-fig="hypsin"></div></div>
+  <div class="case"><div class="case-h">Диск Пуанкаре · {7,3}</div><div class="formula">длина окружности = 2π·sinh(r)</div><p>Честное гиперболическое замощение семиугольниками: в гиперболической метрике все они одинаковы — это край бесконечно далёк, а пространства к нему экспоненциально больше. Поэтому деревья и иерархии вкладываются сюда без давки — на этом стоят гиперболические эмбеддинги.</p><div class="fig" data-fig="poincare"></div></div>
+  <div class="case"><div class="case-h">Гиперболический поворот · буст Лоренца</div><div class="formula">[cosh u  sinh u ; sinh u  cosh u]</div><p>Близнец матрицы поворота из четвёртой двери: cos²+sin²=1 держит точку на окружности, cosh²−sinh²=1 — на гиперболе. Именно так устроено пространство-время: переход к движущемуся наблюдателю — гиперболический поворот, скорость = tanh(быстроты), и поскольку tanh никогда не достигает единицы, скорость света недостижима.</p><div class="fig" data-fig="boost"></div></div>
+  <div class="case"><div class="case-h">Диаграмма Минковского</div><div class="formula">оси-ножницы: наклон на arctan(v/c)</div><p>Разгон наклоняет оси t′ и x′ навстречу друг другу, как ножницы, сходящиеся к лучу света. Сам луч для любого наблюдателя на месте — скорость света и есть инвариант, который гиперболический поворот сохраняет.</p><div class="fig" data-fig="minkowski"></div></div>
+</section>
+</div>
+<div class="wrap">
+<section class="s5" id="g5">
+  <div class="dhead"><div class="num">БОНУС</div><h2>Дикие случаи</h2><p>Два места, где синус всплывает совсем неожиданно и красиво.</p></div>
+  <div class="case"><div class="case-h">Маятник Фуко</div><div class="formula">ω_поворота ∝ sin φ</div><p>Плоскость качания маятника медленно поворачивается, и скорость этого поворота пропорциональна синусу широты. Так в 1851 году впервые наглядно доказали вращение Земли.</p><div class="fig" data-fig="foucault"></div></div>
+  <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в одно и то же время весь год, оно нарисует восьмёрку. Это комбинация синусов: наклон земной оси и положение по орбите.</p><div class="fig" data-fig="analemma"></div></div>
+</section>
+</div>
+<div class="wrap">
+  <div class="synth">
+    <h2>Одна стрелка</h2>
+    <p>Если присмотреться, дверей не несколько, а одна. В самой основе всего лежит формула Эйлера: точка, бегущая по единичной окружности, <b>e^(iωt) = cos ωt + i·sin ωt</b>. Все три группы — это просто три способа на неё посмотреть.</p>
+    <div class="grid3">
+      <div class="g x1"><div class="gl">Заморозить</div><p>Время остановлено — остаются cos и sin как доли вдоль осей. Это первая дверь: проекция.</p></div>
+      <div class="g x2"><div class="gl">Пустить во времени</div><p>Время идёт, φ = ωt — тень ездит туда-сюда. Это вторая дверь: колебание.</p></div>
+      <div class="g x3"><div class="gl">Сложить несколько</div><p>Несколько крутящихся стрелок, сложенных вместе, дают волны и Фурье. Третья дверь.</p></div>
+    </div>
+    <p>Заморозить — проекция. Пустить во времени — колебание. Сложить несколько — суперпозиция. Один и тот же вращающийся вектор, чья тень на две оси и есть синус с косинусом. Везде, где что-то поворачивается, колеблется или складывается из волн, под капотом крутится именно он.</p>
+  </div>
+</div>
+
+<footer>карта синуса · одна вращающаяся стрелка</footer>
+
+<script>
+(function(){
+var PI=Math.PI, RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var C={co:'#d65f37',cod:'#9c3f1f',te:'#138a64',ted:'#0c5a41',vi:'#6a5bd6',vid:'#473aa3',go:'#c98a1b',god:'#8a5e12',sl:'#4a5568',sld:'#2f3947',ink:'#15171f',mut:'#8a8e9c'};
+function n(x){return (Math.round(x*10)/10);}
+function L(a,b,c,d,col,w,m){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"'+(m?' marker-end="url(#ah)"':'')+'/>';}
+function DL(a,b,c,d){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>';}
+function AX(a,b,c,d){return '<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" stroke="#c7c5bc" stroke-width="1"/>';}
+function TX(x,y,s,col,sz,an){return '<text x="'+n(x)+'" y="'+n(y)+'" font-family="JetBrains Mono,ui-monospace,monospace" font-size="'+(sz||12)+'" fill="'+(col||C.mut)+'"'+(an?' text-anchor="'+an+'"':'')+'>'+s+'</text>';}
+function D(x,y,r,f){return '<circle cx="'+n(x)+'" cy="'+n(y)+'" r="'+r+'" fill="'+f+'"/>';}
+function CC(x,y,r,col,w){return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>';}
+function W(fn,x0,x1,yb,amp,col,w,op,dash){var N=150,p='';for(var i=0;i<=N;i++){var u=i/N;p+=n(x0+(x1-x0)*i/N)+','+n(yb-amp*fn(u))+' ';}return '<polyline points="'+p.trim()+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+(dash?' stroke-dasharray="5 4"':'')+'/>';}
+function part(u,m){var s=0;for(var k=1;k<=2*m-1;k+=2){s+=Math.sin(k*2*PI*1.5*u)/k;}return s*4/PI;}
+function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
+
+/* голос: текущий спектр гласной + воспроизведение */
+var VOWA=null,VAC=null;
+window.SINVOICE=function(){try{
+  if(!VOWA)return;
+  VAC=VAC||new (window.AudioContext||window.webkitAudioContext)();
+  var N=VOWA.length,re=new Float32Array(N+1),im=new Float32Array(N+1),i;
+  for(i=0;i<N;i++)im[i+1]=VOWA[i];
+  var o=VAC.createOscillator(),g=VAC.createGain();
+  o.setPeriodicWave(VAC.createPeriodicWave(re,im));
+  o.frequency.value=110;
+  g.gain.setValueAtTime(0,VAC.currentTime);
+  g.gain.linearRampToValueAtTime(0.22,VAC.currentTime+0.06);
+  g.gain.setValueAtTime(0.22,VAC.currentTime+0.85);
+  g.gain.linearRampToValueAtTime(0,VAC.currentTime+1.1);
+  o.connect(g);g.connect(VAC.destination);o.start();o.stop(VAC.currentTime+1.15);
+}catch(e){}};
+
+var F={
+/* ---------- ДВЕРЬ 1 — ПРОЕКЦИЯ (ползунок угла) ---------- */
+vector:{vb:'0 0 360 190',anim:false,ctrls:[{k:'th',lab:'угол θ',min:5,max:85,val:35,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,ox=58,oy=160,Lr=148,tx=ox+Lr*Math.cos(t),ty=oy-Lr*Math.sin(t);
+  return AX(40,160,332,160)+AX(58,182,58,16)+DL(tx,ty,tx,160)+DL(tx,ty,58,ty)
+  +L(ox,oy,tx,160,C.cod,2.6)+L(tx,160,tx,ty,C.co,2.6)+L(ox,oy,tx,ty,C.co,2.8,1)
+  +TX(tx-14,ty-6,'F',C.ink,13)+TX(ox+62,176,'F·cos θ',C.cod)+TX(tx+6,(ty+160)/2,'F·sin θ',C.co);},
+ rd:function(p){var t=p.th*PI/180;return 'cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>  ·  sin θ = <b>'+Math.sin(t).toFixed(2)+'</b>';}},
+
+incline:{vb:'0 0 360 185',anim:false,ctrls:[{k:'th',lab:'наклон θ',min:8,max:50,val:28,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,cs=Math.cos(t),sn=Math.sin(t),ax=52,ay=152,bx=ax+255*cs,by=ay-255*sn,mx=ax+135*cs,my=ay-135*sn,g=58;
+  return L(ax,ay,bx,by,'#cfceC6'.replace('C6','c6'),1.6)+L(ax,ay,bx,ay,'#dedcd2',1.2)
+  +D(mx,my,8,C.co)
+  +L(mx,my,mx,my+g,C.mut,2.2,1)
+  +L(mx,my,mx-g*sn*cs,my+g*sn*sn,C.co,2.4,1)
+  +L(mx,my,mx+g*cs*sn,my+g*cs*cs,C.cod,2.4,1)
+  +TX(ax-44+0,ay+0,'',C.mut)
+  +TX(mx-86,my+34,'g·sin θ',C.co)+TX(mx+18,my+52,'g·cos θ',C.cod);},
+ rd:function(p){var t=p.th*PI/180;return 'вдоль ската sin θ = <b>'+Math.sin(t).toFixed(2)+'</b>  ·  в поверхность cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>';}},
+
+work:{vb:'0 0 360 196',anim:false,ctrls:[{k:'th',lab:'угол силы θ',min:0,max:90,val:40,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,ox=58,oy=162,Lr=132,tx=ox+Lr*Math.cos(t),ty=oy-Lr*Math.sin(t);
+  return AX(40,162,322,162)+L(ox,oy,292,oy,C.ink,2.2,1)+TX(150,184,'перемещение s',C.mut)
+  +DL(tx,ty,tx,162)+L(ox,oy,tx,162,C.cod,2.6)+L(ox,oy,tx,ty,C.co,2.8,1)
+  +TX(tx+5,ty-5,'F',C.ink,13)+TX(ox+18,155,'F·cos θ',C.cod);},
+ rd:function(p){var c=Math.cos(p.th*PI/180);return 'работа ∝ cos θ = <b>'+c.toFixed(2)+'</b>'+(c<0.02?'  — сила поперёк пути, работы нет':'');}},
+
+torque:{vb:'0 0 360 175',anim:false,ctrls:[{k:'th',lab:'угол силы θ',min:5,max:90,val:60,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,pv=70,pvy=112,ex=250,Fl=78,fx=ex+Fl*Math.cos(t),fy=pvy-Fl*Math.sin(t),sy=pvy-Fl*Math.sin(t);
+  return D(pv,pvy,5,C.ink)+L(pv,pvy,ex,pvy,C.ink,2.2)+TX(150,130,'рычаг r',C.mut)
+  +L(ex,pvy,fx,fy,C.co,2.6,1)+L(ex,pvy,ex,sy,C.cod,2.4,1)+DL(ex,sy,fx,fy)
+  +TX(fx+4,fy-4,'F',C.ink,13)+TX(ex-78,pvy-36,'F·sin θ',C.cod);},
+ rd:function(p){return 'момент ∝ sin θ = <b>'+Math.sin(p.th*PI/180).toFixed(2)+'</b>';}},
+
+dotcross:{vb:'0 0 360 175',anim:false,ctrls:[{k:'th',lab:'угол между ними',min:20,max:155,val:60,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,ox=100,oy=150,al=100,ax=ox+al*Math.cos(t),ay=oy-al*Math.sin(t),fx=ox+al*Math.cos(t);
+  return '<polygon points="'+ox+','+oy+' '+n(ax)+','+n(ay)+' '+n(fx)+','+oy+'" fill="'+C.co+'" opacity="0.1"/>'
+  +L(ox,oy,290,oy,C.cod,2.6,1)+L(ox,oy,ax,ay,C.co,2.6,1)+DL(ax,ay,fx,oy)
+  +TX(282,oy+16,'b',C.ink,13)+TX(ax-4,ay-6,'a',C.ink,13)
+  +TX(ox+10,oy-58,'sin θ = высота',C.co)+TX(ox-4,oy+18,'cos θ = проекция',C.cod);},
+ rd:function(p){var t=p.th*PI/180;return 'a·b ∝ cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>  ·  |a×b| ∝ sin θ = <b>'+Math.abs(Math.sin(t)).toFixed(2)+'</b>';}},
+
+acpower:{vb:'0 0 360 170',anim:false,ctrls:[{k:'phi',lab:'сдвиг фазы φ',min:0,max:80,val:35,unit:'°'}],
+ R:function(p){var t=p.phi*PI/180,ox=58,oy=120,Lr=160,ix=ox+Lr*Math.cos(t),iy=oy-Lr*Math.sin(t);
+  return AX(40,120,330,120)+L(ox,oy,285,oy,C.ink,2.2,1)+TX(255,138,'U',C.ink,13)
+  +DL(ix,iy,ix,120)+L(ox,oy,ix,120,C.cod,2.4)+L(ix,120,ix,iy,C.co,2.4)+L(ox,oy,ix,iy,C.co,2.6,1)
+  +TX(ix+4,iy-4,'I',C.ink,13)+TX(ox+20,113,'P ∝ cos φ',C.cod)+TX(ix+6,(iy+120)/2,'Q ∝ sin φ',C.co);},
+ rd:function(p){var t=p.phi*PI/180;return 'cos φ = <b>'+Math.cos(t).toFixed(2)+'</b> (полезная)  ·  sin φ = <b>'+Math.sin(t).toFixed(2)+'</b> (реактивная)';}},
+
+malus:{vb:'0 0 360 170',anim:false,ctrls:[{k:'th',lab:'угол поляроида θ',min:0,max:90,val:35,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,tr=Math.max(0.05,Math.cos(t)*Math.cos(t)),
+  a1x=235-26*Math.sin(t),a1y=92+26*Math.cos(t),a2x=235+26*Math.sin(t),a2y=92-26*Math.cos(t);
+  return '<line x1="50" y1="92" x2="310" y2="92" stroke="#cfd9d3" stroke-width="1" stroke-dasharray="3 3"/>'
+  +'<rect x="120" y="38" width="9" height="108" rx="3" fill="'+C.co+'" opacity="0.22"/><line x1="124.5" y1="46" x2="124.5" y2="138" stroke="'+C.cod+'" stroke-width="2"/>'
+  +'<rect x="231" y="38" width="9" height="108" rx="3" fill="'+C.co+'" opacity="0.22"/>'+L(a1x,a1y,a2x,a2y,C.cod,2)
+  +L(58,92,118,92,C.co,4,1)+L(133,92,228,92,C.co,4,1)
+  +'<line x1="244" y1="92" x2="305" y2="92" stroke="'+C.co+'" stroke-width="4" opacity="'+tr.toFixed(2)+'" marker-end="url(#ah)"/>'
+  +TX(108,30,'поляроид 1',C.mut)+TX(224,30,'θ',C.mut);},
+ rd:function(p){var c=Math.cos(p.th*PI/180);return 'проходит I / I₀ = cos² θ = <b>'+(c*c).toFixed(2)+'</b>';}},
+
+snell:{vb:'0 0 360 185',anim:false,ctrls:[{k:'th1',lab:'угол падения θ₁',min:10,max:80,val:45,unit:'°'}],
+ R:function(p){var t1=p.th1*PI/180,s2=Math.sin(t1)/1.5,t2=Math.asin(s2),ox=180,oy=95,
+  sx=ox-92*Math.sin(t1),sy=oy-92*Math.cos(t1),ex=ox+92*Math.sin(t2),ey=oy+92*Math.cos(t2);
+  return '<rect x="40" y="18" width="280" height="77" fill="#eef2f6"/><rect x="40" y="95" width="280" height="78" fill="#d9e6f0"/>'
+  +'<line x1="40" y1="95" x2="320" y2="95" stroke="#9fb2c2" stroke-width="1.5"/>'+DL(180,18,180,173)
+  +L(sx,sy,ox,oy,C.co,2.6,1)+L(ox,oy,ex,ey,C.co,2.6,1)
+  +TX(150,58,'θ₁',C.mut)+TX(196,140,'θ₂',C.mut)+TX(285,46,'n₁=1',C.mut)+TX(285,133,'n₂=1.5',C.mut);},
+ rd:function(p){var t1=p.th1*PI/180,t2=Math.asin(Math.sin(t1)/1.5)*180/PI;return 'θ₂ = <b>'+t2.toFixed(1)+'°</b>  (луч прижимается к нормали)';}},
+
+/* ---------- ДВЕРЬ 2 — ВРАЩЕНИЕ (анимация) ---------- */
+circular:{vb:'0 0 360 200',anim:true,ctrls:[{k:'spd',lab:'скорость ω',min:0.6,max:2.4,step:0.1,val:1.3}],
+ R:function(p,t){var a=t*p.spd,ox=95,oy=105,r=64,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a);
+  return AX(35,105,348,105)+AX(95,182,95,28)+CC(95,105,64,'#cfd9d3',1.3)
+  +L(ox,oy,px,105,C.ted,2.2)+L(px,105,px,py,C.te,2.2)+L(ox,oy,px,py,C.te,2.6,1)+D(px,py,4,C.te)
+  +DL(px,py,180,py)+W(function(u){return Math.sin(a-u*2*PI*1.1);},180,346,105,64,C.te,2.4)+D(180,105-64*Math.sin(a),4,C.te)
+  +TX(112,124,'cos ωt',C.ted)+TX(150,200,'',C.mut);},
+ rd:function(p){return 'x = R·cos ωt,  y = R·sin ωt — тень крутящейся точки';}},
+
+shm:{vb:'0 0 360 165',anim:true,ctrls:[{k:'A',lab:'амплитуда A',min:18,max:56,val:44},{k:'w',lab:'частота ω',min:0.6,max:2.2,step:0.1,val:1.3}],
+ R:function(p,t){var ph=t*p.w;return AX(40,82,335,82)+W(function(u){return Math.cos(u*2*PI*1.4-ph);},70,330,82,p.A,C.te,2.6)
+  +D(64,82-p.A*Math.cos(ph),6,C.te)+DL(64,82,64,30);},
+ rd:function(p){return 'x(t) = A·cos(ωt),  A='+p.A+',  ω='+p.w.toFixed(1);}},
+
+pendulum:{vb:'0 0 360 175',anim:true,ctrls:[{k:'th0',lab:'размах θ₀',min:5,max:45,val:28,unit:'°'}],
+ R:function(p,t){var th=p.th0*PI/180*Math.cos(t*1.6),bx=180+120*Math.sin(th),by=28+120*Math.cos(th);
+  return '<line x1="120" y1="28" x2="240" y2="28" stroke="#cfd9d3" stroke-width="3"/>'+D(180,28,4,C.ink)+DL(180,28,180,162)
+  +L(180,28,bx,by,C.ted,2.4)+'<circle cx="'+n(bx)+'" cy="'+n(by)+'" r="13" fill="#e6f4ee" stroke="'+C.te+'" stroke-width="2.2"/>';},
+ rd:function(p){return 'θ(t) = θ₀·cos(ωt),  θ₀='+p.th0+'°,  ω=√(g/L)';}},
+
+ac:{vb:'0 0 360 150',anim:true,ctrls:[{k:'A',lab:'амплитуда I₀',min:22,max:50,val:44},{k:'f',lab:'частота',min:1,max:3,step:1,val:2}],
+ R:function(p,t){var ph=t*1.6;return AX(40,75,335,75)+W(function(u){return Math.sin(u*2*PI*p.f-ph);},50,330,75,p.A,C.te,2.6);},
+ rd:function(p){return 'I(t) = I₀·sin(ωt − φ)';}},
+
+generator:{vb:'0 0 360 170',anim:true,ctrls:[{k:'spd',lab:'обороты',min:0.6,max:2.2,step:0.1,val:1.2}],
+ R:function(p,t){var a=t*p.spd,cx=100,cy=88,tx=cx+38*Math.cos(a),ty=cy-38*Math.sin(a);
+  return '<rect x="38" y="42" width="24" height="92" rx="3" fill="#d7e6ea"/>'+TX(45,94,'N',C.mut)
+  +'<rect x="138" y="42" width="24" height="92" rx="3" fill="#f0ddd7"/>'+TX(145,94,'S',C.mut)
+  +'<ellipse cx="100" cy="88" rx="30" ry="44" fill="none" stroke="'+C.ted+'" stroke-width="2.2"/>'
+  +L(cx,cy,tx,ty,C.te,2.2,1)+TX(186,96,'→',C.ink,22)
+  +AX(224,88,338,88)+W(function(u){return Math.sin(a-u*2*PI*1.1);},228,334,88,36,C.te,2.4);},
+ rd:function(p){return 'ε = ε₀·sin ωt — вращение катушки рождает синус';}},
+
+traveling:{vb:'0 0 360 150',anim:true,ctrls:[{k:'cyc',lab:'длина волны',min:1,max:3,step:1,val:2}],
+ R:function(p,t){var ph=t*1.4;return AX(40,75,330,75)+W(function(u){return Math.sin(u*2*PI*p.cyc-ph);},46,320,75,44,C.te,2.6)
+  +L(286,40,322,40,C.ted,2,1)+TX(292,34,'v',C.ted);},
+ rd:function(p){return 'y(x,t) = A·sin(kx − ωt) — горб бежит вправо';}},
+
+euler:{vb:'0 0 360 200',anim:true,ctrls:[{k:'w',lab:'частота ω',min:0.6,max:2.2,step:0.1,val:1.2}],
+ R:function(p,t){var a=t*p.w,ox=118,oy=108,r=70,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a);
+  return AX(38,108,330,108)+AX(118,192,118,22)+TX(314,102,'Re')+TX(126,34,'Im')+CC(118,108,70,'#cfd9d3',1.3)
+  +L(ox,oy,px,108,C.ted,2.2)+L(px,108,px,py,C.te,2.2)+L(ox,oy,px,py,C.te,2.6,1)+D(px,py,4,C.te)
+  +TX(px+4,py-6,'e^(iωt)',C.ink,12);},
+ rd:function(p){return 'e^(iωt) = cos ωt + i·sin ωt — две тени одного вращения';}},
+
+/* ---------- ДВЕРЬ 3 — СУПЕРПОЗИЦИЯ (анимация + ползунки) ---------- */
+superposition:{vb:'0 0 360 170',anim:true,ctrls:[{k:'dphi',lab:'сдвиг фаз Δφ',min:0,max:360,step:5,val:60,unit:'°'}],
+ R:function(p,t){var ph=t*1.4,dp=p.dphi*PI/180;
+  function y1(u){return Math.sin(u*2*PI*2-ph);} function y2(u){return Math.sin(u*2*PI*2-ph+dp);}
+  return AX(40,85,330,85)+W(y1,46,320,85,30,C.vi,1.6,'0.4')+W(y2,46,320,85,30,C.vi,1.6,'0.4')
+  +W(function(u){return y1(u)+y2(u);},46,320,85,30,C.vid,2.8);},
+ rd:function(p){var r=Math.abs(Math.cos(p.dphi*PI/180/2));return 'амплитуда суммы = <b>'+(2*r).toFixed(2)+'</b>'+(r<0.05?'  — погасили':(r>0.96?'  — усилили':''));}},
+
+beats:{vb:'0 0 360 160',anim:true,ctrls:[{k:'df',lab:'разность частот Δf',min:1,max:4,step:1,val:2}],
+ R:function(p,t){var ph=t*1.2;
+  return AX(40,80,330,80)+W(function(u){return Math.cos(PI*p.df*u);},46,320,80,52,C.vi,1.2,'0.55',1)
+  +W(function(u){return 0.5*(Math.sin(u*2*PI*8-ph)+Math.sin(u*2*PI*(8+p.df)-ph));},46,320,80,52,C.vid,2.4);},
+ rd:function(p){return 'Δf = '+p.df+' → '+p.df+' биения в окне (пунктир — огибающая)';}},
+
+standing:{vb:'0 0 360 170',anim:true,ctrls:[{k:'nn',lab:'мода n',min:1,max:5,step:1,val:3}],
+ R:function(p,t){var c=Math.cos(t*1.6),nn=p.nn,s='';
+  s+=AX(40,85,330,85)+W(function(u){return Math.sin(nn*PI*u);},46,320,85,46,C.vi,1.2,'0.35')
+  +W(function(u){return -Math.sin(nn*PI*u);},46,320,85,46,C.vi,1.2,'0.35')
+  +W(function(u){return Math.sin(nn*PI*u)*c;},46,320,85,46,C.vid,2.6);
+  for(var k=0;k<=nn;k++){s+=D(46+(320-46)*k/nn,85,3.5,C.vid);} return s;},
+ rd:function(p){return 'мода n='+p.nn+' · узлов '+(p.nn+1)+' — они стоят на месте';}},
+
+interference:{vb:'0 0 360 175',anim:true,ctrls:[{k:'d',lab:'разность хода Δ',min:0,max:2,step:0.05,val:0.5,unit:'λ'}],
+ R:function(p,t){var ph=t*1.3,a1=ph,a2=ph+2*PI*p.d,ox=105,oy=108,Lr=50,
+  bx=ox+Lr*Math.cos(a1),by=oy-Lr*Math.sin(a1),cx=bx+Lr*Math.cos(a2),cy=by-Lr*Math.sin(a2),
+  br=Math.hypot(cx-ox,cy-oy)/(2*Lr);
+  return CC(105,108,100,'#e3e1f5',1)
+  +L(ox,oy,bx,by,C.vi,2.4,1)+L(bx,by,cx,cy,C.vi,2.4,1)+L(ox,oy,cx,cy,C.vid,2.8,1)
+  +'<rect x="262" y="62" width="74" height="74" rx="6" fill="'+C.vid+'" opacity="'+br.toFixed(2)+'"/><rect x="262" y="62" width="74" height="74" rx="6" fill="none" stroke="#d8d6ee" stroke-width="1"/>'
+  +TX(299,150,'яркость',C.mut,11,'middle');},
+ rd:function(p){var br=Math.abs(Math.cos(PI*p.d));return 'Δ = '+p.d.toFixed(2)+'λ  ·  яркость '+br.toFixed(2)+(br>0.95?' (максимум)':(br<0.06?' (темнота)':''));}},
+
+diffraction:{vb:'0 0 360 185',anim:true,ctrls:[{k:'d',lab:'шаг щелей d',min:1,max:6,step:0.5,val:3,unit:'λ'}],
+ R:function(p,t){var s='',i;
+  for(i=0;i<4;i++){var x=45+((t*26+i*22)%66);s+='<line x1="'+n(x)+'" y1="32" x2="'+n(x)+'" y2="150" stroke="'+C.vi+'" stroke-width="1.2" opacity="0.4"/>';}
+  s+='<rect x="92" y="28" width="10" height="52" fill="#2a2d3a"/><rect x="92" y="103" width="10" height="52" fill="#2a2d3a"/>';
+  s+='<g fill="none" stroke="'+C.vi+'" stroke-width="1.2" opacity="0.5"><path d="M102 91 q44 -32 88 0"/><path d="M102 91 q68 -50 136 0"/></g>';
+  s+='<rect x="300" y="28" width="14" height="128" fill="#efeefb"/>';
+  for(i=0;i<14;i++){var y=28+i*128/14,ang=(y-92)/120,I=Math.cos(PI*p.d*Math.sin(ang));I=I*I;
+   s+='<rect x="300" y="'+n(y)+'" width="14" height="'+n(128/14+0.6)+'" fill="'+C.vid+'" opacity="'+I.toFixed(2)+'"/>';}
+  return s+TX(118,172,'щели → полосы на экране',C.mut);},
+ rd:function(p){return 'd = '+p.d+'λ — чем больше шаг, тем чаще полосы';}},
+
+bragg:{vb:'0 0 360 180',anim:false,ctrls:[{k:'th',lab:'угол θ',min:10,max:80,val:30,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,d=1.5,nn=2*d*Math.sin(t),inph=(Math.abs(nn-Math.round(nn))<0.06&&nn>=0.5),
+  col=inph?C.vid:C.vi,s='',i;
+  for(i=0;i<6;i++){s+=D(60+i*50,70,5,'#c9c0ef')+D(60+i*50,125,5,'#c9c0ef');}
+  s+=DL(40,70,320,70)+DL(40,125,320,125);
+  var P=[160,70];
+  s+=L(P[0]-85*Math.cos(t),P[1]-85*Math.sin(t),P[0],P[1],col,2,1)+L(P[0],P[1],P[0]+85*Math.cos(t),P[1]-85*Math.sin(t),col,2,1);
+  var Q=[210,125];
+  s+=L(Q[0]-85*Math.cos(t),Q[1]-85*Math.sin(t),Q[0],Q[1],col,2,0.55)+L(Q[0],Q[1],Q[0]+85*Math.cos(t),Q[1]-85*Math.sin(t),col,2,0.55);
+  s+='<line x1="330" y1="70" x2="330" y2="125" stroke="'+C.mut+'" stroke-width="1"/>'+TX(336,102,'d',C.mut);
+  return s;},
+ rd:function(p){var t=p.th*PI/180,nn=2*1.5*Math.sin(t),inph=(Math.abs(nn-Math.round(nn))<0.06&&nn>=0.5);
+  return 'n = 2d·sinθ / λ = <b>'+nn.toFixed(2)+'</b>'+(inph?'  — отражения в фазе!':'');}},
+
+fourier:{vb:'0 0 360 160',anim:false,ctrls:[{k:'nn',lab:'гармоник',min:1,max:12,step:1,val:4}],
+ R:function(p){return AX(40,80,330,80)+W(sq,46,320,80,48,C.mut,1.3,'',1)
+  +W(function(u){return Math.max(-1.18,Math.min(1.18,part(u,p.nn)));},46,320,80,48,C.vid,2.6);},
+ rd:function(p){return 'гармоник: '+p.nn+' (только нечётные, амплитуды ∝ 1/k)';}},
+
+/* ---- доп. кейсы: ПРОЕКЦИЯ ---- */
+vecadd:{vb:'0 0 360 185',anim:false,ctrls:[{k:'cur',lab:'течение',min:0,max:85,val:45}],
+ R:function(p){var ox=95,oy=160,bl=96,tx=ox+p.cur,ty=oy-bl;
+  return AX(40,160,330,160)+AX(95,180,95,28)+L(ox,oy,ox,oy-bl,C.cod,2.6,1)+L(ox,oy,ox+p.cur,oy,C.co,2.4,1)
+  +DL(ox,ty,tx,ty)+DL(tx,oy,tx,ty)+L(ox,oy,tx,ty,C.co,2.9,1)
+  +TX(ox-50,oy-bl/2,'лодка',C.cod)+TX(ox+8,oy+16,'течение',C.co)+TX(tx+4,ty+2,'итог',C.ink);},
+ rd:function(p){return 'снос = arctan(течение/лодка) = <b>'+(Math.atan2(p.cur,96)*180/PI).toFixed(0)+'°</b> · модуль скорости = <b>'+Math.hypot(p.cur,96).toFixed(0)+'</b>';}},
+lawcos:{vb:'0 0 360 190',anim:false,ctrls:[{k:'cc',lab:'угол C',min:25,max:150,val:70,unit:'°'}],
+ R:function(p){var t=p.cc*PI/180,ox=95,oy=162,a=100,b=120,Ax=ox+a*Math.cos(t),Ay=oy-a*Math.sin(t),Bx=ox+b;
+  return '<polygon points="'+ox+','+oy+' '+n(Bx)+','+oy+' '+n(Ax)+','+n(Ay)+'" fill="'+C.co+'" opacity="0.08"/>'
+  +L(ox,oy,Bx,oy,C.cod,2.4)+L(ox,oy,Ax,Ay,C.cod,2.4)+L(Bx,oy,Ax,Ay,C.co,2.8)
+  +TX((ox+Bx)/2-4,oy+16,'b',C.cod)+TX((ox+Ax)/2-16,(oy+Ay)/2,'a',C.cod)+TX((Ax+Bx)/2+8,(Ay+oy)/2,'c',C.co)+TX(ox+14,oy-10,'C',C.mut);},
+ rd:function(p){var t=p.cc*PI/180,a=100,b=120;return 'c = √(a²+b²−2ab·cos C) = <b>'+Math.sqrt(a*a+b*b-2*a*b*Math.cos(t)).toFixed(0)+'</b>  ·  при C=90° это теорема Пифагора';}},
+brewster:{vb:'0 0 360 180',anim:false,ctrls:[{k:'nn',lab:'показатель n',min:1.1,max:2,step:0.05,val:1.5}],
+ R:function(p){var tb=Math.atan(p.nn),ox=180,oy=92,tr=Math.asin(Math.sin(tb)/p.nn),
+  ix=ox-90*Math.sin(tb),iy=oy-90*Math.cos(tb),rx=ox+90*Math.sin(tb),ry=oy-90*Math.cos(tb),fx=ox+76*Math.sin(tr),fy=oy+76*Math.cos(tr);
+  return '<rect x="40" y="16" width="280" height="76" fill="#eef2f6"/><rect x="40" y="92" width="280" height="78" fill="#d9e6f0"/>'
+  +'<line x1="40" y1="92" x2="320" y2="92" stroke="#9fb2c2" stroke-width="1.5"/>'+DL(180,16,180,170)
+  +L(ix,iy,ox,oy,C.co,2.6,1)+L(ox,oy,rx,ry,C.cod,2.9,1)+L(ox,oy,fx,fy,C.co,2,1)
+  +TX(rx+4,ry,'θᵦ',C.cod)+TX(150,150,'n='+p.nn.toFixed(2),C.mut);},
+ rd:function(p){return 'θ Брюстера = arctan(n) = <b>'+(Math.atan(p.nn)*180/PI).toFixed(0)+'°</b> — отражённый луч полностью поляризован (поляроид гасит блики)';}},
+/* ---- доп. кейсы: ВРАЩЕНИЕ ---- */
+centripetal:{vb:'0 0 360 205',anim:true,ctrls:[{k:'spd',lab:'скорость ω',min:0.6,max:2.2,step:0.1,val:1.3}],
+ R:function(p,t){var a=t*p.spd,ox=180,oy=105,r=74,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a),
+  vx=px-44*Math.sin(a),vy=py-44*Math.cos(a),axx=px-42*Math.cos(a),ayy=py+42*Math.sin(a);
+  return CC(180,105,74,'#cfd9d3',1.3)+DL(ox,oy,px,py)+L(px,py,vx,vy,C.te,2.6,1)+L(px,py,axx,ayy,C.ted,2.6,1)
+  +D(px,py,4.5,C.te)+D(ox,oy,3,C.mut)+TX(vx-4,vy-6,'v',C.te,13)+TX(axx-2,ayy+14,'a',C.ted,13);},
+ rd:function(p){return 'a = v²/R, направлено к центру — ускорение есть даже при постоянной по модулю скорости';}},
+damped:{vb:'0 0 360 160',anim:true,ctrls:[{k:'g',lab:'затухание γ',min:0.1,max:1.6,step:0.1,val:0.6}],
+ R:function(p,t){var g=p.g;function e(u){return Math.exp(-g*2.6*u);}
+  return AX(40,80,330,80)+W(function(u){return e(u);},46,320,80,52,C.te,1.2,'0.5',1)+W(function(u){return -e(u);},46,320,80,52,C.te,1.2,'0.5',1)
+  +W(function(u){return e(u)*Math.cos(u*2*PI*3-t*1.5);},46,320,80,52,C.ted,2.5);},
+ rd:function(p){return 'e^(−γt)·sin ωt, γ='+p.g.toFixed(1)+' — синус под экспонентой: любой звон, гаснущий до тишины';}},
+resonance:{vb:'0 0 360 200',anim:true,ctrls:[{k:'f',lab:'частота привода',min:0.3,max:2.2,step:0.02,val:0.7}],
+ R:function(p,t){var f0=1,gm=0.12;function rp(x){return 1/Math.sqrt(Math.pow(f0*f0-x*x,2)+Math.pow(2*gm*x,2));}
+  var mx=rp(Math.sqrt(Math.max(1e-4,f0*f0-2*gm*gm))),r=rp(p.f)/mx,x0=60,Wd=210,base=150,top=40;
+  function px(x){return x0+Wd*(x-0.3)/1.9;}function py(v){return base-(base-top)*Math.min(1,v/mx);}
+  var d='M';for(var x=0.3;x<=2.205;x+=0.02){d+=' '+n(px(x))+','+n(py(rp(x)));}
+  var mp=px(p.f),bx=305+34*r*Math.sin(t*2.4);
+  return '<path d="'+d+'" fill="none" stroke="'+C.ted+'" stroke-width="2"/>'+AX(60,150,282,150)+AX(60,155,60,34)
+  +'<line x1="'+n(mp)+'" y1="40" x2="'+n(mp)+'" y2="150" stroke="'+C.te+'" stroke-width="1.4" stroke-dasharray="4 4"/>'+D(mp,py(rp(p.f)),5,C.te)
+  +'<line x1="305" y1="40" x2="305" y2="70" stroke="'+C.mut+'" stroke-width="1" stroke-dasharray="3 3"/>'+L(305,70,bx,70,C.te,2.4)+D(bx,70,9,C.te)
+  +TX(150,172,'частота привода →',C.mut,11);},
+ rd:function(p){var f0=1,gm=0.12;function rp(x){return 1/Math.sqrt(Math.pow(f0*f0-x*x,2)+Math.pow(2*gm*x,2));}
+  var r=rp(p.f)/rp(Math.sqrt(f0*f0-2*gm*gm));return 'отклик '+r.toFixed(2)+(r>0.9?' — резонанс: раскачка точно в такт (качели, мост, радио)':'');}},
+impedance:{vb:'0 0 360 185',anim:true,ctrls:[{k:'phi',lab:'сдвиг φ',min:-80,max:80,step:5,val:40,unit:'°'}],
+ R:function(p,t){var a=t*1.2,O=110,Oy=100,r=72,vx=O+r*Math.cos(a),vy=Oy-r*Math.sin(a),ph=p.phi*PI/180,ix=O+r*Math.cos(a-ph),iy=Oy-r*Math.sin(a-ph);
+  return CC(110,100,72,'#cfd9d3',1.2)+AX(30,100,330,100)+AX(110,178,110,28)
+  +L(O,Oy,vx,vy,C.ted,2.6,1)+L(O,Oy,ix,iy,C.te,2.6,1)+TX(vx+4,vy-4,'U',C.ted,13)+TX(ix+4,iy+4,'I',C.te,13);},
+ rd:function(p){return 'ток сдвинут на φ='+p.phi+'° (Z = R + iX): φ>0 — отстаёт (катушка), φ<0 — опережает (конденсатор)';}},
+/* ---- доп. кейсы: СУПЕРПОЗИЦИЯ ---- */
+doppler:{vb:'0 0 360 180',anim:true,ctrls:[{k:'v',lab:'скорость источника',min:0,max:0.6,step:0.05,val:0.4}],
+ R:function(p,t){var x0=55,P=6,vs=p.v*38,wr=30,dt=0.5,s='',k;
+  for(k=0;k<11;k++){var te=Math.floor(t/dt)*dt-k*dt;if(te<0)continue;var age=t-te,R=age*wr;if(R>215)continue;var ex=x0+vs*(te%P);
+   s+='<circle cx="'+n(ex)+'" cy="90" r="'+n(R)+'" fill="none" stroke="'+C.vi+'" stroke-width="1.3" opacity="'+Math.max(0.04,0.55-age*0.09).toFixed(2)+'"/>';}
+  var cur=x0+vs*(t%P);return s+D(cur,90,5.5,C.vid)+L(cur,90,cur+24,90,C.vid,1.6,1)
+  +TX(56,28,'спереди — выше частота',C.vid,11)+TX(56,166,'сзади — ниже',C.mut,11);},
+ rd:function(p){return 'источник '+p.v.toFixed(2)+'c — волны спереди сжаты (выше), сзади растянуты (ниже): сирена скорой';}},
+circpol:{vb:'0 0 360 190',anim:true,ctrls:[{k:'d',lab:'сдвиг δ',min:0,max:180,step:5,val:90,unit:'°'}],
+ R:function(p,t){var cx=110,cy=100,A=66,dl=p.d*PI/180,a=t*1.4,ex=cx+A*Math.cos(a),ey=cy-A*Math.cos(a-dl);
+  var pa='M';for(var i=0;i<=80;i++){var th=i/80*2*PI;pa+=' '+n(cx+A*Math.cos(th))+','+n(cy-A*Math.cos(th-dl));}
+  return AX(30,100,210,100)+AX(110,178,110,22)+'<path d="'+pa+'" fill="none" stroke="'+C.vi+'" stroke-width="1.3" opacity="0.5"/>'
+  +L(cx,cy,ex,ey,C.vid,2.6,1)+D(ex,ey,4,C.vid)
+  +W(function(u){return Math.cos(u*2*PI*1.6-a);},225,338,62,28,C.vi,1.6,'0.5')+W(function(u){return Math.cos(u*2*PI*1.6-a-dl);},225,338,128,28,C.vid,1.6,'0.5')
+  +TX(248,28,'два синуса',C.mut,11);},
+ rd:function(p){var d=p.d;return 'δ='+d+'°: '+(Math.abs(d-90)<8?'круговая':(d<8||d>172?'линейная':'эллиптическая'))+' поляризация — кончик E чертит эту фигуру (3D-очки)';}},
+groupvel:{vb:'0 0 360 165',anim:true,ctrls:[{k:'sep',lab:'разброс частот',min:1,max:4,step:0.5,val:2}],
+ R:function(p,t){var K=2,Dk=p.sep*0.35,vp=1.5,vg=0.5;function car(u){return Math.cos(u*2*PI*K-vp*t);}function env(u){return Math.cos(u*2*PI*Dk-vg*t);}
+  return AX(40,82,330,82)+W(function(u){return env(u);},46,320,82,52,C.vi,1.2,'0.5',1)+W(function(u){return -env(u);},46,320,82,52,C.vi,1.2,'0.5',1)
+  +W(function(u){return env(u)*car(u);},46,320,82,52,C.vid,2.4);},
+ rd:function(p){return 'огибающая (группа) и несущая (фаза) бегут с разной скоростью: v_гр = dω/dk, v_ф = ω/k';}},
+quantum:{vb:'0 0 360 170',anim:true,ctrls:[{k:'k',lab:'волновое число k',min:1,max:3,step:1,val:2}],
+ R:function(p,t){var ph=t*1.4;return AX(40,80,330,80)
+  +W(function(u){return Math.cos(u*2*PI*p.k-ph);},46,320,80,40,C.vid,2.6)+W(function(u){return Math.sin(u*2*PI*p.k-ph);},46,320,80,40,C.vi,1.6,'0.5')
+  +'<line x1="46" y1="34" x2="320" y2="34" stroke="'+C.vi+'" stroke-width="1.6" stroke-dasharray="5 4"/>'
+  +TX(50,28,'|ψ|² = const (вероятность)',C.mut,11)+TX(296,96,'Re',C.vid,11)+TX(296,112,'Im',C.vi,11);},
+ rd:function(p){return 'ψ ~ e^(i(kx−ωt)): Re и Im — два синуса в квадратуре; модуль² ровный — равная вероятность найти частицу';}},
+/* ---- ДВЕРЬ 4: ПОВОРОТ КАК ОПЕРАЦИЯ ---- */
+rotmatrix:{vb:'0 0 360 185',anim:false,ctrls:[{k:'th',lab:'поворот θ',min:0,max:360,step:5,val:45,unit:'°'}],
+ R:function(p){var cx=160,cy=95,t=p.th*PI/180,co=Math.cos(t),sn=Math.sin(t),pts=[[0,-58],[52,34],[-22,34]];
+  function poly(rot,col,op,w){var s='';for(var i=0;i<3;i++){var x=pts[i][0],y=pts[i][1];if(rot){var nx=x*co-y*sn,ny=x*sn+y*co;x=nx;y=ny;}s+=n(cx+x)+','+n(cy+y)+' ';}
+   return '<polygon points="'+s.trim()+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+'/>';}
+  return AX(40,95,330,95)+AX(160,175,160,16)+poly(false,C.god,'0.35',1.5)+poly(true,C.go,'',2.6)+D(cx,cy,3,C.mut);},
+ rd:function(p){return '[cos θ  −sin θ; sin θ  cos θ] — поворот на '+p.th+'° (бледный — исходный). Каждый кадр в играх и графике';}},
+complexmul:{vb:'0 0 360 190',anim:false,ctrls:[{k:'th',lab:'умножить на e^(iθ)',min:0,max:360,step:5,val:60,unit:'°'}],
+ R:function(p){var ox=110,oy=110,r=72,b=25*PI/180,t=p.th*PI/180,zx=ox+r*Math.cos(b),zy=oy-r*Math.sin(b),wx=ox+r*Math.cos(b+t),wy=oy-r*Math.sin(b+t);
+  return AX(30,110,330,110)+AX(110,185,110,28)+TX(316,104,'Re')+TX(118,38,'Im')+CC(110,110,72,'#e9e2cf',1.1)
+  +L(ox,oy,zx,zy,C.god,2.4,1)+L(ox,oy,wx,wy,C.go,2.8,1)+TX(zx+4,zy-4,'z',C.god,13)+TX(wx+4,wy-4,'z·e^(iθ)',C.go,12);},
+ rd:function(p){return 'умножение на e^(iθ) поворачивает точку на '+p.th+'° вокруг нуля — комплексные числа и есть повороты плоскости';}},
+quaternion:{vb:'0 0 360 200',anim:true,ctrls:[{k:'spd',lab:'скорость',min:0.3,max:1.5,step:0.1,val:0.7}],
+ R:function(p,t){var a=t*p.spd,cx=180,cy=102,sc=54,
+  V=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],
+  E=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  function rot(v){var x=v[0],y=v[1],z=v[2],c1=Math.cos(a),s1=Math.sin(a),x1=x*c1+z*s1,z1=-x*s1+z*c1,b=a*0.6,c2=Math.cos(b),s2=Math.sin(b),y1=y*c2-z1*s2,z2=y*s2+z1*c2;return [x1,y1,z2];}
+  var P=V.map(function(v){var r=rot(v),pz=1/(1+r[2]*0.16);return [cx+r[0]*sc*pz,cy+r[1]*sc*pz];}),s='';
+  E.forEach(function(e){s+=L(P[e[0]][0],P[e[0]][1],P[e[1]][0],P[e[1]][1],C.go,2);});return s;},
+ rd:function(p){return 'sin и cos крутят куб в 3D — основа кватернионов: повороты для игр, дронов, анимации без сбоев';}},
+/* ---- БОНУС: ДИКИЕ СЛУЧАИ ---- */
+foucault:{vb:'0 0 360 190',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0,max:90,step:5,val:45,unit:'°'}],
+ R:function(p,t){var cx=110,cy=100,R=78,rt=t*0.25*Math.sin(p.lat*PI/180),ux=Math.cos(rt),uy=Math.sin(rt),sw=Math.cos(t*2.2)*R,bx=cx+ux*sw,by=cy+uy*sw;
+  return CC(110,100,78,'#dcdfe6',1.2)+'<line x1="'+n(cx-ux*R)+'" y1="'+n(cy-uy*R)+'" x2="'+n(cx+ux*R)+'" y2="'+n(cy+uy*R)+'" stroke="'+C.sl+'" stroke-width="1.6" stroke-dasharray="4 4"/>'
+  +D(bx,by,7,C.sld)+D(cx,cy,3,C.mut)+TX(202,96,'плоскость качания',C.mut,11)+TX(202,114,'медленно вращается',C.mut,11);},
+ rd:function(p){return 'скорость поворота плоскости ∝ sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b> — на экваторе 0, на полюсе максимум. Доказательство вращения Земли';}},
+analemma:{vb:'0 0 360 200',anim:true,ctrls:[],
+ R:function(p,t){var cx=180,cy=100,A=44,B=80,tl=0.18;
+  function pt(th){var x=A*Math.sin(th),y=-B*Math.sin(2*th)*0.5,X=x*Math.cos(tl)-y*Math.sin(tl),Y=x*Math.sin(tl)+y*Math.cos(tl);return [cx+X,cy+Y];}
+  var d='M';for(var i=0;i<=120;i++){var th=i/120*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
+  var cur=pt((t*0.4)%(2*PI));return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+98,'путь Солнца за год',C.mut,11,'middle');},
+ rd:function(p){return 'восьмёрка Солнца за год = синусы наклона оси (×2) и движения по орбите — фигура Лиссажу 1:2';}},
+/* ---- ДВЕРЬ 6: КРИВИЗНА ---- */
+spherical:{vb:'0 0 360 205',anim:false,ctrls:[{k:'sz',lab:'размер треугольника',min:15,max:80,step:5,val:50}],
+ R:function(p){var cx=180,cy=104,R=86,f=p.sz/100,
+  P=[[0,-1],[0.93,0.55],[-0.93,0.55]].map(function(v){return [cx+R*f*v[0],cy+R*f*v[1]];}),
+  bow=26*f,s=CC(cx,cy,R,'#b9c4d6',1.3)+'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+R+'" ry="'+n(R*0.32)+'" fill="none" stroke="#b9c4d6" stroke-width="0.8" stroke-dasharray="3 4"/>';
+  function arc(a,b){var mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],Ln=Math.hypot(dx,dy),ux=mx-cx,uy=my-cy,un=Math.hypot(ux,uy)||1;
+   var qx=mx+bow*ux/un,qy=my+bow*uy/un;return '<path d="M'+n(a[0])+' '+n(a[1])+' Q'+n(qx)+' '+n(qy)+' '+n(b[0])+' '+n(b[1])+'" fill="none" stroke="'+C.sl+'" stroke-width="2.4"/>';}
+  s+=arc(P[0],P[1])+arc(P[1],P[2])+arc(P[2],P[0]);
+  P.forEach(function(q){s+=D(q[0],q[1],4,C.sld);});
+  return s+TX(cx,cy+R+13,'стороны треугольника выгнуты наружу',C.mut,11,'middle');},
+ rd:function(p){var ex=Math.round(8+p.sz*1.05);return 'сумма углов = 180° + <b>'+ex+'°</b> — избыток растёт с площадью. Геометрия навигации и спутниковых треков';}},
+hypsin:{vb:'0 0 360 205',anim:false,ctrls:[{k:'x',lab:'расстояние x',min:0.1,max:3,step:0.05,val:1}],
+ R:function(p){var by=158,bx0=50,bx1=330,px=120,ang=Math.asin(1/Math.cosh(p.x)),top=34,
+  ex=px+(by-top)*Math.tan(PI/2-ang);
+  return L(bx0,by,bx1,by,C.sld,2.2)+DL(px,by,px,top)
+  +L(px,by,Math.min(bx1,ex),Math.max(top,by-(Math.min(bx1,ex)-px)/Math.tan(PI/2-ang)),C.sl,2.4,1)
+  +D(px,by,4,C.sld)
+  +'<path d="M'+n(px)+' '+n(by-34)+' A34 34 0 0 1 '+n(px+34*Math.sin(ang))+' '+n(by-34*Math.cos(ang))+'" fill="none" stroke="'+C.mut+'" stroke-width="1.2"/>'
+  +TX(px+10,by-40,'\u03a0(x)',C.sld,12)+TX((bx0+px)/2,by+18,'\u043f\u0440\u044f\u043c\u0430\u044f',C.mut,11)
+  +TX(230,190,'\u043f\u0440\u0435\u0434\u0435\u043b\u044c\u043d\u0430\u044f \u043f\u0430\u0440\u0430\u043b\u043b\u0435\u043b\u044c',C.mut,11);},
+ rd:function(p){var a=Math.asin(1/Math.cosh(p.x))*180/PI;return 'sin \u03a0(x) = 1/cosh(x) \u2192 \u03a0 = <b>'+a.toFixed(0)+'\u00b0</b>. \u0423 \u0415\u0432\u043a\u043b\u0438\u0434\u0430 \u0432\u0441\u0435\u0433\u0434\u0430 90\u00b0; \u0437\u0434\u0435\u0441\u044c \u0443\u0433\u043e\u043b \u0442\u0430\u0435\u0442 \u0441 \u0440\u0430\u0441\u0441\u0442\u043e\u044f\u043d\u0438\u0435\u043c';}},
+boost:{vb:'0 0 360 205',anim:false,ctrls:[{k:'u',lab:'\u0431\u044b\u0441\u0442\u0440\u043e\u0442\u0430 u\u2081',min:0,max:1.5,step:0.05,val:0.8},{k:'u2',lab:'\u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c u\u2082',min:0,max:1.5,step:0.05,val:0.6}],
+ R:function(p){var cx=96,cy=104,sc=30,d='M',v;
+  for(v=-1.75;v<=1.75;v+=0.05){d+=' '+n(cx+sc*Math.cosh(v))+','+n(cy-sc*Math.sinh(v));}
+  var s=AX(30,104,250,104)+AX(100,196,100,16);
+  s+='<line x1="'+n(cx-14)+'" y1="'+n(cy+84)+'" x2="'+n(cx+154)+'" y2="'+n(cy-84)+'" stroke="#e0d6c4" stroke-width="1" stroke-dasharray="4 4"/>';
+  s+='<path d="'+d+'" fill="none" stroke="#9fb2c8" stroke-width="1.2"/>';
+  var hx=cx+sc*Math.cosh(p.u),hy=cy-sc*Math.sinh(p.u);
+  s+=L(cx,cy,hx,hy,C.sl,2.8,1)+L(cx,cy,hx,cy,C.sld,2)+L(hx,cy,hx,hy,C.sl,2,0.6);
+  s+=TX(hx-28,cy+15,'cosh u',C.sld,11)+TX(hx+5,(hy+cy)/2,'sinh u',C.sl,11);
+  var bx=296,b0=30,b1=186;
+  s+='<line x1="'+bx+'" y1="'+b0+'" x2="'+bx+'" y2="'+b1+'" stroke="#c7c5bc" stroke-width="2"/>';
+  s+='<line x1="'+(bx-6)+'" y1="'+b0+'" x2="'+(bx+6)+'" y2="'+b0+'" stroke="'+C.sl+'" stroke-width="2"/>';
+  s+=TX(bx+10,b0+4,'c',C.sld,11)+TX(bx+10,b1+4,'0',C.mut,11);
+  var v1=Math.tanh(p.u),vs=Math.tanh(p.u+p.u2),y1=b1-(b1-b0)*v1,ys=b1-(b1-b0)*vs;
+  s+=D(bx,y1,5,C.sld)+TX(bx-10,y1+4,'v\u2081',C.sld,11,'end');
+  s+=D(bx,ys,5,C.sl)+TX(bx-10,ys+4,'v\u2081\u2295v\u2082',C.sl,11,'end');
+  return s;},
+ rd:function(p){return 'v\u2081 = tanh('+p.u.toFixed(2)+') = <b>'+Math.tanh(p.u).toFixed(3)+'c</b> \u00b7 \u043f\u043e\u0441\u043b\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f u\u2082: <b>'+Math.tanh(p.u+p.u2).toFixed(3)+'c</b> \u2014 tanh \u043d\u0435 \u0434\u043e\u0441\u0442\u0438\u0433\u0430\u0435\u0442 1: \u0441\u0432\u0435\u0442 \u043d\u0435\u0434\u043e\u0441\u0442\u0438\u0436\u0438\u043c';}},
+
+koren:{vb:'0 0 360 205',anim:false,ctrls:[{k:'tp',lab:'\u0432\u0440\u0435\u043c\u044f t',min:0,max:3,step:0.02,val:1.5}],
+ R:function(p){var x0=34,x1=330,cy=108,amp=58,N=160,i,t,ps='',pe='';
+  var px=x0+(x1-x0)*p.tp/3;
+  for(i=0;i<=N;i++){t=3*i/N;ps+=n(x0+(x1-x0)*i/N)+','+n(cy-amp*Math.cos(t))+' ';}
+  for(i=0;i<=N;i++){t=3*i/N;pe+=n(x0+(x1-x0)*i/N)+','+n(cy-amp*0.13*(Math.cosh(t)-1))+' ';}
+  return AX(x0,cy,x1,cy)+DL(px,18,px,196)
+  +'<polyline points="'+ps.trim()+'" fill="none" stroke="'+C.te+'" stroke-width="2.4"/>'
+  +'<polyline points="'+pe.trim()+'" fill="none" stroke="'+C.co+'" stroke-width="2.4"/>'
+  +D(px,cy-amp*Math.cos(p.tp),4.5,C.te)+D(px,cy-amp*0.13*(Math.cosh(p.tp)-1),4.5,C.co)
+  +TX(x0+4,cy+amp+16,"y''=\u2212y: \u043a\u043e\u043b\u0435\u0431\u0430\u043d\u0438\u0435 (cos)",C.ted,11)
+  +TX(x0+4,cy-amp-8,"y''=+y: \u0440\u0430\u0437\u0433\u043e\u043d (cosh)",C.cod,11);},
+ rd:function(p){return '\u043f\u0440\u0438 t='+p.tp.toFixed(2)+': \u043a\u043e\u043b\u0435\u0431\u0430\u043d\u0438\u0435 \u0432 \u043a\u043e\u0440\u0438\u0434\u043e\u0440\u0435 \u00b11, \u0440\u0430\u0437\u0433\u043e\u043d \u0443\u0448\u0451\u043b \u0432 <b>'+Math.cosh(p.tp).toFixed(1)+'</b> \u0438 \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0430\u0435\u0442 \u043f\u043e \u044d\u043a\u0441\u043f\u043e\u043d\u0435\u043d\u0442\u0435';}},
+
+kruggip:{vb:'0 0 360 215',anim:false,ctrls:[{k:'ph',lab:'\u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440',min:0,max:1.45,step:0.05,val:0.6}],
+ R:function(p){var a=p.ph*1.1,lx=92,ly=100,r=62,px=lx+r*Math.cos(a),py=ly-r*Math.sin(a),s='';
+  s+=AX(20,ly,180,ly)+AX(lx,188,lx,16)+CC(lx,ly,r,'#cfd9d3',1.2);
+  s+=L(lx,ly,px,ly,C.ted,2)+L(px,ly,px,py,C.te,2)+L(lx,ly,px,py,C.te,2.6,1)+D(px,py,4,C.te);
+  s+=TX(lx+6,ly+15,'cos',C.ted,11)+TX(px+5,(py+ly)/2,'sin',C.te,11);
+  s+=TX(lx,208,'\u043e\u043a\u0440\u0443\u0436\u043d\u043e\u0441\u0442\u044c: cos\u00b2+sin\u00b2=1',C.mut,10,'middle');
+  var cx=222,sc=38,d='M',v;
+  for(v=-1.5;v<=1.5;v+=0.05){d+=' '+n(cx+sc*Math.cosh(v))+','+n(ly-sc*Math.sinh(v));}
+  s+=AX(196,ly,348,ly)+AX(cx,188,cx,16);
+  s+='<line x1="'+n(cx-20)+'" y1="'+n(ly+62)+'" x2="'+n(cx+120)+'" y2="'+n(ly-78)+'" stroke="#d6cbb8" stroke-width="1" stroke-dasharray="4 4"/>';
+  s+='<path d="'+d+'" fill="none" stroke="#9fb2c8" stroke-width="1.2"/>';
+  var hx=cx+sc*Math.cosh(a),hy=ly-sc*Math.sinh(a);
+  s+=L(cx,ly,hx,ly,C.cod,2)+L(hx,ly,hx,hy,C.co,2)+L(cx,ly,hx,hy,C.co,2.6,1)+D(hx,hy,4,C.co);
+  s+=TX(cx+2,ly+15,'cosh',C.cod,11)+TX(hx+5,(hy+ly)/2,'sinh',C.co,11);
+  s+=TX(272,208,'\u0433\u0438\u043f\u0435\u0440\u0431\u043e\u043b\u0430: cosh\u00b2\u2212sinh\u00b2=1',C.mut,10,'middle');
+  return s;},
+ rd:function(p){var a=p.ph*1.1;return 'sin = '+Math.sin(a).toFixed(2)+' (\u0432 \u043a\u043e\u0440\u0438\u0434\u043e\u0440\u0435 \u00b11)  \u00b7  sinh = <b>'+Math.sinh(a).toFixed(2)+'</b> (\u0440\u0430\u0441\u0442\u0451\u0442 \u043a\u0430\u043a e\u02e3/2)';}},
+
+poincare:{vb:'0 0 360 215',anim:false,ctrls:[{k:'dep',lab:'\u0433\u043b\u0443\u0431\u0438\u043d\u0430 \u0437\u0430\u043c\u043e\u0449\u0435\u043d\u0438\u044f',min:0,max:5,step:1,val:3}],
+ R:function(p){var CX=110,CY=106,Rd=92,A=PI/7,B=PI/3,
+  r0=Math.sqrt(Math.cos(A+B)/Math.cos(A-B)),verts=[],k;
+  for(k=0;k<7;k++){var th=2*PI*k/7+PI/2;verts.push({x:r0*Math.cos(th),y:r0*Math.sin(th)});}
+  function inv(z,c){var dx=z.x-c.x,dy=z.y-c.y,d2=dx*dx+dy*dy,q=c.r*c.r/d2;return {x:c.x+dx*q,y:c.y+dy*q};}
+  function gc(a,b){var a2=a.x*a.x+a.y*a.y,b2=b.x*b.x+b.y*b.y,det=2*(a.x*b.y-a.y*b.x);
+   if(Math.abs(det)<1e-9)return null;
+   var cx=((1+a2)*b.y-(1+b2)*a.y)/det,cy=((1+b2)*a.x-(1+a2)*b.x)/det,rr=cx*cx+cy*cy-1;
+   return rr>1e-9?{x:cx,y:cy,r:Math.sqrt(rr)}:null;}
+  function mkSides(vs){var out=[],i2;for(i2=0;i2<vs.length;i2++){var s2=gc(vs[i2],vs[(i2+1)%vs.length]);if(s2)out.push(s2);}return out;}
+  function key(vs){var cx=0,cy=0,i2;for(i2=0;i2<vs.length;i2++){cx+=vs[i2].x;cy+=vs[i2].y;}
+   return Math.round(cx/vs.length*1000)+','+Math.round(cy/vs.length*1000);}
+  var polys=[{verts:verts,depth:0}],seen={},cur=[{verts:verts,sides:mkSides(verts)}],d2,i,j;
+  seen[key(verts)]=1;
+  for(d2=1;d2<=p.dep;d2++){var nxt=[];
+   for(i=0;i<cur.length;i++){var po=cur[i];
+    for(j=0;j<po.sides.length;j++){var nv=[],q;
+     for(q=0;q<po.verts.length;q++)nv.push(inv(po.verts[q],po.sides[j]));
+     var kk=key(nv);if(seen[kk])continue;seen[kk]=1;
+     polys.push({verts:nv,depth:d2});nxt.push({verts:nv,sides:mkSides(nv)});}}
+   cur=nxt;if(polys.length>700)break;}
+  var s='<circle cx="'+CX+'" cy="'+CY+'" r="'+Rd+'" fill="#fbfbf9" stroke="#9fb2c8" stroke-width="1.4"/>';
+  for(i=0;i<polys.length;i++){var vs=polys[i].verts,dep=polys[i].depth;
+   for(j=0;j<vs.length;j++){var a=vs[j],b=vs[(j+1)%vs.length],ci=gc(a,b),
+    Pa={X:CX+a.x*Rd,Y:CY+a.y*Rd},Pb={X:CX+b.x*Rd,Y:CY+b.y*Rd},pth;
+    if(!ci)pth='M'+n(Pa.X)+' '+n(Pa.Y)+' L'+n(Pb.X)+' '+n(Pb.Y);
+    else{var R2=ci.r*Rd,ccx=CX+ci.x*Rd,ccy=CY+ci.y*Rd,
+     cr=(Pa.X-ccx)*(Pb.Y-ccy)-(Pa.Y-ccy)*(Pb.X-ccx),sw=cr>0?0:1;
+     pth='M'+n(Pa.X)+' '+n(Pa.Y)+' A'+n(R2)+' '+n(R2)+' 0 0 '+sw+' '+n(Pb.X)+' '+n(Pb.Y);}
+    s+='<path d="'+pth+'" fill="none" stroke="#3d6b9e" stroke-width="'+Math.max(0.6,1.5-dep*0.2)+'" opacity="'+Math.max(0.18,0.85-dep*0.15).toFixed(2)+'"/>';}}
+  var gx=242,gy0=26,gy1=178,gw=96,pe='',pl='';
+  s+=AX(gx,gy1,gx+gw,gy1)+AX(gx,gy1,gx,gy0);
+  for(i=0;i<=60;i++){var r=i/20,X=gx+gw*r/3;
+   pe+=n(X)+','+n(gy1-(gy1-gy0)*r/3)+' ';
+   pl+=n(X)+','+n(gy1-(gy1-gy0)*Math.min(1,Math.sinh(r)/Math.sinh(3)))+' ';}
+  s+='<polyline points="'+pe.trim()+'" fill="none" stroke="#9fa3b2" stroke-width="1.5" stroke-dasharray="4 3"/>';
+  s+='<polyline points="'+pl.trim()+'" fill="none" stroke="#274a73" stroke-width="2.2"/>';
+  s+=TX(gx-4,gy0-8,'\u0434\u043b\u0438\u043d\u0430 \u043e\u043a\u0440\u0443\u0436\u043d\u043e\u0441\u0442\u0438',C.mut,10)+TX(gx+6,gy1-6,'2\u03c0r','#9fa3b2',10)
+  +TX(gx+gw,gy0+26,'2\u03c0\u00b7sinh r','#274a73',10,'end')+TX(gx+gw/2,gy1+15,'\u0440\u0430\u0434\u0438\u0443\u0441 r \u2192',C.mut,10,'middle');
+  return s;},
+ rd:function(p){return '\u0437\u0430\u043c\u043e\u0449\u0435\u043d\u0438\u0435 {7,3}: \u0432\u0441\u0435 \u0441\u0435\u043c\u0438\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a\u0438 \u043e\u0434\u0438\u043d\u0430\u043a\u043e\u0432\u044b \u0432 \u0433\u0438\u043f\u0435\u0440\u0431\u043e\u043b\u0438\u0447\u0435\u0441\u043a\u043e\u0439 \u043c\u0435\u0442\u0440\u0438\u043a\u0435 \u2014 \u043a\u0440\u0430\u0439 \u0431\u0435\u0441\u043a\u043e\u043d\u0435\u0447\u043d\u043e \u0434\u0430\u043b\u0451\u043a, \u043f\u0440\u043e\u0441\u0442\u0440\u0430\u043d\u0441\u0442\u0432\u0430 \u043a \u043d\u0435\u043c\u0443 \u044d\u043a\u0441\u043f\u043e\u043d\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e \u0431\u043e\u043b\u044c\u0448\u0435';}},
+
+minkowski:{vb:'0 0 360 240',anim:false,ctrls:[{k:'b',lab:'\u0441\u043a\u043e\u0440\u043e\u0441\u0442\u044c v',min:-0.85,max:0.85,step:0.05,val:0.5,unit:'c'}],
+ R:function(p){var Ox=185,Oy=122,S=84,be=p.b;
+  function PT(t,x){return {X:Ox+x*S,Y:Oy-t*S};}
+  var s='',a1=PT(-1.3,-1.3),a2=PT(1.3,1.3),c1=PT(-1.3,1.3),c2=PT(1.3,-1.3);
+  s+='<line x1="'+n(a1.X)+'" y1="'+n(a1.Y)+'" x2="'+n(a2.X)+'" y2="'+n(a2.Y)+'" stroke="#e0a93b" stroke-width="2"/>';
+  s+='<line x1="'+n(c1.X)+'" y1="'+n(c1.Y)+'" x2="'+n(c2.X)+'" y2="'+n(c2.Y)+'" stroke="#e0a93b" stroke-width="2"/>';
+  s+=TX(a2.X+4,a2.Y+10,'\u0441\u0432\u0435\u0442','#b07d1a',11);
+  var t1=PT(0,-1.35),t2=PT(0,1.4),x1=PT(-1.35,0),x2=PT(1.4,0);
+  s+=L(t1.X,t1.Y,t2.X,t2.Y,'#bfc0b8',1.5,1)+L(x1.X,x1.Y,x2.X,x2.Y,'#bfc0b8',1.5,1);
+  s+=TX(t2.X+6,t2.Y+4,'x','#9a9b92',12)+TX(x2.X+4,x2.Y-6,'t','#9a9b92',12);
+  var tp1=PT(1.3,be*1.3),tp2=PT(-1.3,-be*1.3),xp1=PT(be*1.3,1.3),xp2=PT(-be*1.3,-1.3);
+  s+=L(tp2.X,tp2.Y,tp1.X,tp1.Y,C.co,2.4,1)+L(xp2.X,xp2.Y,xp1.X,xp1.Y,C.co,2.4,1);
+  s+=TX(tp1.X+5,tp1.Y,"t'",C.cod,12)+TX(xp1.X+5,xp1.Y+4,"x'",C.cod,12);
+  var k2;
+  for(k2=-1;k2<=1;k2+=2){var cc=0.55*k2,A2=PT(cc+be*(-1.2),-1.2),B2=PT(cc+be*1.2,1.2);
+   s+='<line x1="'+n(A2.X)+'" y1="'+n(A2.Y)+'" x2="'+n(B2.X)+'" y2="'+n(B2.Y)+'" stroke="'+C.co+'" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>';}
+  var ev=PT(0.9,0.9);s+=D(ev.X,ev.Y,4.5,'#b07d1a');
+  return s;},
+ rd:function(p){var ang=Math.atan(Math.abs(p.b))*180/PI;
+  return 'v = '+p.b.toFixed(2)+'c: \u043e\u0441\u0438 t\u2032 \u0438 x\u2032 \u0441\u043e\u0448\u043b\u0438\u0441\u044c \u043a \u043b\u0443\u0447\u0443 \u0441\u0432\u0435\u0442\u0430 \u043d\u0430 <b>'+ang.toFixed(0)+'\u00b0</b> \u2014 \u043a\u0430\u043a \u043d\u043e\u0436\u043d\u0438\u0446\u044b; \u0441\u0430\u043c \u043b\u0443\u0447 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435: c \u043e\u0434\u0438\u043d\u0430\u043a\u043e\u0432\u0430 \u0434\u043b\u044f \u0432\u0441\u0435\u0445';}},
+
+vowels:{vb:'0 0 360 210',anim:false,ctrls:[{k:'m',lab:'\u0433\u043b\u0430\u0441\u043d\u0430\u044f: \u0430 \u2192 \u0438',min:0,max:100,step:1,val:0,unit:'%'}],
+ R:function(p){var m=p.m/100,f0=110,NH=24,F1=800-520*m,F2=1200+1100*m,amps=[],mx=0,k,f,a;
+  for(k=1;k<=NH;k++){f=k*f0;
+   a=Math.exp(-Math.pow((f-F1)/170,2))+0.75*Math.exp(-Math.pow((f-F2)/260,2));
+   a/=Math.sqrt(k);amps.push(a);if(a>mx)mx=a;}
+  for(k=0;k<NH;k++)amps[k]/=mx;
+  VOWA=amps;
+  var s='',bx0=36,bw=11.5,by=112;
+  s+=AX(30,by,330,by);
+  for(k=0;k<NH;k++){var h=86*amps[k],x=bx0+k*bw;
+   s+='<rect x="'+n(x)+'" y="'+n(by-h)+'" width="8" height="'+n(Math.max(1.5,h))+'" rx="1.5" fill="'+(amps[k]>0.55?C.vid:C.vi)+'" opacity="'+(0.45+0.55*amps[k]).toFixed(2)+'"/>';}
+  var xF1=bx0+(F1/f0-1)*bw+4,xF2=Math.min(322,bx0+(F2/f0-1)*bw+4);
+  s+=DL(xF1,22,xF1,by)+DL(xF2,22,xF2,by);
+  s+=TX(xF1,16,'F1',C.vid,11,'middle')+TX(xF2,16,'F2',C.vid,11,'middle');
+  s+=TX(330,by+13,'\u0447\u0430\u0441\u0442\u043e\u0442\u0430 \u2192',C.mut,10,'end');
+  var wy=172,wa=28,Nw=180,vals=[],vmax=0,i2,tt,v2,j,pts='';
+  for(i2=0;i2<=Nw;i2++){tt=i2/Nw*2/f0;v2=0;
+   for(j=0;j<NH;j++)v2+=amps[j]*Math.sin(2*PI*(j+1)*f0*tt);
+   vals.push(v2);if(Math.abs(v2)>vmax)vmax=Math.abs(v2);}
+  s+=AX(30,wy,330,wy);
+  for(i2=0;i2<=Nw;i2++){pts+=n(36+288*i2/Nw)+','+n(wy-wa*vals[i2]/vmax)+' ';}
+  s+='<polyline points="'+pts.trim()+'" fill="none" stroke="'+C.vi+'" stroke-width="2.2"/>';
+  s+=TX(36,wy-wa-6,'\u0432\u043e\u043b\u043d\u0430 \u0437\u0430 \u0434\u0432\u0430 \u043f\u0435\u0440\u0438\u043e\u0434\u0430: \u043d\u043e\u0442\u0430 \u0442\u0430 \u0436\u0435, \u0444\u043e\u0440\u043c\u0430 \u0434\u0440\u0443\u0433\u0430\u044f',C.mut,10);
+  return s;},
+ rd:function(p){var m=p.m/100,F1=Math.round(800-520*m),F2=Math.round(1200+1100*m),
+  lab=m<0.25?'\u00ab\u0430\u00bb':(m>0.75?'\u00ab\u0438\u00bb':'\u043c\u0435\u0436\u0434\u0443 \u00ab\u0430\u00bb \u0438 \u00ab\u0438\u00bb');
+  return lab+': F1 \u2248 <b>'+F1+'</b> \u0413\u0446 \u00b7 F2 \u2248 <b>'+F2+'</b> \u0413\u0446 \u00b7 \u043d\u043e\u0442\u0430 110 \u0413\u0446 <button style="margin-left:8px;font:600 11px/1 system-ui;padding:4px 10px;border-radius:999px;border:1px solid #6a5bd6;color:#473aa3;background:#eeebfa;cursor:pointer" onclick="SINVOICE()">\u266a \u0441\u043b\u0443\u0448\u0430\u0442\u044c</button>';}}
+};
+
+/* ---------- движок ---------- */
+var live=[];
+function fmt(c,v){var s=(c.step&&c.step<1)?v.toFixed(c.step<0.1?2:1):(''+v);return s+(c.unit||'');}
+function mount(div){
+  var def=F[div.dataset.fig]; if(!def)return;
+  var box=document.createElement('div'); box.className='figbox';
+  var ctr=document.createElement('div'); ctr.className='ctrls';
+  var rd=null; if(def.rd){rd=document.createElement('div'); rd.className='rdt';}
+  div.appendChild(box); div.appendChild(ctr); if(rd)div.appendChild(rd);
+  var fig={def:def,box:box,rd:rd,p:{},t:RM?0.7:0,vis:false};
+  (def.ctrls||[]).forEach(function(c){
+    fig.p[c.k]=c.val;
+    var row=document.createElement('div'); row.className='ctrl';
+    var id='r'+Math.random().toString(36).slice(2,7);
+    row.innerHTML='<label for="'+id+'">'+c.lab+'</label><input id="'+id+'" type="range" min="'+c.min+'" max="'+c.max+'" step="'+(c.step||1)+'" value="'+c.val+'"><span class="v">'+fmt(c,c.val)+'</span>';
+    var inp=row.querySelector('input'),val=row.querySelector('.v');
+    inp.addEventListener('input',function(){var v=+inp.value; fig.p[c.k]=v; val.textContent=fmt(c,v); draw(fig);});
+    ctr.appendChild(row);
+  });
+  fig.draw=function(){draw(fig);};
+  draw(fig);
+  if(def.anim) live.push(fig);
+  return fig;
+}
+function draw(fig){
+  fig.box.innerHTML='<svg viewBox="'+fig.def.vb+'" preserveAspectRatio="xMidYMid meet">'+fig.def.R(fig.p,fig.t)+'</svg>';
+  if(fig.rd) fig.rd.innerHTML=fig.def.rd(fig.p,fig.t);
+}
+var figEls=[].slice.call(document.querySelectorAll('.fig[data-fig]'));
+var insts=figEls.map(mount);
+
+if(!RM){
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      var f=e.target.__fig; if(f)f.vis=e.isIntersecting;});},{rootMargin:'80px'});
+    insts.forEach(function(f){if(f&&f.def.anim){f.box.parentElement.__fig=f; io.observe(f.box.parentElement);}});
+  } else { live.forEach(function(f){f.vis=true;}); }
+  var t0=performance.now();
+  (function loop(now){
+    var t=(now-t0)/1000;
+    for(var i=0;i<live.length;i++){if(live[i].vis){live[i].t=t; draw(live[i]);}}
+    requestAnimationFrame(loop);
+  })(t0);
+}
+
+/* hero */
+var arm=document.getElementById('phasor-arm'),wave=document.getElementById('phasor-wave'),dot=document.getElementById('phasor-dot');
+if(arm){
+  var aline=arm.querySelector('line'),cx=110,cy=120,r=62,x0=200,x1=540,N=200,dx=(x1-x0)/N;
+  function hframe(tt){var ax=cx+r*Math.cos(tt),ay=cy-r*Math.sin(tt);
+    aline.setAttribute('x2',ax.toFixed(1)); aline.setAttribute('y2',ay.toFixed(1));
+    var pp=[];for(var i=0;i<=N;i++){var ph=tt-i*0.03; pp.push((x0+i*dx).toFixed(1)+' '+(cy-r*Math.sin(ph)).toFixed(1));}
+    wave.setAttribute('d','M '+pp.join(' L ')); dot.setAttribute('cx',x0); dot.setAttribute('cy',(cy-r*Math.sin(tt)).toFixed(1));}
+  if(RM){hframe(1.1);} else {var ht=0;(function hl(){ht+=0.024; hframe(ht); requestAnimationFrame(hl);})();}
+}
+})();
+
+</script>
+</body>
+</html>
