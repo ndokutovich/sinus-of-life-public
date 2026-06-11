@@ -760,6 +760,9 @@ boost:{vb:'0 0 360 205',anim:false,ctrls:[{k:'u',lab:'\u0431\u044b\u0441\u0442\u
   s+='<line x1="'+n(cx-14)+'" y1="'+n(cy+84)+'" x2="'+n(cx+154)+'" y2="'+n(cy-84)+'" stroke="#e0d6c4" stroke-width="1" stroke-dasharray="4 4"/>';
   s+='<path d="'+d+'" fill="none" stroke="#9fb2c8" stroke-width="1.2"/>';
   var hx=cx+sc*Math.cosh(p.u),hy=cy-sc*Math.sinh(p.u);
+  var ut=p.u+p.u2,hx2=cx+sc*Math.cosh(ut),hy2=cy-sc*Math.sinh(ut);
+  if(p.u2>0.01){s+='<g opacity="0.9">'+L(cx,cy,hx2,hy2,C.co,2.2,1)+'</g>';
+   s+=TX(Math.min(hx2+5,300),Math.max(hy2+4,14),'u₁+u₂',C.cod,11);}
   s+=L(cx,cy,hx,hy,C.sl,2.8,1)+L(cx,cy,hx,cy,C.sld,2)+L(hx,cy,hx,hy,C.sl,2,0.6);
   s+=TX(hx-28,cy+15,'cosh u',C.sld,11)+TX(hx+5,(hy+cy)/2,'sinh u',C.sl,11);
   var bx=296,b0=30,b1=186;
@@ -768,9 +771,9 @@ boost:{vb:'0 0 360 205',anim:false,ctrls:[{k:'u',lab:'\u0431\u044b\u0441\u0442\u
   s+=TX(bx+10,b0+4,'c',C.sld,11)+TX(bx+10,b1+4,'0',C.mut,11);
   var v1=Math.tanh(p.u),vs=Math.tanh(p.u+p.u2),y1=b1-(b1-b0)*v1,ys=b1-(b1-b0)*vs;
   s+=D(bx,y1,5,C.sld)+TX(bx-10,y1+4,'v\u2081',C.sld,11,'end');
-  s+=D(bx,ys,5,C.sl)+TX(bx-10,ys+4,'v\u2081\u2295v\u2082',C.sl,11,'end');
+  s+=D(bx,ys,5,C.co)+TX(bx-10,ys+4,'v\u2081\u2295v\u2082',C.cod,11,'end');
   return s;},
- rd:function(p){return 'v\u2081 = tanh('+p.u.toFixed(2)+') = <b>'+Math.tanh(p.u).toFixed(3)+'c</b> \u00b7 \u043f\u043e\u0441\u043b\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f u\u2082: <b>'+Math.tanh(p.u+p.u2).toFixed(3)+'c</b> \u2014 tanh \u043d\u0435 \u0434\u043e\u0441\u0442\u0438\u0433\u0430\u0435\u0442 1: \u0441\u0432\u0435\u0442 \u043d\u0435\u0434\u043e\u0441\u0442\u0438\u0436\u0438\u043c';}},
+ rd:function(p){return 'v\u2081 = tanh('+p.u.toFixed(2)+') = <b>'+Math.tanh(p.u).toFixed(3)+'c</b> \u00b7 \u043f\u043e\u0441\u043b\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f u\u2082: <b>'+Math.tanh(p.u+p.u2).toFixed(3)+'c</b> \u2014 \u043f\u043e \u0433\u0438\u043f\u0435\u0440\u0431\u043e\u043b\u0435 \u0442\u043e\u0447\u043a\u0430 \u0443\u043b\u0435\u0442\u0430\u0435\u0442, \u0430 tanh \u0443\u043f\u0438\u0440\u0430\u0435\u0442\u0441\u044f \u0432 1: \u0441\u0432\u0435\u0442 \u043d\u0435\u0434\u043e\u0441\u0442\u0438\u0436\u0438\u043c';}},
 
 koren:{vb:'0 0 360 205',anim:false,ctrls:[{k:'tp',lab:'\u0432\u0440\u0435\u043c\u044f t',min:0,max:3,step:0.02,val:1.5}],
  R:function(p){var x0=34,x1=330,cy=108,amp=58,N=160,i,t,ps='',pe='';
