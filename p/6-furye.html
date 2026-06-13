@@ -1,0 +1,68 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Фурье: прямоугольник из синусов</title>
+<style>/* Общий стиль пенов «Карты синуса» — компакт под embed ~430px */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--coral:#d65f37;--coral-d:#9c3f1f;--teal:#138a64;--teal-d:#0c5a41;
+--violet:#6a5bd6;--violet-d:#473aa3;--gold:#c98a1b;--gold-d:#8a5e12;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);
+border-radius:14px;padding:14px 16px 12px}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;
+border-radius:8px;overflow-x:auto;white-space:nowrap}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 118px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;
+color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+
+.pen{--acc:#6a5bd6}
+.pen .f{background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+</style></head><body>
+<div class="pen">
+<h3>Фурье: прямоугольник из синусов</h3>
+<div class="f">f(t) = Σ sin(kωt)/k, k нечётные</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 230" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="nn">гармоник</label><input id="nn" type="range" min="1" max="13" step="1" value="3"><span class="v" id="nnv">3</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">бледные линии — ингредиенты-синусы, жирная — их сумма</div>
+</div>
+<script>
+const PI=Math.PI, $=id=>document.getElementById(id);
+const RM=false;
+function n(x){return Math.round(x*10)/10}
+function L(a,b,c,d,col,w,m){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${m?'marker-end="url(#ah)"':''}/>`}
+function DL(a,b,c,d){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>`}
+function AX(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#c7c5bc" stroke-width="1"/>`}
+function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)}" font-family="ui-monospace,monospace" font-size="${sz}" fill="${col}" ${an?`text-anchor="${an}"`:''}>${s}</text>`}
+function D(x,y,r,f){return `<circle cx="${n(x)}" cy="${n(y)}" r="${r}" fill="${f}"/>`}
+function CC(x,y,r,col,w){return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}"/>`}
+function W(fn,x0,x1,yb,amp,col,w,op='',dash=''){let N=150,p='';for(let i=0;i<=N;i++){let u=i/N;p+=n(x0+(x1-x0)*i/N)+','+n(yb-amp*fn(u))+' '}return `<polyline points="${p.trim()}" fill="none" stroke="${col}" stroke-width="${w}" ${op?`opacity="${op}"`:''} ${dash?'stroke-dasharray="5 4"':''}/>`}
+const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+let nn=3;
+const sq=u=>Math.sin(u*2*PI*1.5)>=0?1:-1;
+const part=(u,m)=>{let s=0;for(let k=1;k<=2*m-1;k+=2)s+=Math.sin(k*2*PI*1.5*u)/k;return s*4/PI};
+function draw(){
+  let s=DEFS+AX(24,115,424,115);
+  s+=W(sq,30,418,115,72,'#8a8e9c',1.3,'','d');
+  for(let j=0;j<nn;j++){const k=2*j+1;
+    s+=W(u=>Math.sin(k*2*PI*1.5*u)/k*4/PI,30,418,115,72,'#6a5bd6',0.8,'0.25')}
+  s+=W(u=>Math.max(-1.25,Math.min(1.25,part(u,nn))),30,418,115,72,'#473aa3',2.7);
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML=`гармоник: <b>${nn}</b> — на этом разложении стоят MP3, JPEG и Shazam`;
+}
+$('nn').oninput=e=>{nn=+e.target.value;$('nnv').textContent=nn;draw()};
+draw();
+
+</script></body></html>
