@@ -166,12 +166,12 @@
 </header>
 
 <div class="wrap">
-  <p class="lead">Синус не «превращается» в формулу — синус <b>и есть</b> формула: машинка, что берёт угол и выдаёт долю. Вектор, вращающийся по окружности; его «тень» на ось — это и есть синус с косинусом. Дальше всё зависит от того, что делать с этой стрелкой. <b>Заморозить</b> — проекция. <b>Пустить во времени</b> — колебание. <b>Сложить несколько</b> — волны. Три главные двери и одна стрелка. А дальше — поворот как операция, дикие появления и третья роль на кривых пространствах.</p>
+  <p class="lead">Синус не «превращается» в формулу — синус <b>и есть</b> формула: машинка, что берёт угол и выдаёт долю. Вектор, вращающийся по окружности; его «тень» на ось — это и есть синус с косинусом. Дальше всё зависит от того, что делать с этой стрелкой. <b>Заморозить</b> — проекция. <b>Пустить во времени</b> — колебание. <b>Сложить несколько</b> — волны. Три главные двери и одна стрелка.<span data-stage="2"> А дальше — поворот как операция, дикие появления и третья роль на кривых пространствах.</span></p>
 
   <div class="doors">
     <a class="door d1" href="#g1"><div class="n">01 · cos / sin</div><div class="t">Проекция</div><div class="e">Угол между вектором и осью. cos — доля вдоль, sin — доля поперёк.</div></a>
     <a class="door d2" href="#g2"><div class="n">02 · φ = ωt</div><div class="t">Вращение</div><div class="e">Угол — это время. Синус времени — тень крутящейся точки.</div></a>
-    <a class="door d3" href="#g3"><div class="n">03 · Σ</div><div class="t">Суперпозиция</div><div class="e">Складываем и раскладываем волны. Кто усилит, кто погасит — решает фаза.</div></a><a class="door d4" href="#g4"><div class="n">04 · R(θ)</div><div class="t">Поворот</div><div class="e">Синус как оператор: берёт объект и поворачивает его — на плоскости и в пространстве.</div></a><a class="door d6" href="#g6"><div class="n">05 · ±κ</div><div class="t">Кривизна</div><div class="e">Сфера, Евклид, Лобачевский: sin для углов, sin/a/sinh для сторон — знак кривизны решает.</div></a><a class="door d5" href="#g5"><div class="n">★</div><div class="t">Дикие случаи</div><div class="e">Маятник Фуко и аналемма — где синус всплывает совсем неожиданно.</div></a>
+    <a class="door d3" href="#g3"><div class="n">03 · Σ</div><div class="t">Суперпозиция</div><div class="e">Складываем и раскладываем волны. Кто усилит, кто погасит — решает фаза.</div></a><a class="door d4" data-stage="2" href="#g4"><div class="n">04 · R(θ)</div><div class="t">Поворот</div><div class="e">Синус как оператор: берёт объект и поворачивает его — на плоскости и в пространстве.</div></a><a class="door d6" data-stage="2" href="#g6"><div class="n">05 · ±κ</div><div class="t">Кривизна</div><div class="e">Сфера, Евклид, Лобачевский: sin для углов, sin/a/sinh для сторон — знак кривизны решает.</div></a><a class="door d5" data-stage="2" href="#g5"><div class="n">★</div><div class="t">Дикие случаи</div><div class="e">Маятник Фуко и аналемма — где синус всплывает совсем неожиданно.</div></a>
   </div>
 </div>
 
@@ -374,7 +374,7 @@
 </div>
 
 <div class="wrap">
-<section class="s4" id="g4">
+<section class="s4" id="g4" data-stage="2">
   <div class="dhead"><div class="num">ДВЕРЬ 04</div><h2>Поворот как операция</h2><p>Здесь синус играет четвёртую роль — не «долю» и не «волну», а оператор: он берёт объект и поворачивает его. Та же крутящаяся стрелка, но теперь она крутит не себя, а мир вокруг.</p></div>
   <div class="case"><div class="case-h">Матрица поворота</div><div class="formula">[cos θ  −sin θ ; sin θ  cos θ]</div><p>Эта матрица из синусов и косинусов поворачивает любую точку на угол θ. Каждый кадр в играх и графике — это умножение на неё.</p><div class="fig" data-fig="rotmatrix"></div></div>
   <div class="case"><div class="case-h">Комплексное умножение</div><div class="formula">z · e^(iθ)</div><p>Умножить комплексное число на e^(iθ) — значит повернуть его вокруг нуля на угол θ. Комплексные числа буквально и есть повороты плоскости.</p><div class="fig" data-fig="complexmul"></div></div>
@@ -382,19 +382,19 @@
 </section>
 </div>
 <div class="wrap">
-<section class="s6" id="g6">
+<section class="s6" id="g6" data-stage="2">
   <div class="dhead"><div class="num">ДВЕРЬ 05</div><h2>Кривизна: семья из трёх</h2><p>Геометрий постоянной кривизны ровно три, и различаются они знаком: сфера (+), плоскость Евклида (0), плоскость Лобачевского (−). Углы везде меряет обычный круговой синус, а вот стороны — по-разному: sin(a/R) на сфере, голая a на плоскости, sinh(a/k) у Лобачевского. При малых размерах обе кривые формулы вырождаются в плоскую: евклидова геометрия — это малоугловое приближение, как sin θ ≈ θ у маятника.</p></div>
-  <div class="case"><div class="case-h">Корень всего · y″ = ∓y</div><div class="formula">y″ = −y → sin (круг) · y″ = +y → sinh (гипербола)</div><p>Один знак в уравнении: минус — возвращающая сила и колебание в коридоре ±1, плюс — разгоняющая сила и экспоненциальный уход. sin и sinh — решения одного уравнения с противоположным знаком.</p><div class="fig" data-fig="koren"></div></div>
-  <div class="case"><div class="case-h">Круг против гиперболы</div><div class="formula">cos²+sin²=1 · cosh²−sinh²=1</div><p>Один параметр гонит две точки: по окружности (проекции cos и sin, обе в коридоре ±1) и по гиперболе (cosh и sinh, растут как eˣ/2). Это и есть синус мнимого угла: sin(ix) = i·sinh(x).</p><div class="fig" data-fig="kruggip"></div></div>
+  <div class="case" data-stage="3"><div class="case-h">Корень всего · y″ = ∓y</div><div class="formula">y″ = −y → sin (круг) · y″ = +y → sinh (гипербола)</div><p>Один знак в уравнении: минус — возвращающая сила и колебание в коридоре ±1, плюс — разгоняющая сила и экспоненциальный уход. sin и sinh — решения одного уравнения с противоположным знаком.</p><div class="fig" data-fig="koren"></div></div>
+  <div class="case" data-stage="3"><div class="case-h">Круг против гиперболы</div><div class="formula">cos²+sin²=1 · cosh²−sinh²=1</div><p>Один параметр гонит две точки: по окружности (проекции cos и sin, обе в коридоре ±1) и по гиперболе (cosh и sinh, растут как eˣ/2). Это и есть синус мнимого угла: sin(ix) = i·sinh(x).</p><div class="fig" data-fig="kruggip"></div></div>
   <div class="case"><div class="case-h">Сферическая теорема синусов</div><div class="formula">sin A / sin(a/R) = sin B / sin(b/R) = sin C / sin(c/R)</div><p>Положительная кривизна: стороны треугольника выгнуты, сумма углов больше 180°, и избыток пропорционален площади. На этой геометрии стоят навигация, авиамаршруты и трек спутника по карте.</p><div class="fig" data-fig="spherical"></div></div>
   <div class="case"><div class="case-h">Теорема синусов Лобачевского</div><div class="formula">sin A / sinh(a/k) = sin B / sinh(b/k) = sin C / sinh(c/k)</div><p>Отрицательная кривизна: каждая точка — седло, и места экспоненциально много (длина окружности 2π·sinh r ~ eʳ). Углы обслуживает sin, расстояния — его гиперболический близнец sinh = (eˣ−e⁻ˣ)/2, связанный с круговым через мнимый угол: sin(ix) = i·sinh(x). Угол параллельности связывает их в одной строке: sin Π(x) = 1/cosh(x).</p><div class="fig" data-fig="hypsin"></div></div>
-  <div class="case"><div class="case-h">Диск Пуанкаре · {7,3}</div><div class="formula">длина окружности = 2π·sinh(r)</div><p>Честное гиперболическое замощение семиугольниками: в гиперболической метрике все они одинаковы — это край бесконечно далёк, а пространства к нему экспоненциально больше. Поэтому деревья и иерархии вкладываются сюда без давки — на этом стоят гиперболические эмбеддинги.</p><div class="fig" data-fig="poincare"></div></div>
+  <div class="case" data-stage="3"><div class="case-h">Диск Пуанкаре · {7,3}</div><div class="formula">длина окружности = 2π·sinh(r)</div><p>Честное гиперболическое замощение семиугольниками: в гиперболической метрике все они одинаковы — это край бесконечно далёк, а пространства к нему экспоненциально больше. Поэтому деревья и иерархии вкладываются сюда без давки — на этом стоят гиперболические эмбеддинги.</p><div class="fig" data-fig="poincare"></div></div>
   <div class="case"><div class="case-h">Гиперболический поворот · буст Лоренца</div><div class="formula">[cosh u  sinh u ; sinh u  cosh u]</div><p>Близнец матрицы поворота из четвёртой двери: cos²+sin²=1 держит точку на окружности, cosh²−sinh²=1 — на гиперболе. Именно так устроено пространство-время: переход к движущемуся наблюдателю — гиперболический поворот, скорость = tanh(быстроты), и поскольку tanh никогда не достигает единицы, скорость света недостижима.</p><div class="fig" data-fig="boost"></div></div>
-  <div class="case"><div class="case-h">Диаграмма Минковского</div><div class="formula">оси-ножницы: наклон на arctan(v/c)</div><p>Разгон наклоняет оси t′ и x′ навстречу друг другу, как ножницы, сходящиеся к лучу света. Сам луч для любого наблюдателя на месте — скорость света и есть инвариант, который гиперболический поворот сохраняет.</p><div class="fig" data-fig="minkowski"></div></div>
+  <div class="case" data-stage="3"><div class="case-h">Диаграмма Минковского</div><div class="formula">оси-ножницы: наклон на arctan(v/c)</div><p>Разгон наклоняет оси t′ и x′ навстречу друг другу, как ножницы, сходящиеся к лучу света. Сам луч для любого наблюдателя на месте — скорость света и есть инвариант, который гиперболический поворот сохраняет.</p><div class="fig" data-fig="minkowski"></div></div>
 </section>
 </div>
 <div class="wrap">
-<section class="s5" id="g5">
+<section class="s5" id="g5" data-stage="2">
   <div class="dhead"><div class="num">БОНУС</div><h2>Дикие случаи</h2><p>Два места, где синус всплывает совсем неожиданно и красиво.</p></div>
   <div class="case"><div class="case-h">Маятник Фуко</div><div class="formula">ω_поворота ∝ sin φ</div><p>Плоскость качания маятника медленно поворачивается, и скорость этого поворота пропорциональна синусу широты. Так в 1851 году впервые наглядно доказали вращение Земли.</p><div class="fig" data-fig="foucault"></div></div>
   <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в одно и то же время весь год, оно нарисует восьмёрку. Это комбинация синусов: наклон земной оси и положение по орбите.</p><div class="fig" data-fig="analemma"></div></div>
@@ -927,6 +927,16 @@ function mount(div){
 function draw(fig){
   fig.box.innerHTML='<svg viewBox="'+fig.def.vb+'" preserveAspectRatio="xMidYMid meet">'+fig.def.R(fig.p,fig.t)+'</svg>';
   if(fig.rd) fig.rd.innerHTML=fig.def.rd(fig.p,fig.t);
+}
+/* прогрессивное раскрытие серии: ?s=1 — двери 1-3 · ?s=2 — +поворот, кривизна-каталог, бонус · без параметра — всё */
+var STAGE=(function(){var m=location.search.match(/[?&]s=([123])/);return m?+m[1]:3;})();
+if(STAGE<3){
+  [].slice.call(document.querySelectorAll('[data-stage]')).forEach(function(el){
+    if(+el.getAttribute('data-stage')>STAGE && el.parentNode) el.parentNode.removeChild(el);
+  });
+  [].slice.call(document.querySelectorAll('.wrap')).forEach(function(w){
+    if(!w.querySelector('section,.synth,.lead,.doors')) w.parentNode.removeChild(w);
+  });
 }
 var figEls=[].slice.call(document.querySelectorAll('.fig[data-fig]'));
 var insts=figEls.map(mount);
