@@ -1,0 +1,66 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Угол параллельности (Лобачевский)</title>
+<style>/* Общий стиль пенов «Карты синуса» — компакт под embed ~430px */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--coral:#d65f37;--coral-d:#9c3f1f;--teal:#138a64;--teal-d:#0c5a41;
+--violet:#6a5bd6;--violet-d:#473aa3;--gold:#c98a1b;--gold-d:#8a5e12;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);
+border-radius:14px;padding:14px 16px 12px}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;
+border-radius:8px;overflow-x:auto;white-space:nowrap}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 118px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;
+color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+
+.pen{--acc:#3d6b9e} .pen .f{background:color-mix(in srgb,#3d6b9e 12%,white);color:#274a73}
+</style></head><body>
+<div class="pen"><h3>Угол параллельности (Лобачевский)</h3><div class="f">sin Π(x) = 1 / cosh(x)</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 240" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="x">расстояние x</label><input id="x" type="range" min="0.1" max="3" step="0.05" value="1"><span class="v" id="xv">1.00</span></div><div class="rdt" id="rdt"></div><div class="cap">у Евклида этот угол всегда 90°; здесь он тает с расстоянием</div></div>
+<script>
+const PI=Math.PI, $=id=>document.getElementById(id);
+const RM=false;
+function n(x){return Math.round(x*10)/10}
+function L(a,b,c,d,col,w,m){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${m?'marker-end="url(#ah)"':''}/>`}
+function DL(a,b,c,d){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>`}
+function AX(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#c7c5bc" stroke-width="1"/>`}
+function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)}" font-family="ui-monospace,monospace" font-size="${sz}" fill="${col}" ${an?`text-anchor="${an}"`:''}>${s}</text>`}
+function D(x,y,r,f){return `<circle cx="${n(x)}" cy="${n(y)}" r="${r}" fill="${f}"/>`}
+function CC(x,y,r,col,w){return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}"/>`}
+const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+let X=1;
+$('x').oninput=e=>{X=+e.target.value;$('xv').textContent=X.toFixed(2);draw()};
+function draw(){
+  const by=180, top=40, px=130;
+  const ang=Math.asin(1/Math.cosh(X));            // Π(x) от вертикали
+  // опускаем перпендикуляр и рисуем "предельную" прямую под углом Π от него
+  const ex=px+(by-top)*Math.tan(ang);
+  let s=DEFS;
+  s+=L(40,by,420,by,'#274a73',2.2)+TX(((40+px)/2),by+18,'данная прямая','#6c7080',11,'middle');
+  s+=DL(px,by,px,top)+TX(px-6,top+12,'перпендикуляр','#6c7080',10,'end');
+  s+=L(px,by,Math.min(420,ex),by-(Math.min(420,ex)-px)/Math.tan(ang),'#3d6b9e',2.6,1);
+  s+=D(px,by,4,'#274a73');
+  // дуга угла
+  s+=`<path d="M${n(px)} ${n(by-34)} A34 34 0 0 1 ${n(px+34*Math.sin(ang))} ${n(by-34*Math.cos(ang))}" fill="none" stroke="#6c7080" stroke-width="1.2"/>`;
+  s+=TX(px+12,by-42,'Π(x)','#274a73',12);
+  $('fig').innerHTML=s;
+  const a=ang*180/PI;
+  $('rdt').innerHTML=`x = ${X.toFixed(2)} → Π(x) = <b>${a.toFixed(0)}°</b>`+(X<0.4?' (почти 90°, как у Евклида)':(X>2.4?' — прямая «убегает» далеко вбок':''));
+}
+draw();
+
+</script></body></html>

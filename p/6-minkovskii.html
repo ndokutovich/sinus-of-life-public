@@ -1,0 +1,82 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Диаграмма Минковского: буст — это поворот</title>
+<style>/* Общий стиль пенов «Карты синуса» — компакт под embed ~430px */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--coral:#d65f37;--coral-d:#9c3f1f;--teal:#138a64;--teal-d:#0c5a41;
+--violet:#6a5bd6;--violet-d:#473aa3;--gold:#c98a1b;--gold-d:#8a5e12;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);
+border-radius:14px;padding:14px 16px 12px}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;
+border-radius:8px;overflow-x:auto;white-space:nowrap}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 118px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;
+color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+
+.pen{--acc:#d65f37} .pen .f{background:color-mix(in srgb,#d65f37 12%,white);color:#9c3f1f}</style></head><body>
+<div class="pen"><h3>Диаграмма Минковского: буст — это поворот</h3><div class="f">оси t' и x' наклоняются к лучу света на угол arctan(v/c)</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="b">скорость v</label><input id="b" type="range" min="-0.85" max="0.85" step="0.05" value="0.5"><span class="v" id="bv">0.50c</span></div><div class="rdt" id="rdt"></div><div class="cap">разгон сжимает оси к лучу света; обогнать его = сомкнуть ножницы, что невозможно</div></div>
+<script>
+const PI=Math.PI, $=id=>document.getElementById(id);
+const RM=false;
+function n(x){return Math.round(x*100)/100}
+function L(a,b,c,d,col,w,m){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${m?'marker-end="url(#ah)"':''}/>`}
+function DL(a,b,c,d,col){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col||'#b4b2a9'}" stroke-width="1" stroke-dasharray="4 4"/>`}
+function AX(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#c7c5bc" stroke-width="1"/>`}
+function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)}" font-family="ui-monospace,monospace" font-size="${sz}" fill="${col}" ${an?`text-anchor="${an}"`:''}>${s}</text>`}
+function D(x,y,r,f){return `<circle cx="${n(x)}" cy="${n(y)}" r="${r}" fill="${f}"/>`}
+function CC(x,y,r,col,w){return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}"/>`}
+const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+let beta=0.5;
+$('b').oninput=e=>{beta=+e.target.value;$('bv').textContent=beta.toFixed(2)+'c';draw()};
+const O={x:220,y:165}, S=120;   // центр и масштаб
+function P(t,x){ return {X:O.x + x*S, Y:O.y - t*S}; }  // t вверх, x вправо
+function draw(){
+  let s=DEFS;
+  // световой конус (диагонали t=±x)
+  s+=`<line x1="${P(-1.3,-1.3).X}" y1="${P(-1.3,-1.3).Y}" x2="${P(1.3,1.3).X}" y2="${P(1.3,1.3).Y}" stroke="#e0a93b" stroke-width="2"/>`;
+  s+=`<line x1="${P(-1.3,1.3).X}" y1="${P(-1.3,1.3).Y}" x2="${P(1.3,-1.3).X}" y2="${P(1.3,-1.3).Y}" stroke="#e0a93b" stroke-width="2"/>`;
+  s+=TX(P(1.32,1.18).X,P(1.32,1.18).Y,'свет','#b07d1a',11);
+  // неподвижные оси (наблюдатель A) — серые
+  s+=L(P(0,-1.35).X,P(0,-1.35).Y,P(0,1.4).X,P(0,1.4).Y,'#bfc0b8',1.6,1);
+  s+=L(P(-1.35,0).X,P(-1.35,0).Y,P(1.4,0).X,P(1.4,0).Y,'#bfc0b8',1.6,1);
+  s+=TX(P(1.46,0).X,P(1.46,0).Y+4,'t','#9a9b92',12)+TX(P(0,1.46).X+4,P(0,1.46).Y,'x','#9a9b92',12);
+  // движущиеся оси (наблюдатель B): t' вдоль (1,beta) в (x,t)? 
+  // t'-ось: мировая линия B, наклон x=beta*t -> направление (x,t)=(beta,1)
+  // x'-ось: линия одновременности B, наклон t=beta*x -> направление (1,beta)
+  const tp1=P(1.3, beta*1.3), tp2=P(-1.3,-beta*1.3);
+  const xp1=P(beta*1.3, 1.3), xp2=P(-beta*1.3,-1.3);
+  s+=L(tp2.X,tp2.Y,tp1.X,tp1.Y,'#d65f37',2.4,1);
+  s+=L(xp2.X,xp2.Y,xp1.X,xp1.Y,'#d65f37',2.4,1);
+  s+=TX(tp1.X+4,tp1.Y,"t'","#9c3f1f",12)+TX(xp1.X+4,xp1.Y+4,"x'","#9c3f1f",12);
+  // сетка одновременности B (несколько линий t'=const) — пунктир, показывает наклон
+  for(let k=-1;k<=1;k++){ if(k===0)continue;
+    const a=P(0.5*k+beta*(-1.2), 0.5*k? 0:0); // линия x'=const? нарисуем одновременность: t = beta*x + c
+    const c=0.55*k;
+    const A=P(c+beta*(-1.2),-1.2), Bp=P(c+beta*1.2,1.2);
+    s+=`<line x1="${A.X}" y1="${A.Y}" x2="${Bp.X}" y2="${Bp.Y}" stroke="#d65f37" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>`;
+  }
+  // точка-событие на луче света остаётся на луче для всех (демонстрация инвариантности c)
+  const ev=P(0.9,0.9);
+  s+=D(ev.X,ev.Y,4.5,'#b07d1a');
+  $('fig').innerHTML=s;
+  const ang=Math.atan(Math.abs(beta))*180/PI;
+  $('rdt').innerHTML=`v=${beta.toFixed(2)}c: оси t' и x' повернулись к лучу света на <b>${ang.toFixed(0)}°</b> (как ножницы). Луч света (диагональ) — на месте для обоих: c одинакова`;
+}
+draw();
+
+</script></body></html>

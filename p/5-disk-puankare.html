@@ -1,0 +1,185 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Диск Пуанкаре: бесконечность у края</title>
+<style>/* Общий стиль пенов «Карты синуса» — компакт под embed ~430px */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--coral:#d65f37;--coral-d:#9c3f1f;--teal:#138a64;--teal-d:#0c5a41;
+--violet:#6a5bd6;--violet-d:#473aa3;--gold:#c98a1b;--gold-d:#8a5e12;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);
+border-radius:14px;padding:14px 16px 12px}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;
+border-radius:8px;overflow-x:auto;white-space:nowrap}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 118px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;
+color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+
+.pen{--acc:#3d6b9e} .pen .f{background:color-mix(in srgb,#3d6b9e 12%,white);color:#274a73}</style></head><body>
+<div class="pen"><h3>Диск Пуанкаре: бесконечность у края</h3><div class="f">окружность радиуса r имеет длину 2π·sinh(r)</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="depth">глубина замощения</label><input id="depth" type="range" min="0" max="5" step="1" value="3"><span class="v" id="depthv">3</span></div><div class="rdt" id="rdt"></div><div class="cap">все семиугольники одинакового размера — это пространство искривлено к краю</div></div>
+<script>
+const PI=Math.PI, $=id=>document.getElementById(id);
+const RM=false;
+function n(x){return Math.round(x*100)/100}
+function L(a,b,c,d,col,w,m){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${m?'marker-end="url(#ah)"':''}/>`}
+function DL(a,b,c,d,col){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col||'#b4b2a9'}" stroke-width="1" stroke-dasharray="4 4"/>`}
+function AX(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#c7c5bc" stroke-width="1"/>`}
+function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)}" font-family="ui-monospace,monospace" font-size="${sz}" fill="${col}" ${an?`text-anchor="${an}"`:''}>${s}</text>`}
+function D(x,y,r,f){return `<circle cx="${n(x)}" cy="${n(y)}" r="${r}" fill="${f}"/>`}
+function CC(x,y,r,col,w){return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="${w}"/>`}
+const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+// {p,q}=7,3 гиперболическое замощение — строим отражениями (инверсиями) фундаментального 7-угольника.
+// Геодезические рёбра — дуги окружностей, ортогональных границе диска.
+let DEPTH=3;
+$('depth').oninput=e=>{DEPTH=+e.target.value;$('depthv').textContent=DEPTH;draw()};
+
+const CXp=150, CYp=150, Rd=130;   // диск в svg-координатах
+// инверсия точки относительно окружности (cx,cy,r)
+function invert(z, c){
+  const dx=z.x-c.x, dy=z.y-c.y, d2=dx*dx+dy*dy;
+  const k=c.r*c.r/d2;
+  return {x:c.x+dx*k, y:c.y+dy*k};
+}
+// окружность, проходящая через две точки на единичном диске ортогонально границе (модель: единичный диск)
+// для точек a,b внутри — геодезическая. Нам нужны зеркала-стороны многоугольника.
+// Возьмём правильный {7,3}: вычислим вершины фундаментального 7-угольника и окружности-стороны.
+function buildTiling(){
+  const p=7,q=3;
+  // радиус вершин фундаментального p-угольника в модели единичного диска:
+  // r0 = sqrt( cos(pi/p+pi/q) / cos(pi/p-pi/q) )   (стандартная формула)
+  const A=PI/p, B=PI/q;
+  const r0=Math.sqrt(Math.cos(A+B)/Math.cos(A-B));
+  // вершины
+  const verts=[];
+  for(let k=0;k<p;k++){const th=2*PI*k/p+PI/2; verts.push({x:r0*Math.cos(th),y:r0*Math.sin(th)});}
+  // стороны как окружности, ортогональные границе, проходящие через соседние вершины.
+  // Окружность ортогональна единичной, если cx^2+cy^2 = r^2 + 1. Через две точки на единичном диске
+  // это определяет дугу-геодезическую. Центр = ... решаем.
+  function geoCircle(a,b){
+    // ищем (cx,cy,r): |a-c|=r, |b-c|=r, cx^2+cy^2=r^2+1
+    // из первых двух: c лежит на серединном перпендикуляре ab.
+    // подставим cx^2+cy^2 - r^2 =1, а r^2=|a-c|^2 => cx^2+cy^2-(|a|^2-2 a·c + |c|^2)=1 => 2 a·c - |a|^2 =1
+    // т.е. 2(ax*cx+ay*cy) = 1+|a|^2 ; аналогично для b. Линейная система 2x2.
+    const a2=a.x*a.x+a.y*a.y, b2=b.x*b.x+b.y*b.y;
+    const det=2*(a.x*b.y - a.y*b.x);
+    if(Math.abs(det)<1e-9) return null; // диаметр
+    const cx=((1+a2)*b.y-(1+b2)*a.y)/det;
+    const cy=((1+b2)*a.x-(1+a2)*b.x)/det;
+    const r=Math.sqrt(cx*cx+cy*cy-1);
+    return {x:cx,y:cy,r:r};
+  }
+  let sides=[];
+  for(let k=0;k<p;k++){const s=geoCircle(verts[k],verts[(k+1)%p]); if(s)sides.push(s);}
+  // набор многоугольников: начинаем с фундаментального, отражаем относительно сторон до глубины DEPTH
+  // многоугольник представим списком вершин (в модели). сторону — окружностью.
+  let polys=[{verts:verts.slice(), depth:0}];
+  let frontier=[{verts:verts.slice(), depth:0, sides:sides.slice()}];
+  const seen=new Set();
+  function key(vs){ // грубый ключ по центроиду
+    let cx=0,cy=0; vs.forEach(v=>{cx+=v.x;cy+=v.y;}); cx/=vs.length;cy/=vs.length;
+    return Math.round(cx*1000)/1000+','+Math.round(cy*1000)/1000;
+  }
+  seen.add(key(verts));
+  let cur=[{verts:verts.slice(), sides:sides.slice()}];
+  for(let d=1; d<=DEPTH; d++){
+    let next=[];
+    for(const poly of cur){
+      for(const side of poly.sides){
+        // отражаем все вершины поли относительно этой окружности-стороны
+        const nv=poly.verts.map(v=>invert(v, side));
+        const kk=key(nv);
+        if(seen.has(kk)) continue;
+        seen.add(kk);
+        // стороны нового поли: отражаем стороны исходного
+        const ns=poly.sides.map(sc=>{
+          // образ окружности при инверсии относительно side — тоже окружность; аппроксимируем через geoCircle по отражённым вершинам соответствующего ребра
+          return sc; // упрощение: пересоберём ниже по вершинам
+        });
+        // пересоберём стороны корректно по новым вершинам
+        const realSides=[];
+        for(let k=0;k<nv.length;k++){const gc=geoCircle(nv[k],nv[(k+1)%nv.length]); if(gc)realSides.push(gc);}
+        polys.push({verts:nv, depth:d});
+        next.push({verts:nv, sides:realSides});
+      }
+    }
+    cur=next;
+    if(cur.length>900) break; // предохранитель
+  }
+  return {polys, r0};
+}
+
+function arcPath(a,b,circ){
+  // рисуем дугу окружности circ от точки a до b (в svg-координатах уже)
+  if(!circ) return `M${n(a.X)} ${n(a.Y)} L${n(b.X)} ${n(b.Y)}`;
+  // радиус в svg
+  const R=circ.r*Rd;
+  // определить sweep по знаку
+  return `M${n(a.X)} ${n(a.Y)} A${n(R)} ${n(R)} 0 0 ${arcSweep(a,b,circ)} ${n(b.X)} ${n(b.Y)}`;
+}
+function arcSweep(a,b,circ){
+  // векторное произведение для выбора стороны
+  const cxs=CXp+circ.x*Rd, cys=CYp+circ.y*Rd;
+  const v1x=a.X-cxs, v1y=a.Y-cys, v2x=b.X-cxs, v2y=b.Y-cys;
+  const cross=v1x*v2y-v1y*v2x;
+  return cross>0?0:1;
+}
+function toSvg(v){return {X:CXp+v.x*Rd, Y:CYp+v.y*Rd};}
+
+function draw(){
+  const {polys}=buildTiling();
+  let s=`<circle cx="${CXp}" cy="${CYp}" r="${Rd}" fill="#fbfbf9" stroke="#9fb2c8" stroke-width="1.5"/>`;
+  // рисуем рёбра как геодезические дуги
+  const drawn=new Set();
+  for(const poly of polys){
+    const vs=poly.verts;
+    for(let k=0;k<vs.length;k++){
+      const a=vs[k], b=vs[(k+1)%vs.length];
+      // геодезическая окружность ребра
+      const a2=a.x*a.x+a.y*a.y, b2=b.x*b.x+b.y*b.y;
+      const det=2*(a.x*b.y-a.y*b.x);
+      let circ=null;
+      if(Math.abs(det)>1e-9){
+        const cx=((1+a2)*b.y-(1+b2)*a.y)/det;
+        const cy=((1+b2)*a.x-(1+a2)*b.x)/det;
+        const rr=cx*cx+cy*cy-1;
+        if(rr>1e-9) circ={x:cx,y:cy,r:Math.sqrt(rr)};
+      }
+      const A=toSvg(a), B=toSvg(b);
+      const op=Math.max(0.18, 0.85-poly.depth*0.16);
+      s+=`<path d="${arcPath(A,B,circ)}" fill="none" stroke="#3d6b9e" stroke-width="${Math.max(0.6,1.6-poly.depth*0.22)}" opacity="${op.toFixed(2)}"/>`;
+    }
+  }
+  // вторая панель справа: длина окружности vs радиус
+  const gx=300,gy0=40,gy1=250,gw=120;
+  s+=AX(gx,gy1,gx+gw,gy1)+AX(gx,gy1,gx,gy0);
+  let pe='',pl='';
+  for(let i=0;i<=60;i++){const r=i/20; // r до 3
+    const X=gx+gw*(r/3);
+    pe+=`${n(X)},${n(gy1-(gy1-gy0)*Math.min(1,(2*PI*r)/(2*PI*3)))} `;       // евклид 2πr
+    pl+=`${n(X)},${n(gy1-(gy1-gy0)*Math.min(1,(2*PI*Math.sinh(r))/(2*PI*Math.sinh(3))))} `; // гипербол 2π sinh r
+  }
+  s+=`<polyline points="${pe.trim()}" fill="none" stroke="#9fa3b2" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+  s+=`<polyline points="${pl.trim()}" fill="none" stroke="#274a73" stroke-width="2.4"/>`;
+  s+=TX(gx,gy0-6,'длина окружности','#6c7080',11);
+  s+=TX(gx+4,gy1-4,'2πr','#9fa3b2',10);
+  s+=TX(gx+gw-2,gy0+30,'2π·sinh r','#274a73',10,'end');
+  s+=TX(gx+gw/2,gy1+16,'радиус r →','#6c7080',10,'middle');
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML=`замощение {7,3}: к краю фигуры мельчают, но «на самом деле» все одинаковы — край бесконечно далёк. Длина окружности растёт как <b>sinh r</b>, не как r`;
+}
+draw();
+
+</script></body></html>
