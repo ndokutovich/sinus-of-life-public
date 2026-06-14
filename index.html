@@ -365,7 +365,7 @@
     <div class="fig" data-fig="fourier"></div>
     <div class="cap">пунктир — идеальный прямоугольник, линия — сумма синусов</div>
   </div>
-  <div class="case"><div class="case-h">Гласные «а» и «и» · форманты</div><div class="formula">тембр = какие гармоники громкие</div><p>Высота голоса — основная частота, и у «а», и у «и» она одна. Различает их спектр: «горбы громкости» — форманты. Ухо делает Фурье-разбор каждого звука — на этом стоит распознавание речи. Двигайте ползунок: нота та же, тембр другой.</p><div class="fig" data-fig="vowels"></div></div>
+  <div class="case"><div class="case-h">Гласные «а», «и», «у» · форманты</div><div class="formula">тембр = какие синусы громкие</div><p>Высота голоса — основная частота, и у «а», и у «и», и у «у» она одна. Различает их только набор громких синусов: «горбы громкости» — форманты. Под спектром видно сами синусы-ингредиенты и их сумму — ваш голос. Ухо делает этот Фурье-разбор каждого звука; на нём стоит распознавание речи. Двигайте ползунок а→и→у: нота та же, тембр другой.</p><div class="fig" data-fig="vowels"></div></div>
   <div class="case"><div class="case-h">Эффект Доплера</div><div class="formula">f′ = f·(c ± v)/(c ∓ v)</div><p>Источник движется — волны спереди сжимаются (частота выше), сзади растягиваются (ниже). Сирена скорой, тон гудка проезжающей машины.</p><div class="fig" data-fig="doppler"></div></div>
   <div class="case"><div class="case-h">Круговая поляризация</div><div class="formula">E = (cos ωt, cos(ωt − δ))</div><p>Два перпендикулярных синуса со сдвигом фазы: при δ = 90° кончик поля чертит круг. На этом стоят 3D-очки и оптическая связь.</p><div class="fig" data-fig="circpol"></div></div>
   <div class="case"><div class="case-h">Групповая и фазовая скорость</div><div class="formula">v_гр = dω/dk · v_ф = ω/k</div><p>Пакет волн: огибающая (группа, несёт энергию) и несущая под ней бегут с разной скоростью. Иногда рябь внутри пакета обгоняет сам пакет.</p><div class="fig" data-fig="groupvel"></div></div>
@@ -871,32 +871,40 @@ minkowski:{vb:'0 0 360 240',anim:false,ctrls:[{k:'b',lab:'\u0441\u043a\u043e\u04
  rd:function(p){var ang=Math.atan(Math.abs(p.b))*180/PI;
   return 'v = '+p.b.toFixed(2)+'c: \u043e\u0441\u0438 t\u2032 \u0438 x\u2032 \u0441\u043e\u0448\u043b\u0438\u0441\u044c \u043a \u043b\u0443\u0447\u0443 \u0441\u0432\u0435\u0442\u0430 \u043d\u0430 <b>'+ang.toFixed(0)+'\u00b0</b> \u2014 \u043a\u0430\u043a \u043d\u043e\u0436\u043d\u0438\u0446\u044b; \u0441\u0430\u043c \u043b\u0443\u0447 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435: c \u043e\u0434\u0438\u043d\u0430\u043a\u043e\u0432\u0430 \u0434\u043b\u044f \u0432\u0441\u0435\u0445';}},
 
-vowels:{vb:'0 0 360 210',anim:false,ctrls:[{k:'m',lab:'\u0433\u043b\u0430\u0441\u043d\u0430\u044f: \u0430 \u2192 \u0438',min:0,max:100,step:1,val:0,unit:'%'}],
- R:function(p){var m=p.m/100,f0=110,NH=24,F1=800-520*m,F2=1200+1100*m,amps=[],mx=0,k,f,a;
+vowels:{vb:'0 0 360 218',anim:false,ctrls:[{k:'m',lab:'\u0433\u043b\u0430\u0441\u043d\u0430\u044f: \u0430 \u2192 \u0438 \u2192 \u0443',min:0,max:100,step:1,val:0,unit:'%'}],
+ _fmt:function(m){var A=[800,1200],I=[280,2300],U=[300,700],t;
+  if(m<=0.5){t=m/0.5;return [A[0]+(I[0]-A[0])*t,A[1]+(I[1]-A[1])*t];}
+  t=(m-0.5)/0.5;return [I[0]+(U[0]-I[0])*t,I[1]+(U[1]-I[1])*t];},
+ R:function(p){var m=p.m/100,f0=110,NH=24,ff=F.vowels._fmt(m),F1=ff[0],F2=ff[1],amps=[],mx=0,k,f,a;
   for(k=1;k<=NH;k++){f=k*f0;
    a=Math.exp(-Math.pow((f-F1)/170,2))+0.75*Math.exp(-Math.pow((f-F2)/260,2));
    a/=Math.sqrt(k);amps.push(a);if(a>mx)mx=a;}
   for(k=0;k<NH;k++)amps[k]/=mx;
   VOWA=amps;
-  var s='',bx0=36,bw=11.5,by=112;
+  var s='',bx0=36,bw=11.5,by=108;
   s+=AX(30,by,330,by);
-  for(k=0;k<NH;k++){var h=86*amps[k],x=bx0+k*bw;
+  for(k=0;k<NH;k++){var h=82*amps[k],x=bx0+k*bw;
    s+='<rect x="'+n(x)+'" y="'+n(by-h)+'" width="8" height="'+n(Math.max(1.5,h))+'" rx="1.5" fill="'+(amps[k]>0.55?C.vid:C.vi)+'" opacity="'+(0.45+0.55*amps[k]).toFixed(2)+'"/>';}
   var xF1=bx0+(F1/f0-1)*bw+4,xF2=Math.min(322,bx0+(F2/f0-1)*bw+4);
-  s+=DL(xF1,22,xF1,by)+DL(xF2,22,xF2,by);
-  s+=TX(xF1,16,'F1',C.vid,11,'middle')+TX(xF2,16,'F2',C.vid,11,'middle');
+  s+=DL(xF1,20,xF1,by)+DL(xF2,20,xF2,by);
+  s+=TX(xF1,14,'F1',C.vid,11,'middle')+TX(xF2,14,'F2',C.vid,11,'middle');
   s+=TX(330,by+13,'\u0447\u0430\u0441\u0442\u043e\u0442\u0430 \u2192',C.mut,10,'end');
-  var wy=172,wa=28,Nw=180,vals=[],vmax=0,i2,tt,v2,j,pts='';
+  var wy=180,wa=24,Nw=180,vals=[],vmax=0,i2,tt,v2,j;
   for(i2=0;i2<=Nw;i2++){tt=i2/Nw*2/f0;v2=0;
    for(j=0;j<NH;j++)v2+=amps[j]*Math.sin(2*PI*(j+1)*f0*tt);
    vals.push(v2);if(Math.abs(v2)>vmax)vmax=Math.abs(v2);}
+  var loud=[],ai;for(ai=0;ai<NH;ai++)loud.push([amps[ai],ai]);
+  loud.sort(function(p2,q2){return q2[0]-p2[0];});loud=loud.slice(0,7);
   s+=AX(30,wy,330,wy);
-  for(i2=0;i2<=Nw;i2++){pts+=n(36+288*i2/Nw)+','+n(wy-wa*vals[i2]/vmax)+' ';}
-  s+='<polyline points="'+pts.trim()+'" fill="none" stroke="'+C.vi+'" stroke-width="2.2"/>';
-  s+=TX(36,wy-wa-6,'\u0432\u043e\u043b\u043d\u0430 \u0437\u0430 \u0434\u0432\u0430 \u043f\u0435\u0440\u0438\u043e\u0434\u0430: \u043d\u043e\u0442\u0430 \u0442\u0430 \u0436\u0435, \u0444\u043e\u0440\u043c\u0430 \u0434\u0440\u0443\u0433\u0430\u044f',C.mut,10);
+  for(var li=0;li<loud.length;li++){var jj=loud[li][1],pp='';
+   for(i2=0;i2<=Nw;i2++){tt=i2/Nw*2/f0;pp+=n(36+288*i2/Nw)+','+n(wy-wa*amps[jj]*Math.sin(2*PI*(jj+1)*f0*tt)/vmax)+' ';}
+   s+='<polyline points="'+pp.trim()+'" fill="none" stroke="'+C.vi+'" stroke-width="1" opacity="0.3"/>';}
+  var pts='';for(i2=0;i2<=Nw;i2++){pts+=n(36+288*i2/Nw)+','+n(wy-wa*vals[i2]/vmax)+' ';}
+  s+='<polyline points="'+pts.trim()+'" fill="none" stroke="'+C.vid+'" stroke-width="2.2"/>';
+  s+=TX(36,wy-wa-8,'\u0431\u043b\u0435\u0434\u043d\u044b\u0435 \u2014 \u0441\u0438\u043d\u0443\u0441\u044b-\u0438\u043d\u0433\u0440\u0435\u0434\u0438\u0435\u043d\u0442\u044b, \u0436\u0438\u0440\u043d\u0430\u044f \u2014 \u0438\u0445 \u0441\u0443\u043c\u043c\u0430',C.mut,10);
   return s;},
- rd:function(p){var m=p.m/100,F1=Math.round(800-520*m),F2=Math.round(1200+1100*m),
-  lab=m<0.25?'\u00ab\u0430\u00bb':(m>0.75?'\u00ab\u0438\u00bb':'\u043c\u0435\u0436\u0434\u0443 \u00ab\u0430\u00bb \u0438 \u00ab\u0438\u00bb');
+ rd:function(p){var m=p.m/100,ff=F.vowels._fmt(m),F1=Math.round(ff[0]),F2=Math.round(ff[1]),
+  lab=m<0.12?'\u00ab\u0430\u00bb':m<0.38?'\u0430\u2192\u0438':m<0.62?'\u00ab\u0438\u00bb':m<0.88?'\u0438\u2192\u0443':'\u00ab\u0443\u00bb';
   return lab+': F1 \u2248 <b>'+F1+'</b> \u0413\u0446 \u00b7 F2 \u2248 <b>'+F2+'</b> \u0413\u0446 \u00b7 \u043d\u043e\u0442\u0430 110 \u0413\u0446 <button style="margin-left:8px;font:600 11px/1 system-ui;padding:4px 10px;border-radius:999px;border:1px solid #6a5bd6;color:#473aa3;background:#eeebfa;cursor:pointer" onclick="SINVOICE()">\u266a \u0441\u043b\u0443\u0448\u0430\u0442\u044c</button>';}}
 };
 

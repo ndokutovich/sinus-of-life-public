@@ -28,10 +28,10 @@ color:var(--muted);line-height:1.5;min-height:18px}
 border-radius:999px;border:1px solid var(--violet);color:var(--violet-d);background:#eeebfa;cursor:pointer}
 .play:active{background:#e2dcf7}
 .pen{--acc:#6a5bd6} .pen .f{background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}</style></head><body>
-<div class="pen"><h3>Гласные «а» и «и»: одна нота, разные форманты</h3><div class="f">высота = основная частота · тембр = какие гармоники громкие</div>
-<div class="figbox"><svg id="fig" viewBox="0 0 440 250" preserveAspectRatio="xMidYMid meet"></svg></div>
-<div class="ctrl"><label for="m">гласная: а → и</label><input id="m" type="range" min="0" max="100" step="1" value="0"><span class="v" id="mv">0%</span></div>
-<div class="rdt" id="rdt"></div><div class="cap">нота одна и та же (110 Гц) — различает гласные только спектр. Так работает распознавание речи</div></div>
+<div class="pen"><h3>Гласные «а», «и», «у»: одна нота — разный набор синусов</h3><div class="f">высота = основная частота · тембр = какие синусы громкие</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 258" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="m">гласная: а → и → у</label><input id="m" type="range" min="0" max="100" step="1" value="0"><span class="v" id="mv">а</span></div>
+<div class="rdt" id="rdt"></div><div class="cap">нота одна и та же (110 Гц) — гласную задаёт только набор громких синусов. Так работает распознавание речи</div></div>
 <script>
 const PI=Math.PI, $=id=>document.getElementById(id);
 const RM=false;
@@ -42,11 +42,16 @@ function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)
 
 const F0=110, NH=24;
 let M=0, AMPS=null, AC=null;
-$('m').oninput=e=>{M=+e.target.value;$('mv').textContent=M+'%';draw()};
+$('m').oninput=e=>{M=+e.target.value;draw()};
 
+// а(0) → и(0.5) → у(1): три угла треугольника гласных
+function formants(m){
+  const A=[800,1200], I=[280,2300], U=[300,700];
+  if(m<=0.5){const t=m/0.5; return [A[0]+(I[0]-A[0])*t, A[1]+(I[1]-A[1])*t];}
+  const t=(m-0.5)/0.5; return [I[0]+(U[0]-I[0])*t, I[1]+(U[1]-I[1])*t];
+}
 function spectrum(m){
-  // форманты: «а» F1≈800, F2≈1200 → «и» F1≈280, F2≈2300
-  const F1=800-520*m, F2=1200+1100*m, amps=[]; let mx=0;
+  const [F1,F2]=formants(m), amps=[]; let mx=0;
   for(let k=1;k<=NH;k++){const f=k*F0;
     let a=Math.exp(-Math.pow((f-F1)/170,2))+0.75*Math.exp(-Math.pow((f-F2)/260,2));
     a/=Math.sqrt(k); amps.push(a); if(a>mx)mx=a;}
@@ -58,25 +63,29 @@ function draw(){
   AMPS=amps;
   let s='';
   // спектр: 24 столбика-гармоники
-  const bx0=42,bw=14.6,by=132;
+  const bx0=42,bw=14.6,by=128;
   s+=AX(34,by,416,by);
-  for(let k=0;k<NH;k++){const h=104*amps[k],x=bx0+k*bw;
+  for(let k=0;k<NH;k++){const h=98*amps[k],x=bx0+k*bw;
     s+=`<rect x="${n(x)}" y="${n(by-h)}" width="10" height="${n(Math.max(1.5,h))}" rx="2" fill="${amps[k]>0.55?'#473aa3':'#6a5bd6'}" opacity="${(0.45+0.55*amps[k]).toFixed(2)}"/>`;}
   const xF1=bx0+(F1/F0-1)*bw+5, xF2=Math.min(408,bx0+(F2/F0-1)*bw+5);
-  s+=DL(xF1,26,xF1,by)+DL(xF2,26,xF2,by);
-  s+=TX(xF1,18,'F1','#473aa3',12,'middle')+TX(xF2,18,'F2','#473aa3',12,'middle');
-  s+=TX(416,by+15,'частота →','#6c7080',10,'end');
-  // волна: сумма гармоник, два периода
-  const wy=208,wa=34,Nw=220; let vals=[],vmax=0,pts='';
+  s+=DL(xF1,24,xF1,by)+DL(xF2,24,xF2,by);
+  s+=TX(xF1,17,'F1','#473aa3',12,'middle')+TX(xF2,17,'F2','#473aa3',12,'middle');
+  s+=TX(416,by+14,'частота →','#6c7080',10,'end');
+  // волна: бледные синусы-ингредиенты (громкие гармоники) + жирная сумма
+  const wy=214,wa=28,Nw=240; let vals=[],vmax=0;
   for(let i=0;i<=Nw;i++){const t=i/Nw*2/F0; let v=0;
     for(let j=0;j<NH;j++)v+=amps[j]*Math.sin(2*PI*(j+1)*F0*t);
     vals.push(v); if(Math.abs(v)>vmax)vmax=Math.abs(v);}
+  const loud=amps.map((a,j)=>[a,j]).sort((p,q)=>q[0]-p[0]).slice(0,7).map(p=>p[1]);
   s+=AX(34,wy,416,wy);
-  for(let i=0;i<=Nw;i++){pts+=`${n(42+366*i/Nw)},${n(wy-wa*vals[i]/vmax)} `;}
-  s+=`<polyline points="${pts.trim()}" fill="none" stroke="#6a5bd6" stroke-width="2.4"/>`;
-  s+=TX(42,wy-wa-8,'микрофон ловит одну дрожащую линию — ухо раскладывает её обратно','#6c7080',10);
+  loud.forEach(j=>{let p='';for(let i=0;i<=Nw;i++){const t=i/Nw*2/F0;p+=`${n(42+366*i/Nw)},${n(wy-wa*amps[j]*Math.sin(2*PI*(j+1)*F0*t)/vmax)} `;}
+    s+=`<polyline points="${p.trim()}" fill="none" stroke="#6a5bd6" stroke-width="1" opacity="0.3"/>`;});
+  let pts='';for(let i=0;i<=Nw;i++){pts+=`${n(42+366*i/Nw)},${n(wy-wa*vals[i]/vmax)} `;}
+  s+=`<polyline points="${pts.trim()}" fill="none" stroke="#473aa3" stroke-width="2.4"/>`;
+  s+=TX(42,wy-wa-10,'бледные — синусы-ингредиенты, жирная — их сумма (ваш голос)','#6c7080',10);
   $('fig').innerHTML=s;
-  const lab=m<0.25?'«а»':(m>0.75?'«и»':'между «а» и «и»');
+  const lab=m<0.12?'«а»':m<0.38?'а→и':m<0.62?'«и»':m<0.88?'и→у':'«у»';
+  $('mv').textContent=lab.replace(/[«»]/g,'');
   $('rdt').innerHTML=`${lab}: F1 ≈ <b>${Math.round(F1)}</b> Гц · F2 ≈ <b>${Math.round(F2)}</b> Гц <button class="play" onclick="play()">♪ слушать</button>`;
 }
 
