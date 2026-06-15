@@ -28,7 +28,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 border-radius:999px;border:1px solid var(--violet);color:var(--violet-d);background:#eeebfa;cursor:pointer}
 .play:active{background:#e2dcf7}
 .pen{--acc:#6a5bd6} .pen .f{background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}</style></head><body>
-<div class="pen"><h3>Гласные «а», «и», «у»: одна нота — разный набор синусов</h3><div class="f">высота = основная частота · тембр = какие синусы громкие</div>
+<div class="pen"><h3>Гласные «а», «и», «у»: одна нота — разный набор синусов</h3><div class="f" id="formula">голос = Σ aₖ·sin kωt</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 258" preserveAspectRatio="xMidYMid meet"></svg></div>
 <div class="ctrl"><label for="m">гласная: а → и → у</label><input id="m" type="range" min="0" max="100" step="1" value="0"><span class="v" id="mv">а</span></div>
 <div class="rdt" id="rdt"></div><div class="cap">нота одна и та же (110 Гц) — гласную задаёт только набор громких синусов. Так работает распознавание речи</div></div>
@@ -58,9 +58,16 @@ function spectrum(m){
   return {amps:amps.map(a=>a/mx), F1, F2};
 }
 
+function series(amps){
+  let idx=amps.map((a,j)=>[a,j]).sort((p,q)=>q[0]-p[0]).slice(0,5).map(p=>p[1]);
+  idx.sort((a,b)=>a-b);
+  const t=idx.map(j=>{const k=j+1;return amps[j].toFixed(1)+'·sin '+(k===1?'':k)+'ωt';});
+  return 'голос ≈ '+t.join(' + ')+' + … (24 синуса)';
+}
 function draw(){
   const m=M/100, {amps,F1,F2}=spectrum(m);
   AMPS=amps;
+  $('formula').textContent=series(amps);
   let s='';
   // спектр: 24 столбика-гармоники
   const bx0=42,bw=14.6,by=128;
