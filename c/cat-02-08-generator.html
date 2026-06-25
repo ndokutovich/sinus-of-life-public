@@ -29,7 +29,7 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
 var F={generator:{vb:'0 0 360 170',anim:true,ctrls:[{k:'spd',lab:'обороты',min:0.6,max:2.2,step:0.1,val:1.2}],
- R:function(p,t){var a=t*p.spd,cx=100,cy=88,tx=cx+30*Math.cos(a),ty=cy-44*Math.sin(a);
+ R:function(p,t){var a=t*p.spd,cx=100,cy=88,tx=cx+38*Math.cos(a),ty=cy-38*Math.sin(a);
   return '<rect x="38" y="42" width="24" height="92" rx="3" fill="#d7e6ea"/>'+TX(45,94,'N',C.mut)
   +'<rect x="138" y="42" width="24" height="92" rx="3" fill="#f0ddd7"/>'+TX(145,94,'S',C.mut)
   +'<ellipse cx="100" cy="88" rx="30" ry="44" fill="none" stroke="'+C.ted+'" stroke-width="2.2"/>'
