@@ -1,0 +1,106 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Гласные «о», «ы», «э»: одна нота — другой набор синусов</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--violet:#6a5bd6;--violet-d:#473aa3;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 130px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#473aa3}
+.play{display:inline-block;margin-left:8px;font:600 11px/1 var(--sans);padding:4px 10px;border-radius:999px;border:1px solid #6a5bd6;color:#473aa3;background:#eeebfa;cursor:pointer}
+.play:active{background:#e2dcf7}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Гласные «о», «ы», «э» — одна нота, другой набор синусов</h3></div>
+<div class="f" id="formula">голос = Σ aₖ·sin kωt</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 258" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="m">гласная: о → ы → э</label><input id="m" type="range" min="0" max="100" step="1" value="0"><span class="v" id="mv">о</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">в манифесте звучали а, и, у — здесь другая тройка: о, ы, э. Нота одна (110 Гц), гласную задаёт только набор громких синусов. Жми «слушать»</div>
+</div>
+<script>
+const PI=Math.PI, $=id=>document.getElementById(id);
+function n(x){return Math.round(x*100)/100}
+function AX(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#c7c5bc" stroke-width="1"/>`}
+function DL(a,b,c,d,col){return `<line x1="${n(a)}" y1="${n(b)}" x2="${n(c)}" y2="${n(d)}" stroke="${col||'#b4b2a9'}" stroke-width="1" stroke-dasharray="4 4"/>`}
+function TX(x,y,s,col='#6c7080',sz=12,an=''){return `<text x="${n(x)}" y="${n(y)}" font-family="ui-monospace,monospace" font-size="${sz}" fill="${col}" ${an?`text-anchor="${an}"`:''}>${s}</text>`}
+const F0=110, NH=24;
+let M=0, AMPS=null, AC=null;
+$('m').oninput=e=>{M=+e.target.value;draw()};
+// о(0) → ы(0.5) → э(1): форманты F1,F2
+function formants(m){
+  const O=[500,900], Y=[300,1500], E=[550,1800];
+  if(m<=0.5){const t=m/0.5; return [O[0]+(Y[0]-O[0])*t, O[1]+(Y[1]-O[1])*t];}
+  const t=(m-0.5)/0.5; return [Y[0]+(E[0]-Y[0])*t, Y[1]+(E[1]-Y[1])*t];
+}
+function spectrum(m){
+  const [F1,F2]=formants(m), amps=[]; let mx=0;
+  for(let k=1;k<=NH;k++){const f=k*F0;
+    let a=Math.exp(-Math.pow((f-F1)/170,2))+0.75*Math.exp(-Math.pow((f-F2)/260,2));
+    a/=Math.sqrt(k); amps.push(a); if(a>mx)mx=a;}
+  return {amps:amps.map(a=>a/mx), F1, F2};
+}
+function series(amps){
+  let idx=amps.map((a,j)=>[a,j]).sort((p,q)=>q[0]-p[0]).slice(0,5).map(p=>p[1]);
+  idx.sort((a,b)=>a-b);
+  const t=idx.map(j=>{const k=j+1;return amps[j].toFixed(1)+'·sin '+(k===1?'':k)+'ωt';});
+  return 'голос ≈ '+t.join(' + ')+' + … (24 синуса)';
+}
+function draw(){
+  const m=M/100, {amps,F1,F2}=spectrum(m);
+  AMPS=amps;
+  $('formula').textContent=series(amps);
+  let s='';
+  const bx0=42,bw=14.6,by=128;
+  s+=AX(34,by,416,by);
+  for(let k=0;k<NH;k++){const h=98*amps[k],x=bx0+k*bw;
+    s+=`<rect x="${n(x)}" y="${n(by-h)}" width="10" height="${n(Math.max(1.5,h))}" rx="2" fill="${amps[k]>0.55?'#473aa3':'#6a5bd6'}" opacity="${(0.45+0.55*amps[k]).toFixed(2)}"/>`;}
+  const xF1=bx0+(F1/F0-1)*bw+5, xF2=Math.min(408,bx0+(F2/F0-1)*bw+5);
+  s+=DL(xF1,24,xF1,by)+DL(xF2,24,xF2,by);
+  s+=TX(xF1,17,'F1','#473aa3',12,'middle')+TX(xF2,17,'F2','#473aa3',12,'middle');
+  s+=TX(416,by+14,'частота →','#6c7080',10,'end');
+  const wy=214,wa=28,Nw=240; let vals=[],vmax=0;
+  for(let i=0;i<=Nw;i++){const t=i/Nw*2/F0; let v=0;
+    for(let j=0;j<NH;j++)v+=amps[j]*Math.sin(2*PI*(j+1)*F0*t);
+    vals.push(v); if(Math.abs(v)>vmax)vmax=Math.abs(v);}
+  const loud=amps.map((a,j)=>[a,j]).sort((p,q)=>q[0]-p[0]).slice(0,7).map(p=>p[1]);
+  s+=AX(34,wy,416,wy);
+  loud.forEach(j=>{let p='';for(let i=0;i<=Nw;i++){const t=i/Nw*2/F0;p+=`${n(42+366*i/Nw)},${n(wy-wa*amps[j]*Math.sin(2*PI*(j+1)*F0*t)/vmax)} `;}
+    s+=`<polyline points="${p.trim()}" fill="none" stroke="#6a5bd6" stroke-width="1" opacity="0.3"/>`;});
+  let pts='';for(let i=0;i<=Nw;i++){pts+=`${n(42+366*i/Nw)},${n(wy-wa*vals[i]/vmax)} `;}
+  s+=`<polyline points="${pts.trim()}" fill="none" stroke="#473aa3" stroke-width="2.4"/>`;
+  s+=TX(42,wy-wa-10,'бледные — синусы-ингредиенты, жирная — их сумма (ваш голос)','#6c7080',10);
+  $('fig').innerHTML=s;
+  const lab=m<0.12?'«о»':m<0.38?'о→ы':m<0.62?'«ы»':m<0.88?'ы→э':'«э»';
+  $('mv').textContent=lab.replace(/[«»]/g,'');
+  $('rdt').innerHTML=`${lab}: F1 ≈ <b>${Math.round(F1)}</b> Гц · F2 ≈ <b>${Math.round(F2)}</b> Гц <button class="play" onclick="play()">♪ слушать</button>`;
+}
+function play(){try{
+  if(!AMPS)return;
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
+  const re=new Float32Array(NH+1), im=new Float32Array(NH+1);
+  for(let i=0;i<NH;i++)im[i+1]=AMPS[i];
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.setPeriodicWave(AC.createPeriodicWave(re,im));
+  o.frequency.value=F0;
+  g.gain.setValueAtTime(0,AC.currentTime);
+  g.gain.linearRampToValueAtTime(0.22,AC.currentTime+0.06);
+  g.gain.setValueAtTime(0.22,AC.currentTime+0.85);
+  g.gain.linearRampToValueAtTime(0,AC.currentTime+1.1);
+  o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+1.15);
+}catch(e){}}
+draw();
+</script></body></html>

@@ -1,0 +1,65 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Одна точка — две тени: cos и sin</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#138a64}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#138a64 12%,white);color:#0c5a41}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 110px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 48px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#0c5a41}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДВЕРЬ 02</span><h3>Одна точка — две тени: cos и sin</h3></div>
+<div class="f">та же точка на круге роняет cos (на пол) и sin (на стену) — сдвиг 90°</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 240" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="sp">скорость ω</label><input id="sp" type="range" min="60" max="200" step="2" value="120"><span class="v" id="spv">1.20</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">cos и sin — не два разных зверя, а две тени одной крутящейся точки: на пол и на стену. Потому они и сдвинуты ровно на четверть оборота</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let SP=120;
+$('sp').oninput=e=>{SP=+e.target.value;$('spv').textContent=(SP/100).toFixed(2);};
+const ox=86,oy=84,R=52, sx0=168,sx1=428,kx=0.05, syS=84,syC=180,AMP=44;
+
+function frame(now){
+  const a=now/1000*(SP/100)*2.793/1.2;  // ~2 оборота за петлю
+  const px=ox+R*Math.cos(a), py=oy-R*Math.sin(a);
+  let s='';
+  // круг + стрелка
+  s+='<circle cx="'+ox+'" cy="'+oy+'" r="'+R+'" fill="none" stroke="#cfd9d3" stroke-width="1.4"/>';
+  s+='<line x1="'+ox+'" y1="'+oy+'" x2="'+px.toFixed(1)+'" y2="'+py.toFixed(1)+'" stroke="#138a64" stroke-width="2.4"/>';
+  s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="4.5" fill="#138a64"/>';
+  // оси волн
+  s+='<line x1="'+sx0+'" y1="'+syS+'" x2="'+sx1+'" y2="'+syS+'" stroke="#dcdad2" stroke-width="1"/>';
+  s+='<line x1="'+sx0+'" y1="'+syC+'" x2="'+sx1+'" y2="'+syC+'" stroke="#dcdad2" stroke-width="1"/>';
+  // тень sin (на стену) — горизонтальный пунктир от точки
+  s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+sx0+'" y2="'+py.toFixed(1)+'" stroke="#9ec3b4" stroke-width="1.1" stroke-dasharray="4 4"/>';
+  let ws='';for(let x=sx0;x<=sx1;x+=2){const th=a-(x-sx0)*kx;ws+=x+','+(syS-AMP*Math.sin(th)).toFixed(1)+' ';}
+  s+='<polyline points="'+ws.trim()+'" fill="none" stroke="#138a64" stroke-width="2.4"/>';
+  s+='<circle cx="'+sx0+'" cy="'+(syS-AMP*Math.sin(a)).toFixed(1)+'" r="3.6" fill="#138a64"/>';
+  s+='<text x="'+sx1+'" y="'+(syS-AMP-6)+'" font-family="ui-monospace,monospace" font-size="11" fill="#0c5a41" text-anchor="end">sin — тень на стену</text>';
+  // тень cos (на пол) — вертикальный пунктир от точки вниз
+  s+='<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+px.toFixed(1)+'" y2="'+(syC-AMP*Math.cos(a)).toFixed(1)+'" stroke="#c9b48a" stroke-width="1.1" stroke-dasharray="4 4"/>';
+  s+='<line x1="'+px.toFixed(1)+'" y1="'+(syC-AMP*Math.cos(a)).toFixed(1)+'" x2="'+sx0+'" y2="'+(syC-AMP*Math.cos(a)).toFixed(1)+'" stroke="#c9b48a" stroke-width="1.1" stroke-dasharray="4 4"/>';
+  let wc='';for(let x=sx0;x<=sx1;x+=2){const th=a-(x-sx0)*kx;wc+=x+','+(syC-AMP*Math.cos(th)).toFixed(1)+' ';}
+  s+='<polyline points="'+wc.trim()+'" fill="none" stroke="#c98a1b" stroke-width="2.4"/>';
+  s+='<circle cx="'+sx0+'" cy="'+(syC-AMP*Math.cos(a)).toFixed(1)+'" r="3.6" fill="#c98a1b"/>';
+  s+='<text x="'+sx1+'" y="'+(syC+AMP+16)+'" font-family="ui-monospace,monospace" font-size="11" fill="#8a5e12" text-anchor="end">cos — тень на пол</text>';
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML='одна точка · две тени: <b>sin</b> и <b>cos</b> · всегда на 90° врозь';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>

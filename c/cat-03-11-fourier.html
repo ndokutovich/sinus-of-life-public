@@ -1,0 +1,83 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Фурье: эпициклы рисуют прямоугольник</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--violet:#6a5bd6;--violet-d:#473aa3;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 130px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#473aa3}
+.btnrow{text-align:center;margin:4px 0 2px}
+.play{display:inline-block;font:600 11.5px/1 var(--sans);padding:5px 13px;border-radius:999px;border:1px solid #6a5bd6;color:#473aa3;background:#eeebfa;cursor:pointer}
+.play:active{background:#e2dcf7}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Ряд Фурье — крутящиеся колёса</h3></div>
+<div class="f" id="formula">сумма колёс (4/π)·sin((2k−1)ωt)/(2k−1) чертит прямоугольник</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 230" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="nn">колёс (гармоник)</label><input id="nn" type="range" min="1" max="8" step="1" value="5"><span class="v" id="nnv">5</span></div>
+<div class="btnrow"><button class="play" onclick="play()">♪ слушать эти гармоники</button></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">каждое колесо — синус-гармоника; их перо-сумма чертит прямоугольник. И это буквально звук: жми «слушать» — 1 колесо даёт чистый тон, добавляешь — тембр жужжит. Так же отличаются флейта и зуммер: разный набор гармоник</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let N=5;
+$('nn').oninput=e=>{N=+e.target.value;$('nnv').textContent=N;};
+const cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05;
+const SPEED=2*PI*2/4.5;   // 2 оборота за петлю захвата (90 кадров × 50мс = 4.5с) → гифка бесшовна
+function sumSq(m,th){let s=0;for(let k=0;k<m;k++){const n=2*k+1;s+=Math.sin(n*th)/n;}return s*4/PI;}
+// звук: квадратная волна из N нечётных гармоник (как рисует эпицикл) → слышно, как тембр жужжит
+let AC=null;
+function play(){try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
+  const L=2*N, re=new Float32Array(L), im=new Float32Array(L);
+  for(let k=0;k<N;k++){const n=2*k+1; im[n]=(4/PI)/n;}   // нечётные гармоники, синус-фаза
+  const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime;
+  o.setPeriodicWave(AC.createPeriodicWave(re,im)); o.frequency.value=140;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.16,t+0.05);
+  g.gain.setValueAtTime(0.16,t+1.1); g.gain.linearRampToValueAtTime(0,t+1.45);
+  o.connect(g); g.connect(AC.destination); o.start(); o.stop(t+1.5);
+}catch(e){}}
+
+function frame(now){
+  const w=now/1000*SPEED;
+  let x=cx,y=cy,s='';
+  // ось волны
+  s+='<line x1="'+wx0+'" y1="'+cy+'" x2="'+wx1+'" y2="'+cy+'" stroke="#c7c5bc" stroke-width="1"/>';
+  // цепочка эпициклов
+  for(let k=0;k<N;k++){
+    const n=2*k+1, r=(4/PI)/n*SC, ang=n*w;
+    s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="none" stroke="#c2abee" stroke-width="1.1" opacity="0.85"/>';
+    const nx=x+r*Math.cos(ang), ny=y+r*Math.sin(ang);
+    s+='<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="#6a5bd6" stroke-width="1.7"/>';
+    s+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="1.6" fill="#8a7be0"/>';
+    x=nx; y=ny;
+  }
+  // перо
+  s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.2" fill="#473aa3"/>';
+  // соединитель перо → начало волны
+  s+='<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+wx0+'" y2="'+y.toFixed(1)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>';
+  // прямоугольник-волна (история пера)
+  let pts='';for(let px=wx0;px<=wx1;px+=2){const th=w-(px-wx0)*kt;pts+=px+','+(cy+sumSq(N,th)*SC).toFixed(1)+' ';}
+  s+='<polyline points="'+pts.trim()+'" fill="none" stroke="#473aa3" stroke-width="2.6"/>';
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML='колёс: <b>'+N+'</b> · их сумма чертит прямоугольник · на этом стоят MP3, JPEG, Shazam';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>

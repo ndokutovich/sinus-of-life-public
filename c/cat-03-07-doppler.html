@@ -1,0 +1,91 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Доплер: тон, который слышит ухо</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:440px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 130px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 48px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#473aa3}
+.btnrow{text-align:center;margin:4px 0 2px}
+.play{display:inline-block;font:600 11.5px/1 var(--sans);padding:5px 13px;border-radius:999px;border:1px solid #6a5bd6;color:#473aa3;background:#eeebfa;cursor:pointer}
+.play:active{background:#e2dcf7}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Доплер: тон, который слышит ухо</h3></div>
+<div class="f">f′ = f / (1 − (v/c)·cos θ), c — скорость звука · к тебе тон выше, мимо — падает</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 240" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="b">скорость источника</label><input id="b" type="range" min="10" max="60" step="2" value="40"><span class="v" id="bv">0.40</span></div>
+<div class="btnrow"><button class="play" onclick="play()">♪ услышать проезд</button></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">не кольца в пространстве, а то, что слышит ухо: частота принятого звука — высокое плато, пока скорая мчит к тебе, резкий спад в момент «мимо», низкое плато вслед. Жми «услышать» — тон поедет по этой самой кривой</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let B=40;
+$('b').oninput=e=>{B=+e.target.value;$('bv').textContent=(B/100).toFixed(2);};
+const xe=220,ye=58,H=46, tx0=30,tx1=410, cy0=210,cyT=120;
+// звук: тон, частота которого едет по той же кривой f'(t) — высоко→спад→низко (проезд сирены)
+let AC=null;
+function play(){try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
+  const beta=B/100, dur=3.4, base=430, NS=200, curve=new Float32Array(NS);
+  for(let i=0;i<NS;i++){const x=tx0+(tx1-tx0)*i/(NS-1), d=Math.sqrt((xe-x)*(xe-x)+H*H); curve[i]=base/(1-beta*(xe-x)/d);}
+  const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime;
+  o.type='triangle';   // мягче пилы, без резкости
+  o.frequency.setValueAtTime(curve[0],t); o.frequency.setValueCurveAtTime(curve,t,dur);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.17,t+0.18);   // плавный вход — не удар
+  g.gain.setValueAtTime(0.17,t+dur-0.6); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);  // протяжный выход
+  o.connect(g); g.connect(AC.destination); o.start(); o.stop(t+dur+0.05);
+}catch(e){}}
+
+function frame(now){
+  const beta=B/100;
+  const xs=tx0+((now/1000*((tx1-tx0)/4.5))%(tx1-tx0));   // ровно один проезд за петлю 4.5с → бесшовно
+  // частота принятого тона по положению источника
+  function fp(x){const d=Math.sqrt((xe-x)*(xe-x)+H*H);return 1/(1-beta*(xe-x)/d);}   // акустический Доплер: f'/f = 1/(1 − β·cos α), β = v/скор.звука
+  const fmin=1/(1+beta), fmax=1/(1-beta), mapy=f=>cy0-(cy0-cyT)*((f-fmin)/(fmax-fmin));
+  let s='';
+  // трасса источника + ухо
+  s+='<line x1="'+tx0+'" y1="'+ye+'" x2="'+tx1+'" y2="'+ye+'" stroke="#dcdad2" stroke-width="1"/>';
+  // линия взгляда источник→ухо
+  s+='<line x1="'+xs.toFixed(1)+'" y1="'+ye+'" x2="'+xe+'" y2="'+(ye+H)+'" stroke="#cdbff0" stroke-width="1" stroke-dasharray="3 3"/>';
+  // ухо (наблюдатель)
+  s+='<circle cx="'+xe+'" cy="'+(ye+H)+'" r="7" fill="none" stroke="#473aa3" stroke-width="2"/>';
+  s+='<text x="'+(xe+12)+'" y="'+(ye+H+4)+'" font-family="ui-monospace,monospace" font-size="10.5" fill="#473aa3">ты</text>';
+  // источник (скорая)
+  s+='<circle cx="'+xs.toFixed(1)+'" cy="'+ye+'" r="6" fill="#6a5bd6"/>';
+  s+='<text x="'+xs.toFixed(1)+'" y="'+(ye-10)+'" font-family="ui-monospace,monospace" font-size="10" fill="#473aa3" text-anchor="middle">источник</text>';
+  // кривая частоты f'(положение)
+  let pc='';for(let x=tx0;x<=tx1;x+=3){pc+=x+','+mapy(fp(x)).toFixed(1)+' ';}
+  s+='<polyline points="'+pc.trim()+'" fill="none" stroke="#6a5bd6" stroke-width="2.6"/>';
+  // плато-подписи
+  s+='<text x="'+(tx0+4)+'" y="'+(cyT+2)+'" font-family="ui-monospace,monospace" font-size="10.5" fill="#473aa3">выше</text>';
+  s+='<text x="'+(tx1-4)+'" y="'+(cy0+2)+'" font-family="ui-monospace,monospace" font-size="10.5" fill="#6c7080" text-anchor="end">ниже</text>';
+  // вертикаль «мимо» (xs=xe)
+  s+='<line x1="'+xe+'" y1="'+cyT+'" x2="'+xe+'" y2="'+cy0+'" stroke="#d9d7ce" stroke-width="1" stroke-dasharray="2 3"/>';
+  s+='<text x="'+(xe)+'" y="'+(cy0+15)+'" font-family="ui-monospace,monospace" font-size="9.5" fill="#9a98a4" text-anchor="middle">мимо</text>';
+  // маркер на кривой = текущий тон
+  const fnow=fp(xs);
+  s+='<circle cx="'+xs.toFixed(1)+'" cy="'+mapy(fnow).toFixed(1)+'" r="4.2" fill="#473aa3"/>';
+  // мини-волна «что слышно» у уха: частота ∝ fnow
+  let hw='';for(let i=0;i<=40;i++){const xx=xe-40+i*2; hw+=xx+','+(ye+H+24+7*Math.sin(i*0.5*fnow*2)).toFixed(1)+' ';}
+  s+='<polyline points="'+hw.trim()+'" fill="none" stroke="#8a7be0" stroke-width="1.6"/>';
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML='v = <b>'+(B/100).toFixed(2)+'</b> скорости звука · тон сейчас: <b>'+(fnow>1.04?'выше':fnow<0.96?'ниже':'ровно')+'</b> · подъём круче спада — Доплер несимметричен';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>

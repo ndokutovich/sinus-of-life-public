@@ -1,0 +1,53 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Закон Брэгга</title><style>*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#f6f5f0;color:#15171f;display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:480px;background:#fffefb;border:1px solid #e4e2da;border-radius:14px;padding:13px 15px 11px;--acc:#6a5bd6;--accd:#473aa3}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.hd .num{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.08em;color:var(--accd)}
+.hd h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.f{font-family:ui-monospace,monospace;font-size:12px;margin:2px 0 7px;padding:6px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,var(--acc) 11%,white);color:var(--accd)}
+.figbox{display:flex;justify-content:center;padding:1px 0 4px;min-height:175px}
+.figbox svg{width:100%;max-width:420px;height:auto;max-height:220px}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12px;color:#6c7080;margin:6px 0}
+.ctrl label{flex:0 0 122px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 50px;text-align:right;font-family:ui-monospace,monospace;color:#15171f;font-size:11.5px}
+.rdt{margin-top:6px;text-align:center;font-family:ui-monospace,monospace;font-size:11.5px;color:#6c7080;line-height:1.5;min-height:17px}
+.rdt b{color:#15171f;font-weight:600}</style></head><body><div class="pen"><div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Закон Брэгга</h3></div><div class="f">2d·sin θ = nλ</div><div class="figbox" id="fig"></div><div id="ctrls"></div><div class="rdt" id="rdt"></div></div><script>
+var PI=Math.PI, RM=false;
+var C={co:'#d65f37',cod:'#9c3f1f',te:'#138a64',ted:'#0c5a41',vi:'#6a5bd6',vid:'#473aa3',go:'#c98a1b',god:'#8a5e12',sl:'#4a5568',sld:'#2f3947',ink:'#15171f',mut:'#8a8e9c'};
+function n(x){return (Math.round(x*10)/10);}
+function L(a,b,c,d,col,w,m){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"'+(m?' marker-end="url(#ah)"':'')+'/>';}
+function DL(a,b,c,d){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>';}
+function AX(a,b,c,d){return '<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" stroke="#c7c5bc" stroke-width="1"/>';}
+function TX(x,y,s,col,sz,an){return '<text x="'+n(x)+'" y="'+n(y)+'" font-family="JetBrains Mono,ui-monospace,monospace" font-size="'+(sz||12)+'" fill="'+(col||C.mut)+'"'+(an?' text-anchor="'+an+'"':'')+'>'+s+'</text>';}
+function D(x,y,r,f){return '<circle cx="'+n(x)+'" cy="'+n(y)+'" r="'+r+'" fill="'+f+'"/>';}
+function CC(x,y,r,col,w){return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>';}
+function W(fn,x0,x1,yb,amp,col,w,op,dash){var N=150,p='';for(var i=0;i<=N;i++){var u=i/N;p+=n(x0+(x1-x0)*i/N)+','+n(yb-amp*fn(u))+' ';}return '<polyline points="'+p.trim()+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+(dash?' stroke-dasharray="5 4"':'')+'/>';}
+function part(u,m){var s=0;for(var k=1;k<=2*m-1;k+=2){s+=Math.sin(k*2*PI*1.5*u)/k;}return s*4/PI;}
+function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
+
+var VOWA=null;
+const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
+var F={bragg:{vb:'0 0 360 180',anim:false,ctrls:[{k:'th',lab:'угол θ',min:10,max:80,val:30,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,d=1.5,nn=2*d*Math.sin(t),inph=(Math.abs(nn-Math.round(nn))<0.06&&nn>=0.5),
+  col=inph?C.vid:C.vi,s='',i;
+  for(i=0;i<6;i++){s+=D(60+i*50,70,5,'#c9c0ef')+D(60+i*50,125,5,'#c9c0ef');}
+  s+=DL(40,70,320,70)+DL(40,125,320,125);
+  var P=[160,70];
+  s+=L(P[0]-85*Math.cos(t),P[1]-85*Math.sin(t),P[0],P[1],col,2,1)+L(P[0],P[1],P[0]+85*Math.cos(t),P[1]-85*Math.sin(t),col,2,1);
+  var Q=[210,125];
+  s+=L(Q[0]-85*Math.cos(t),Q[1]-85*Math.sin(t),Q[0],Q[1],col,2,0.55)+L(Q[0],Q[1],Q[0]+85*Math.cos(t),Q[1]-85*Math.sin(t),col,2,0.55);
+  s+='<line x1="330" y1="70" x2="330" y2="125" stroke="'+C.mut+'" stroke-width="1"/>'+TX(336,102,'d',C.mut);
+  return s;},
+ rd:function(p){var t=p.th*PI/180,nn=2*1.5*Math.sin(t),inph=(Math.abs(nn-Math.round(nn))<0.06&&nn>=0.5);
+  return 'n = 2d·sinθ / λ = <b>'+nn.toFixed(2)+'</b>'+(inph?'  — отражения в фазе!':'');}}};
+var d=F['bragg'],P={},T=RM?0.7:0;
+var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');
+function fmt(c,v){var s=(c.step&&c.step<1)?(+v).toFixed(c.step<0.1?2:1):(''+v);return s+(c.unit||'')}
+function draw(){figEl.innerHTML='<svg viewBox="'+d.vb+'" preserveAspectRatio="xMidYMid meet">'+DEFS+d.R(P,T)+'</svg>';if(rdEl)rdEl.innerHTML=d.rd?d.rd(P,T):''}
+var hh='';(d.ctrls||[]).forEach(function(x,k){P[x.k]=x.val;hh+='<div class="ctrl"><label>'+x.lab+'</label><input type="range" data-k="'+x.k+'" data-i="'+k+'" min="'+x.min+'" max="'+x.max+'" step="'+(x.step||1)+'" value="'+x.val+'"><span class="v">'+fmt(x,x.val)+'</span></div>'});
+ctrlEl.innerHTML=hh;
+[].forEach.call(ctrlEl.querySelectorAll('input'),function(inp){inp.addEventListener('input',function(){var c2=d.ctrls[+inp.dataset.i];P[inp.dataset.k]=+inp.value;inp.nextElementSibling.textContent=fmt(c2,+inp.value);draw()})});
+draw();
+if(!RM&&d.anim){var t0=performance.now();(function loop(now){T=(now-t0)/1000;draw();requestAnimationFrame(loop)})(t0)}
+</script></body></html>

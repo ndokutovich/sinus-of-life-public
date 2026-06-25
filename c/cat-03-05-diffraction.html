@@ -1,0 +1,106 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дифракция: фотоны летят, на стене радуга, снизу — почему</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:448px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 110px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 56px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#473aa3}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Фотоны летят, на стене радуга — и почему</h3></div>
+<div class="f">белый свет → щели → каждый цвет под своим углом d·sin θ = mλ</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 448 372" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="th">смотрим под θ</label><input id="th" type="range" min="0" max="30" step="0.5" value="19.5"><span class="v" id="thv">19.5°</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">белый свет (все цвета вместе) летит прямо в щели, из щелей — веером, стена ловит радугу. <b>Внизу:</b> две волны того цвета, что ярок под этим углом — их сумма того же цвета и <b>краснеет</b>, пока ведёшь угол. Ключ: <b>длина волны и есть цвет</b> (короткая = фиолет, длинная = красный — полоса спектра внизу). У каждого цвета свой угол, где он в фазе — оттого веер и раскладывается в радугу</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let TH=19.5;
+$('th').oninput=e=>{TH=+e.target.value;$('thv').textContent=TH+'°';};
+function cname(r){return r<0.83?'фиолет':r<0.93?'синий':r<1.06?'зелёный':r<1.18?'жёлтый':'красный';}
+const sx=58, cy=104, wx=396, dN=3;
+const RV=0.72, RR=1.30, SCALE=150;
+function tx(x,y,s,col,sz,an,w){sz=Math.max(sz||12,12);return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="ui-monospace,monospace" font-size="'+sz+'" fill="'+col+'"'+(an?' text-anchor="'+an+'"':'')+(w?' font-weight="'+w+'"':'')+'>'+s+'</text>';}
+function ln(a,b,col,w,op){return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+'/>';}
+function hue(r){return (275*(RR-r)/(RR-RV)).toFixed(0);}
+const NC=13, COLS=[]; for(let i=0;i<=NC;i++){const r=RV+(RR-RV)*i/NC; COLS.push({r:r, c:'hsl('+hue(r)+',88%,56%)', off:(r/3)*SCALE});}
+
+function frame(now){
+  const t=now/1000;
+  const th=TH*PI/180, pdLam=dN*Math.sin(th), offP=(pdLam/3)*SCALE;
+  const white=pdLam<0.06, vis=pdLam>=RV&&pdLam<=RR;
+  const pcol = white?'#e8b84a' : vis?('hsl('+hue(pdLam)+',88%,50%)') : '#8a8896';
+  let s='';
+  // ===== стена + радужный столбец (ОДНА сторона, вверх) =====
+  s+='<rect x="'+wx+'" y="24" width="9" height="'+(cy+4-24)+'" rx="2" fill="#15131f"/>';
+  s+='<rect x="'+(wx-1)+'" y="'+(cy-4)+'" width="11" height="8" fill="#fbfbf7"/>';   // центр-белый (θ=0)
+  COLS.forEach(C=>{const yy=cy-C.off; s+='<rect x="'+(wx-1)+'" y="'+(yy-2.2)+'" width="11" height="4.4" fill="'+C.c+'"/>';});
+  // подпись «стена» убрана
+  // ===== ДВЕ щели (расстояние d) =====
+  s+='<rect x="'+(sx-3)+'" y="24" width="6" height="'+(cy-11-24)+'" fill="#2f2a44"/>';   // верх
+  s+='<rect x="'+(sx-3)+'" y="'+(cy-4)+'" width="6" height="8" fill="#2f2a44"/>';          // перемычка между щелями
+  s+='<rect x="'+(sx-3)+'" y="'+(cy+11)+'" width="6" height="20" fill="#2f2a44"/>';        // низ
+  s+='<circle cx="'+sx+'" cy="'+(cy-7.5)+'" r="1.9" fill="#473aa3"/><circle cx="'+sx+'" cy="'+(cy+7.5)+'" r="1.9" fill="#473aa3"/>';  // две щели — источники
+  s+=ln([sx-12,cy-7.5],[sx-12,cy+7.5],'#473aa3',1)+ln([sx-14,cy-7.5],[sx-10,cy-7.5],'#473aa3',1)+ln([sx-14,cy+7.5],[sx-10,cy+7.5],'#473aa3',1)+tx(sx-16,cy+3,'d','#473aa3',10,'end',600);
+  s+=tx(sx+2,18,'2 щели','#9a98a4',9,'middle',0);
+  // ===== вход: белый = все цвета вместе, прямо =====
+  s+=ln([6,cy],[sx-4,cy],'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
+  for(let b=0;b<2;b++){const finc=((t*0.5+b*0.5)%1), ix=8+finc*(sx-18-8);for(let i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
+  // ===== белый (все цвета ВМЕСТЕ) летит ПРЯМО — в центральный белый максимум (θ=0, m=0) =====
+  s+=ln([sx,cy],[wx,cy],'#dcdad2',1.2,0.45);
+  {const f=((t*0.33+0.5)%1), px=sx+f*(wx-sx); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
+  // ===== веер фотонов — ИЗ ОБЕИХ щелей под углами (чередуем верх/низ) =====
+  COLS.forEach((C,i)=>{const src=[sx,cy+(i%2?7.5:-7.5)], land=[wx,cy-C.off];s+=ln(src,land,C.c,1,0.15);const f=((t*0.33+i*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
+  // ===== probe (направление обзора от пары щелей) =====
+  const lp=[wx,cy-offP]; s+=ln([sx,cy],lp,white?'#cfcdd6':pcol,2,0.9);
+  s+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(vis||white?5:3.3)+'" fill="'+pcol+'" stroke="#fff" stroke-width="0.8"/>';
+  s+=tx(446,(cy-offP)+4,(white?'белый':vis?cname(pdLam):'темно'),white?'#6c7080':pcol,12,'end',600);
+  // ===== НИЗ: сумма двух волн ЯРКОГО цвета — краснеет с углом (просторная раскладка) =====
+  const wpX0=72, wpX1=400, hdrY=134, ya=164, yb=204, brkY=224, vrdY=244, ysum=278, amp=8.5;
+  const rM=pdLam, whiteC=pdLam<0.06, visC=rM>=RV&&rM<=RR, seen=whiteC||visC;
+  const fr=Math.max(0,Math.min(1,(rM-RV)/(RR-RV))), lamD=22+18*fr;            // редее → длиннее волна = краснее
+  const wcol=whiteC?'#cac4b1':visC?('hsl('+hue(rM)+',90%,46%)'):'#726d80';
+  function pw(y0,x0){let p='';for(let x=x0;x<=wpX1;x+=2){p+=x+','+(y0-amp*Math.sin(2*PI*(x-wpX0)/lamD)).toFixed(1)+' ';}return '<polyline points="'+p.trim()+'" fill="none" stroke="'+wcol+'" stroke-width="1.7" opacity="0.92"/>';}
+  s+=ln([wpX0,150],[wpX1,150],'#eceae3',1);
+  // верхняя волна
+  s+=pw(ya,wpX0)+tx(wpX1,ya-amp-10,'из верхней щели','#9a98a4',12,'end',0);
+  // нижняя волна (отстала) + подсветка лишнего пути
+  s+='<rect x="'+wpX0+'" y="'+(yb-amp-2)+'" width="'+lamD.toFixed(1)+'" height="'+(2*amp+4)+'" rx="2" fill="'+wcol+'" opacity="0.18"/>';
+  s+=pw(yb,wpX0+lamD)+tx(wpX1,yb-amp-10,'из нижней — отстала на d·sin θ','#9a98a4',12,'end',0);
+  s+=tx(wpX0,brkY,'этот лишний путь = 1 волна = λ = цвет','#7a7686',8.5,'',600);
+  // вердикт — на отдельной строке, не на волне
+  s+=tx((wpX0+wpX1)/2,vrdY,seen?(whiteC?'все цвета в фазе → белый':'в фазе → крест в крест → ярко'):'не в фазе → темно',wcol,12,'middle',600);
+  // сумма
+  const samp=seen?2*amp:0.45*amp;
+  let sp='';for(let x=wpX0+lamD;x<=wpX1;x+=2){sp+=x+','+(ysum-samp*Math.sin(2*PI*(x-wpX0)/lamD)).toFixed(1)+' ';}
+  s+='<polyline points="'+sp.trim()+'" fill="none" stroke="'+wcol+'" stroke-width="2.8" opacity="'+(seen?1:0.5)+'"/>';
+  const swX=wpX1+9, bSum=seen?1:0.12;
+  s+='<rect x="'+swX+'" y="'+(ysum-14)+'" width="16" height="28" rx="2" fill="#15131f"/>'+'<rect x="'+swX+'" y="'+(ysum-14)+'" width="16" height="28" rx="2" fill="'+wcol+'" opacity="'+bSum+'"/>';
+  s+=tx(wpX0-11,ya+4,'↑','#6c7080',11,'end',700)+tx(wpX0-11,yb+4,'↓','#6c7080',11,'end',700)+tx(wpX0-11,ysum+4,'Σ',wcol,12,'end',700);
+  // ===== градиент-полоса: вся λ-радуга, стрелка на текущей =====
+  const gbY=ysum+38, gbH=11;
+  for(let i=0;i<=44;i++){const r=RV+(RR-RV)*i/44, x=wpX0+(wpX1-wpX0)*i/44; s+='<rect x="'+x.toFixed(1)+'" y="'+gbY+'" width="'+((wpX1-wpX0)/44+1).toFixed(1)+'" height="'+gbH+'" fill="hsl('+hue(r)+',88%,55%)"/>';}
+  s+=tx(wpX0,gbY+gbH+13,'короткая λ = фиолет','#8a8896',8.5,'',0)+tx(wpX1,gbY+gbH+13,'длинная λ = красный','#8a8896',8.5,'end',0);
+  if(seen&&!whiteC){const ax=wpX0+(wpX1-wpX0)*fr; s+='<path d="M'+ax.toFixed(1)+' '+(gbY-2)+' l-4.5 -7 l9 0 z" fill="#15171f"/>'+tx(ax,gbY-11,'сейчас','#473aa3',8,'middle',600);}
+  // подпись графика — под ним
+  s+=tx((wpX0+wpX1)/2,gbY+gbH+34,'сумма двух волн ярого цвета — она и краснеет с углом','#6c7080',12,'middle',0);
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML='смотрим под <b>'+TH+'°</b> · ярок <b>'+(whiteC?'белый':visC?cname(rM):'— (темно)')+'</b> · λ = d·sin θ растёт с углом → волна длиннее → краснее';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>
