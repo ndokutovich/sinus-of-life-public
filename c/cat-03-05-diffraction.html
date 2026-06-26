@@ -57,13 +57,14 @@ function frame(now){
   s+='<circle cx="'+sx+'" cy="'+(cy-7.5)+'" r="1.9" fill="#473aa3"/><circle cx="'+sx+'" cy="'+(cy+7.5)+'" r="1.9" fill="#473aa3"/>';  // две щели — источники
   s+=ln([sx-12,cy-7.5],[sx-12,cy+7.5],'#473aa3',1)+ln([sx-14,cy-7.5],[sx-10,cy-7.5],'#473aa3',1)+ln([sx-14,cy+7.5],[sx-10,cy+7.5],'#473aa3',1)+tx(sx-16,cy+3,'d','#473aa3',10,'end',600);
   s+=tx(sx+2,18,'2 щели','#9a98a4',9,'middle',0);
-  // ===== вход: белый = все цвета вместе, прямо =====
-  s+=ln([6,cy],[sx-4,cy],'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
-  for(let b=0;b<2;b++){const finc=((t*0.5+b*0.5)%1), ix=8+finc*(sx-18-8);for(let i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
-  // ===== геометрия лупы — нужна вееру, белому фотону и главному лучу: всё снаружи стартует с КРАЯ лупы =====
+  // ===== геометрия лупы — нужна входу, вееру, фотону и лучу: снаружи всё упирается/стартует в КРАЙ лупы =====
   const lp=[wx,cy-offP], ang=Math.atan2(-offP,wx-sx), ux=Math.cos(ang), uy=Math.sin(ang);
   const Cx=80, Cy=100, R=46, Ex=Cx+R*ux, Ey=Cy+R*uy;
   const ledge=(p)=>{const a=Math.atan2(p[1]-Cy,p[0]-Cx);return [Cx+R*Math.cos(a),Cy+R*Math.sin(a)];};
+  const wL=ledge([0,cy]);
+  // ===== вход: белый свет идёт СНАРУЖИ к ЛУПЕ (в увеличении внутри — к двум щелям) =====
+  s+=ln([6,cy],wL,'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
+  for(let b=0;b<2;b++){const finc=((t*0.5+b*0.5)%1), ix=8+finc*(wL[0]-18-8);for(let i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
   // ===== белый (все цвета ВМЕСТЕ) — из ЛУПЫ прямо в центральный белый максимум =====
   {const we=ledge([wx,cy]); s+=ln(we,[wx,cy],'#dcdad2',1.2,0.45); const f=((t*0.33+0.5)%1), px=we[0]+f*(wx-we[0]); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
   // ===== веер: каждый цвет — ОДНА линия из ЛУПЫ к своему месту на стене («из щелей» — это деталь ВНУТРИ линзы) =====
@@ -75,12 +76,14 @@ function frame(now){
   s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'" fill="#fbfaf6" opacity="0.97"/>';
   s+='<clipPath id="loupe"><circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'"/></clipPath><g clip-path="url(#loupe)">';
   {const mx=60, ms=20, Su=[mx,Cy-ms], Sl=[mx,Cy+ms], RL=94, ttv=-2*ms*uy, Fx=Sl[0]+ttv*ux, Fy=Sl[1]+ttv*uy;
+   s+=ln([Cx-R+4,Cy],[mx-5,Cy],'#cfcdc4',1.4,0.7);
+   {const fi=((t*0.5)%1), bx=(Cx-R+9)+fi*((mx-13)-(Cx-R+9)); for(let k=0;k<=NC;k++){s+='<circle cx="'+bx.toFixed(1)+'" cy="'+(Cy+(k-NC/2)*1.0-0.5).toFixed(1)+'" r="1.3" fill="'+COLS[k].c+'"/>';}}
    s+=ln(Su,[Su[0]+RL*ux,Su[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
    s+=ln(Sl,[Sl[0]+RL*ux,Sl[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
    s+=ln(Su,[Fx,Fy],'#473aa3',1);
    s+='<line x1="'+mx+'" y1="'+Sl[1]+'" x2="'+Fx.toFixed(1)+'" y2="'+Fy.toFixed(1)+'" stroke="#d65f37" stroke-width="3.4"/>';
    s+='<circle cx="'+mx+'" cy="'+Su[1]+'" r="2.8" fill="#473aa3"/><circle cx="'+mx+'" cy="'+Sl[1]+'" r="2.8" fill="#473aa3"/>';
-   s+=ln([mx-11,Su[1]],[mx-11,Sl[1]],'#473aa3',1)+tx(mx-15,Cy+4,'d','#473aa3',11,'end',700);}
+   s+=ln([mx-9,Su[1]],[mx-9,Sl[1]],'#473aa3',1)+tx(mx-12,Su[1]+10,'d','#473aa3',11,'end',700);}
   s+='</g>';
   s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'" fill="none" stroke="#473aa3" stroke-width="2.5"/>';
   s+='<line x1="'+(Cx+R*0.72).toFixed(1)+'" y1="'+(Cy+R*0.72).toFixed(1)+'" x2="'+(Cx+R*0.72+15).toFixed(1)+'" y2="'+(Cy+R*0.72+15).toFixed(1)+'" stroke="#473aa3" stroke-width="4" stroke-linecap="round"/>';

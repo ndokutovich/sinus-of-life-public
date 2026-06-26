@@ -675,11 +675,12 @@ diffraction:{vb:'0 0 448 372',anim:true,ctrls:[{k:'th',lab:'смотрим по�
   s+='<circle cx="'+sx+'" cy="'+(cy-7.5)+'" r="1.9" fill="#473aa3"/><circle cx="'+sx+'" cy="'+(cy+7.5)+'" r="1.9" fill="#473aa3"/>';
   s+=ln([sx-12,cy-7.5],[sx-12,cy+7.5],'#473aa3',1)+ln([sx-14,cy-7.5],[sx-10,cy-7.5],'#473aa3',1)+ln([sx-14,cy+7.5],[sx-10,cy+7.5],'#473aa3',1)+tx(sx-16,cy+3,'d','#473aa3',10,'end',600);
   s+=tx(sx+2,18,'2 щели','#9a98a4',9,'middle',0);
-  s+=ln([6,cy],[sx-4,cy],'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
-  for(b=0;b<2;b++){var finc=((t*0.5+b*0.5)%1),ix=8+finc*(sx-18-8);for(i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
   var lp=[wx,cy-offP],ang=Math.atan2(-offP,wx-sx),ux=Math.cos(ang),uy=Math.sin(ang);
   var Cx=80,Cy=100,Rl=46,Ex=Cx+Rl*ux,Ey=Cy+Rl*uy;
   function ledge(p){var a=Math.atan2(p[1]-Cy,p[0]-Cx);return [Cx+Rl*Math.cos(a),Cy+Rl*Math.sin(a)];}
+  var wL=ledge([0,cy]);
+  s+=ln([6,cy],wL,'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
+  for(b=0;b<2;b++){var finc=((t*0.5+b*0.5)%1),ix=8+finc*(wL[0]-18-8);for(i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
   var we=ledge([wx,cy]); s+=ln(we,[wx,cy],'#dcdad2',1.2,0.45); var fw=((t*0.33+0.5)%1),pxw=we[0]+fw*(wx-we[0]);for(i=0;i<=NC;i++){s+='<circle cx="'+pxw.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}
   COLS.forEach(function(C,j){var land=[wx,cy-C.off],src=ledge(land);s+=ln(src,land,C.c,1,0.15);var f=((t*0.33+j*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
   s+=ln([Ex,Ey],lp,white?'#cfcdd6':pcol,2.4,0.9);
@@ -688,12 +689,14 @@ diffraction:{vb:'0 0 448 372',anim:true,ctrls:[{k:'th',lab:'смотрим по�
   s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+Rl+'" fill="#fbfaf6" opacity="0.97"/>';
   s+='<clipPath id="loupe"><circle cx="'+Cx+'" cy="'+Cy+'" r="'+Rl+'"/></clipPath><g clip-path="url(#loupe)">';
   var mx=60,ms=20,Su=[mx,Cy-ms],Sl=[mx,Cy+ms],RL=94,ttv=-2*ms*uy,Fx=Sl[0]+ttv*ux,Fy=Sl[1]+ttv*uy;
+  s+=ln([Cx-Rl+4,Cy],[mx-5,Cy],'#cfcdc4',1.4,0.7);
+  var fi2=((t*0.5)%1),bx2=(Cx-Rl+9)+fi2*((mx-13)-(Cx-Rl+9));for(i=0;i<=NC;i++){s+='<circle cx="'+bx2.toFixed(1)+'" cy="'+(Cy+(i-NC/2)*1.0-0.5).toFixed(1)+'" r="1.3" fill="'+COLS[i].c+'"/>';}
   s+=ln(Su,[Su[0]+RL*ux,Su[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
   s+=ln(Sl,[Sl[0]+RL*ux,Sl[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
   s+=ln(Su,[Fx,Fy],'#473aa3',1);
   s+='<line x1="'+mx+'" y1="'+Sl[1]+'" x2="'+Fx.toFixed(1)+'" y2="'+Fy.toFixed(1)+'" stroke="#d65f37" stroke-width="3.4"/>';
   s+='<circle cx="'+mx+'" cy="'+Su[1]+'" r="2.8" fill="#473aa3"/><circle cx="'+mx+'" cy="'+Sl[1]+'" r="2.8" fill="#473aa3"/>';
-  s+=ln([mx-11,Su[1]],[mx-11,Sl[1]],'#473aa3',1)+tx(mx-15,Cy+4,'d','#473aa3',11,'end',700);
+  s+=ln([mx-9,Su[1]],[mx-9,Sl[1]],'#473aa3',1)+tx(mx-12,Su[1]+10,'d','#473aa3',11,'end',700);
   s+='</g>';
   s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+Rl+'" fill="none" stroke="#473aa3" stroke-width="2.5"/>';
   s+='<line x1="'+(Cx+Rl*0.72).toFixed(1)+'" y1="'+(Cy+Rl*0.72).toFixed(1)+'" x2="'+(Cx+Rl*0.72+15).toFixed(1)+'" y2="'+(Cy+Rl*0.72+15).toFixed(1)+'" stroke="#473aa3" stroke-width="4" stroke-linecap="round"/>';
