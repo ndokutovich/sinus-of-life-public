@@ -511,11 +511,11 @@ dotcross:{vb:'0 0 360 175',anim:false,ctrls:[{k:'th',lab:'угол между н
   +TX(ox+10,oy-58,'sin θ = высота',C.co)+TX(ox-4,oy+18,'cos θ = проекция',C.cod);},
  rd:function(p){var t=p.th*PI/180;return 'a·b ∝ cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>  ·  |a×b| ∝ sin θ = <b>'+Math.abs(Math.sin(t)).toFixed(2)+'</b>';}},
 
-acpower:{vb:'0 0 360 170',anim:false,ctrls:[{k:'phi',lab:'сдвиг фазы φ',min:0,max:80,val:35,unit:'°'}],
- R:function(p){var t=p.phi*PI/180,ox=58,oy=120,Lr=160,ix=ox+Lr*Math.cos(t),iy=oy-Lr*Math.sin(t);
-  return AX(40,120,330,120)+L(ox,oy,285,oy,C.ink,2.2,1)+TX(255,138,'U',C.ink,13)
-  +DL(ix,iy,ix,120)+L(ox,oy,ix,120,C.cod,2.4)+L(ix,120,ix,iy,C.co,2.4)+L(ox,oy,ix,iy,C.co,2.6,1)
-  +TX(ix+4,iy-4,'I',C.ink,13)+TX(ox+20,113,'P ∝ cos φ',C.cod)+TX(ix+6,(iy+120)/2,'Q ∝ sin φ',C.co);},
+acpower:{vb:'0 0 360 215',anim:false,ctrls:[{k:'phi',lab:'сдвиг фазы φ',min:0,max:80,val:35,unit:'°'}],
+ R:function(p){var t=p.phi*PI/180,ox=58,oy=165,Lr=160,ix=ox+Lr*Math.cos(t),iy=oy-Lr*Math.sin(t);
+  return AX(40,oy,330,oy)+L(ox,oy,285,oy,C.ink,2.2,1)+TX(255,oy+18,'U',C.ink,13)
+  +DL(ix,iy,ix,oy)+L(ox,oy,ix,oy,C.cod,2.4)+L(ix,oy,ix,iy,C.co,2.4)+L(ox,oy,ix,iy,C.co,2.6,1)
+  +TX(ix+4,iy-4,'I',C.ink,13)+TX(ox+20,oy-7,'P ∝ cos φ',C.cod)+TX(ix+6,(iy+oy)/2,'Q ∝ sin φ',C.co);},
  rd:function(p){var t=p.phi*PI/180;return 'cos φ = <b>'+Math.cos(t).toFixed(2)+'</b> (полезная)  ·  sin φ = <b>'+Math.sin(t).toFixed(2)+'</b> (реактивная)';}},
 
 acpInstant:{vb:'0 0 440 240',anim:true,ctrls:[{k:'ph',lab:'сдвиг φ',min:0,max:90,step:1,val:55,unit:'°'}],
@@ -730,7 +730,7 @@ fourier:{vb:'0 0 360 160',anim:false,ctrls:[{k:'nn',lab:'гармоник',min:1
  rd:function(p){var t=[],j,k;for(j=0;j<p.nn;j++){k=2*j+1;t.push(k===1?'sin ωt':'sin '+k+'ωt/'+k);}
   return p.nn===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]';}},
 fourEpi:{vb:'0 0 440 230',anim:true,ctrls:[{k:'nn',lab:'колёс (гармоник)',min:1,max:8,step:1,val:5}],
- R:function(p,t){var N=p.nn,cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05,SPEED=2*PI*2/4.5,
+ R:function(p,t){var N=p.nn,cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05,SPEED=2*PI*1/4.5,
   w=t*SPEED,x=cx,y=cy,s='',k,nn,r,ang,nx,ny,px,th,pts='';
   var sumSq=function(m,a){var ss=0,kk,q;for(kk=0;kk<m;kk++){q=2*kk+1;ss+=Math.sin(q*a)/q;}return ss*4/PI;};
   s+='<line x1="'+wx0+'" y1="'+cy+'" x2="'+wx1+'" y2="'+cy+'" stroke="#c7c5bc" stroke-width="1"/>';
@@ -770,10 +770,11 @@ brewster:{vb:'0 0 360 180',anim:false,ctrls:[{k:'nn',lab:'показатель n
 /* ---- доп. кейсы: ВРАЩЕНИЕ ---- */
 centripetal:{vb:'0 0 360 205',anim:true,ctrls:[{k:'spd',lab:'скорость ω',min:0.6,max:2.2,step:0.1,val:1.3}],
  R:function(p,t){var a=t*p.spd,ox=180,oy=105,r=74,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a),
-  vx=px-44*Math.sin(a),vy=py-44*Math.cos(a),axx=px-42*Math.cos(a),ayy=py+42*Math.sin(a);
+  vl=30*p.spd,al=14*p.spd*p.spd,
+  vx=px-vl*Math.sin(a),vy=py-vl*Math.cos(a),axx=px-al*Math.cos(a),ayy=py+al*Math.sin(a);
   return CC(180,105,74,'#cfd9d3',1.3)+DL(ox,oy,px,py)+L(px,py,vx,vy,C.te,2.6,1)+L(px,py,axx,ayy,C.ted,2.6,1)
   +D(px,py,4.5,C.te)+D(ox,oy,3,C.mut)+TX(vx-4,vy-6,'v',C.te,13)+TX(axx-2,ayy+14,'a',C.ted,13);},
- rd:function(p){return 'a = v²/R, направлено к центру — ускорение есть даже при постоянной по модулю скорости';}},
+ rd:function(p){return 'a = v²/R = ω²·R, к центру. Прибавь ω — скорость v растёт, а ускорение a ВЧЕТВЕРО быстрее (квадратично).';}},
 damped:{vb:'0 0 360 160',anim:true,ctrls:[{k:'g',lab:'затухание γ',min:0.1,max:1.6,step:0.1,val:0.6}],
  R:function(p,t){var g=p.g;function e(u){return Math.exp(-g*2.6*u);}
   return AX(40,80,330,80)+W(function(u){return e(u);},46,320,80,52,C.te,1.2,'0.5',1)+W(function(u){return -e(u);},46,320,80,52,C.te,1.2,'0.5',1)
@@ -792,7 +793,7 @@ resonance:{vb:'0 0 360 200',anim:true,ctrls:[{k:'f',lab:'частота прив
  rd:function(p){var f0=1,gm=0.12;function rp(x){return 1/Math.sqrt(Math.pow(f0*f0-x*x,2)+Math.pow(2*gm*x,2));}
   var r=rp(p.f)/rp(Math.sqrt(f0*f0-2*gm*gm));return 'отклик '+r.toFixed(2)+(r>0.9?' — резонанс: раскачка точно в такт (качели, мост, радио)':'');}},
 impedance:{vb:'0 0 360 185',anim:true,ctrls:[{k:'phi',lab:'сдвиг φ',min:-80,max:80,step:5,val:40,unit:'°'}],
- R:function(p,t){var a=t*1.2,O=110,Oy=100,r=72,vx=O+r*Math.cos(a),vy=Oy-r*Math.sin(a),ph=p.phi*PI/180,ix=O+r*Math.cos(a-ph),iy=Oy-r*Math.sin(a-ph);
+ R:function(p,t){var a=t*(2*PI/4.5),O=110,Oy=100,r=72,vx=O+r*Math.cos(a),vy=Oy-r*Math.sin(a),ph=p.phi*PI/180,ix=O+r*Math.cos(a-ph),iy=Oy-r*Math.sin(a-ph);
   return CC(110,100,72,'#cfd9d3',1.2)+AX(30,100,330,100)+AX(110,178,110,28)
   +L(O,Oy,vx,vy,C.ted,2.6,1)+L(O,Oy,ix,iy,C.te,2.6,1)+TX(vx+4,vy-4,'U',C.ted,13)+TX(ix+4,iy+4,'I',C.te,13);},
  rd:function(p){return 'ток сдвинут на φ='+p.phi+'° (Z = R + iX): φ>0 — отстаёт (катушка), φ<0 — опережает (конденсатор)';}},

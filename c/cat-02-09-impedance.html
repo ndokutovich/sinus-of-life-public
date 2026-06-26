@@ -29,7 +29,7 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
 var F={impedance:{vb:'0 0 360 185',anim:true,ctrls:[{k:'phi',lab:'сдвиг φ',min:-80,max:80,step:5,val:40,unit:'°'}],
- R:function(p,t){var a=t*1.2,O=110,Oy=100,r=72,vx=O+r*Math.cos(a),vy=Oy-r*Math.sin(a),ph=p.phi*PI/180,ix=O+r*Math.cos(a-ph),iy=Oy-r*Math.sin(a-ph);
+ R:function(p,t){var a=t*(2*PI/4.5),O=110,Oy=100,r=72,vx=O+r*Math.cos(a),vy=Oy-r*Math.sin(a),ph=p.phi*PI/180,ix=O+r*Math.cos(a-ph),iy=Oy-r*Math.sin(a-ph);
   return CC(110,100,72,'#cfd9d3',1.2)+AX(30,100,330,100)+AX(110,178,110,28)
   +L(O,Oy,vx,vy,C.ted,2.6,1)+L(O,Oy,ix,iy,C.te,2.6,1)+TX(vx+4,vy-4,'U',C.ted,13)+TX(ix+4,iy+4,'I',C.te,13);},
  rd:function(p){return 'ток сдвинут на φ='+p.phi+'° (Z = R + iX): φ>0 — отстаёт (катушка), φ<0 — опережает (конденсатор)';}}};
