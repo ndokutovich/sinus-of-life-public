@@ -8,10 +8,10 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 .pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
 .pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
 .pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
-.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox{display:flex;justify-content:center;padding:2px 0 10px}
 .figbox svg{width:100%;max-width:440px;height:auto}
-.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
-.ctrl label{flex:0 0 130px}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:8px 0}
+.ctrl label{flex:0 0 86px}
 .ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
 .ctrl .v{flex:0 0 48px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
 .rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
@@ -26,7 +26,7 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 <div class="hd"><span class="num">ДВЕРЬ 03</span><h3>Доплер: тон, который слышит ухо</h3></div>
 <div class="f">f′ = f / (1 − (v/c)·cos θ), c — скорость звука · к тебе тон выше, мимо — падает</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 240" preserveAspectRatio="xMidYMid meet"></svg></div>
-<div class="ctrl"><label for="b">скорость источника</label><input id="b" type="range" min="10" max="60" step="2" value="40"><span class="v" id="bv">0.40</span></div>
+<div class="ctrl"><label for="b">скорость</label><input id="b" type="range" min="10" max="60" step="2" value="40"><span class="v" id="bv">0.40</span></div>
 <div class="btnrow"><button class="play" onclick="play()">♪ услышать проезд</button></div>
 <div class="rdt" id="rdt"></div>
 <div class="cap">не кольца в пространстве, а то, что слышит ухо: частота принятого звука — высокое плато, пока скорая мчит к тебе, резкий спад в момент «мимо», низкое плато вслед. Жми «услышать» — тон поедет по этой самой кривой</div>
@@ -37,11 +37,11 @@ let B=40;
 $('b').oninput=e=>{B=+e.target.value;$('bv').textContent=(B/100).toFixed(2);};
 const xe=220,ye=58,H=46, tx0=30,tx1=410, cy0=210,cyT=120;
 // звук: тон, частота которого едет по той же кривой f'(t) — высоко→спад→низко (проезд сирены)
-let AC=null;
+let AC=null, playT0=null, t0free=0; const PASS=4.5;   // PASS — длительность одного проезда (и петли маркера, и звука)
 function play(){try{
   AC=AC||new (window.AudioContext||window.webkitAudioContext)();
   if(AC.state==='suspended')AC.resume();
-  const beta=B/100, dur=3.4, base=430, NS=200, curve=new Float32Array(NS);
+  const beta=B/100, dur=PASS, base=430, NS=200, curve=new Float32Array(NS);
   for(let i=0;i<NS;i++){const x=tx0+(tx1-tx0)*i/(NS-1), d=Math.sqrt((xe-x)*(xe-x)+H*H); curve[i]=base/(1-beta*(xe-x)/d);}
   const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime;
   o.type='triangle';   // мягче пилы, без резкости
@@ -49,11 +49,15 @@ function play(){try{
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.17,t+0.18);   // плавный вход — не удар
   g.gain.setValueAtTime(0.17,t+dur-0.6); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);  // протяжный выход
   o.connect(g); g.connect(AC.destination); o.start(); o.stop(t+dur+0.05);
+  playT0=performance.now();   // привязываем визуальный маркер к этому проезду — звук и маркер едут вместе
 }catch(e){}}
 
 function frame(now){
   const beta=B/100;
-  const xs=tx0+((now/1000*((tx1-tx0)/4.5))%(tx1-tx0));   // ровно один проезд за петлю 4.5с → бесшовно
+  var frac;
+  if(playT0!==null && (now-playT0)/1000 < PASS){ frac=(now-playT0)/1000/PASS; }   // звук играет → маркер с ним в такт
+  else { if(playT0!==null){playT0=null; t0free=now;} frac=(((now-t0free)/1000)/PASS)%1; }   // иначе свободная петля (для гифки)
+  const xs=tx0+frac*(tx1-tx0);
   // частота принятого тона по положению источника
   function fp(x){const d=Math.sqrt((xe-x)*(xe-x)+H*H);return 1/(1-beta*(xe-x)/d);}   // акустический Доплер: f'/f = 1/(1 − β·cos α), β = v/скор.звука
   const fmin=1/(1+beta), fmax=1/(1-beta), mapy=f=>cy0-(cy0-cyT)*((f-fmin)/(fmax-fmin));

@@ -659,7 +659,7 @@ interference:{vb:'0 0 360 216',anim:true,ctrls:[{k:'d',lab:'разность х�
 diffraction:{vb:'0 0 448 372',anim:true,ctrls:[{k:'th',lab:'смотрим под θ',min:0,max:30,step:0.5,val:19.5,unit:'°'}],
  R:function(p,t){var RV=0.72,RR=1.30,SCALE=150,sx=58,cy=104,wx=396,dN=3,NC=13,s='',i,b;
   var hue=function(r){return (275*(RR-r)/(RR-RV)).toFixed(0);};
-  var cname=function(r){return r<0.83?'фиолет':r<0.93?'синий':r<1.06?'зелёный':r<1.18?'жёлтый':'красный';};
+  var cname=function(r){return r<0.76?'фиолет':r<0.85?'синий':r<0.96?'голубой':r<1.10?'зелёный':r<1.20?'жёлтый':r<1.27?'оранжевый':'красный';};
   function tx(x,y,str,col,sz,an,w){sz=Math.max(sz||12,12);return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="ui-monospace,monospace" font-size="'+sz+'" fill="'+col+'"'+(an?' text-anchor="'+an+'"':'')+(w?' font-weight="'+w+'"':'')+'>'+str+'</text>';}
   function ln(a,b2,col,w,op){return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b2[0].toFixed(1)+'" y2="'+b2[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+'/>';}
   var COLS=[];for(i=0;i<=NC;i++){var rc=RV+(RR-RV)*i/NC;COLS.push({r:rc,c:'hsl('+hue(rc)+',88%,56%)',off:(rc/3)*SCALE});}
@@ -706,7 +706,7 @@ diffraction:{vb:'0 0 448 372',anim:true,ctrls:[{k:'th',lab:'смотрим по�
   s+=tx((wpX0+wpX1)/2,gbY+gbH+34,'сумма двух волн ярого цвета — она и краснеет с углом','#6c7080',12,'middle',0);
   return s;},
  rd:function(p){var RV=0.72,RR=1.30,dN=3,pdLam=dN*Math.sin(p.th*PI/180),whiteC=pdLam<0.06,visC=pdLam>=RV&&pdLam<=RR,
-  cn=pdLam<0.83?'фиолет':pdLam<0.93?'синий':pdLam<1.06?'зелёный':pdLam<1.18?'жёлтый':'красный';
+  cn=pdLam<0.76?'фиолет':pdLam<0.85?'синий':pdLam<0.96?'голубой':pdLam<1.10?'зелёный':pdLam<1.20?'жёлтый':pdLam<1.27?'оранжевый':'красный';
   return 'смотрим под <b>'+p.th+'°</b> · ярок <b>'+(whiteC?'белый':visC?cn:'— (темно)')+'</b> · λ = d·sin θ растёт с углом → волна длиннее → краснее';}},
 
 bragg:{vb:'0 0 360 180',anim:false,ctrls:[{k:'th',lab:'угол θ',min:10,max:80,val:30,unit:'°'}],
