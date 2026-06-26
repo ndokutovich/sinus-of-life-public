@@ -1,0 +1,79 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Одна щель: ширина размазывает свет — и это синус</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#6a5bd6}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.f{font-family:var(--mono);font-size:12px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#6a5bd6 12%,white);color:#473aa3}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:448px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 132px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 46px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#473aa3}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ОДНА ЩЕЛЬ</span><h3>Ширина щели размазывает свет — и это синус</h3></div>
+<div class="f">I = (sin β / β)², β = π·a·sin θ / λ · минимумы: a·sin θ = mλ</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 380 312" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="u">a·sin θ / λ</label><input id="u" type="range" min="0" max="3" step="0.02" value="1.43"><span class="v" id="uv">1.43</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">щель шириной a режут на полоски-вейвлеты; под углом θ их фазы разъезжаются. Фазоры складываются в <b>дугу</b> (полный оборот = первый ноль). Сумма = <b>хорда дуги = sin β</b>, оттого яркость = (sin β / β)². Синус прячется дважды: в <b>минимумах</b> (a·sin θ = mλ) и в самой <b>огибающей</b> (sinc). Длинная волна (красный) даёт большую β → пятно шире: так одна щель и «отклоняет» цвета</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let U=1.43;
+$('u').oninput=e=>{U=+e.target.value;$('uv').textContent=U.toFixed(2);draw();};
+function n(x){return Math.round(x*10)/10;}
+function L(a,b,c,d,col,w,op,dash){return '<line x1="'+n(a)+'" y1="'+n(b)+'" x2="'+n(c)+'" y2="'+n(d)+'" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
+function TX(x,y,s,col,sz,an,w){return '<text x="'+n(x)+'" y="'+n(y)+'" font-family="ui-monospace,monospace" font-size="'+(sz||11)+'" fill="'+col+'"'+(an?' text-anchor="'+an+'"':'')+(w?' font-weight="'+w+'"':'')+'>'+s+'</text>';}
+const VI='#6a5bd6',VID='#473aa3',CO='#d65f37',MUT='#9a98a4';
+function sinc(u){const b=PI*u;return u===0?1:Math.sin(b)/b;}
+
+function draw(){
+  const beta=PI*U, amp=sinc(U), I=amp*amp;
+  let s='';
+
+  // ===== 1) КРИВАЯ интенсивности I=(sinβ/β)² по углу u, -3.2..3.2 =====
+  const gx0=24,gx1=356,gcx=(gx0+gx1)/2,gyb=132,gh=104,UX=(gx1-gcx)/3.2;
+  s+=TX(gcx,26,'яркость на экране  I = (sin β / β)²',MUT,11,'middle',600);
+  s+=L(gx0,gyb,gx1,gyb,'#d9d7ce',1);                        // ось углов
+  // минимумы a·sinθ=mλ (u=±1,±2,±3)
+  for(let m=-3;m<=3;m++){if(m===0)continue;const xx=gcx+m*UX;s+=L(xx,gyb-3,xx,gyb+3,'#b9b3a3',1)+TX(xx,gyb+15,m>0?'+'+m:''+m,MUT,9,'middle',0);}
+  s+=TX(gcx,gyb+27,'a·sin θ / λ  (нули = минимумы)',MUT,9.5,'middle',0);
+  // кривая
+  let d='M';for(let i=0;i<=240;i++){const uu=-3.2+6.4*i/240,yy=gyb-gh*sinc(uu)*sinc(uu);d+=' '+n(gcx+uu*UX)+','+n(yy);}
+  s+='<path d="'+d+'" fill="none" stroke="'+VID+'" stroke-width="2.2"/>';
+  // текущая точка (и зеркальная)
+  const cyP=gyb-gh*I;
+  s+=L(gcx+U*UX,gyb,gcx+U*UX,cyP,CO,1,0.6,'3 3')+'<circle cx="'+n(gcx+U*UX)+'" cy="'+n(cyP)+'" r="4.5" fill="'+CO+'"/>';
+  s+='<circle cx="'+n(gcx-U*UX)+'" cy="'+n(gyb-gh*I)+'" r="3" fill="'+CO+'" opacity="0.5"/>';
+  s+=TX(gcx,gyb-gh-6,'центральный максимум',MUT,9.5,'middle',0);
+
+  // ===== 2) ФАЗОРНАЯ дуга: сумма вейвлетов = дуга, её ХОРДА = амплитуда = sin β =====
+  const Nf=24, arcL=78, segL=arcL/Nf, ax0=120, ay0=250;
+  s+=TX(120,178,'сумма вейвлетов из щели = дуга:',MUT,11,'middle',600);
+  let px=ax0,py=ay0,ang=0,dA=(2*beta)/Nf;
+  // фазоры цепочкой
+  for(let k=0;k<Nf;k++){const nx=px+segL*Math.cos(ang),ny=py-segL*Math.sin(ang);s+=L(px,py,nx,ny,VI,1.8,0.9);px=nx;py=ny;ang+=dA;}
+  // концевые точки + хорда (резюльтант)
+  s+='<circle cx="'+n(ax0)+'" cy="'+n(ay0)+'" r="3" fill="'+VID+'"/>';
+  s+='<circle cx="'+n(px)+'" cy="'+n(py)+'" r="3" fill="'+VID+'"/>';
+  s+=L(ax0,ay0,px,py,CO,2.6,1);                            // хорда = амплитуда
+  const mx2=(ax0+px)/2,my2=(ay0+py)/2;
+  s+=TX(mx2+6,my2,'sin β / β',CO,11,'',700);
+  s+=TX(120,300,'её хорда = амплитуда = sin β / β',MUT,10,'middle',0);
+
+  $('fig').innerHTML=s;
+  let st;if(Math.abs(U-Math.round(U))<0.04&&U>0.5)st='минимум (тьма): дуга сомкнулась';else if(U<0.3)st='центр: фазоры почти в ряд → максимум';else st='боковой лепесток';
+  $('rdt').innerHTML='a·sin θ/λ = <b>'+U.toFixed(2)+'</b> · β = <b>'+(beta).toFixed(2)+'</b> · яркость I = <b>'+I.toFixed(3)+'</b> · '+st;
+}
+draw();
+</script></body></html>
