@@ -12,7 +12,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 .ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
 .ctrl .v{flex:0 0 50px;text-align:right;font-family:ui-monospace,monospace;color:#15171f;font-size:11.5px}
 .rdt{margin-top:6px;text-align:center;font-family:ui-monospace,monospace;font-size:11.5px;color:#6c7080;line-height:1.5;min-height:17px}
-.rdt b{color:#15171f;font-weight:600}</style></head><body><div class="pen"><div class="hd"><span class="num">ДВЕРЬ 06</span><h3>Аналемма</h3></div><div class="f">восьмёрка Солнца = Лиссажу 1:2</div><div class="figbox" id="fig"></div><div id="ctrls"></div><div class="rdt" id="rdt"></div></div><script>
+.rdt b{color:#15171f;font-weight:600}</style></head><body><div class="pen"><div class="hd"><span class="num">ДВЕРЬ 06</span><h3>Аналемма</h3></div><div class="f">высота: склонение (sin года) · ширина: уравнение времени</div><div class="figbox" id="fig"></div><div id="ctrls"></div><div class="rdt" id="rdt"></div></div><script>
 var PI=Math.PI, RM=false;
 var C={co:'#d65f37',cod:'#9c3f1f',te:'#138a64',ted:'#0c5a41',vi:'#6a5bd6',vid:'#473aa3',go:'#c98a1b',god:'#8a5e12',sl:'#4a5568',sld:'#2f3947',ink:'#15171f',mut:'#8a8e9c'};
 function n(x){return (Math.round(x*10)/10);}
@@ -28,12 +28,13 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
-var F={analemma:{vb:'0 0 360 200',anim:true,ctrls:[],
- R:function(p,t){var cx=180,cy=100,A=44,B=80,tl=0.18;
-  function pt(th){var x=A*Math.sin(th),y=-B*Math.sin(2*th)*0.5,X=x*Math.cos(tl)-y*Math.sin(tl),Y=x*Math.sin(tl)+y*Math.cos(tl);return [cx+X,cy+Y];}
-  var d='M';for(var i=0;i<=120;i++){var th=i/120*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
-  var cur=pt((t*(2*PI/4.5))%(2*PI));return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+98,'путь Солнца за год',C.mut,11,'middle');},
- rd:function(p){return 'восьмёрка Солнца за год = синусы наклона оси (×2) и движения по орбите — фигура Лиссажу 1:2';}}};
+var F={analemma:{vb:'0 0 360 224',anim:true,ctrls:[],
+ R:function(p,t){var cx=182,cy=112,Vs=82,Hs=30;
+  function pt(th){var dec=Math.sin(th),eot=(-7.66*Math.sin(th)-9.87*Math.sin(2*th+3.588))/17.5;return [cx+eot*Hs,cy-dec*Vs];}
+  var d='M';for(var i=0;i<=160;i++){var th=i/160*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
+  var cur=pt((t*(2*PI/4.5))%(2*PI));
+  return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+Vs+24,'путь Солнца в полдень за год',C.mut,11,'middle');},
+ rd:function(p){return 'аналемма: высота = склонение Солнца (наклон оси, ±23°), ширина = уравнение времени (sin + sin двойной частоты). Несимметрична — орбита Земли эллиптична';}}};
 var d=F['analemma'],P={},T=RM?0.7:0;
 var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');
 function fmt(c,v){var s=(c.step&&c.step<1)?(+v).toFixed(c.step<0.1?2:1):(''+v);return s+(c.unit||'')}

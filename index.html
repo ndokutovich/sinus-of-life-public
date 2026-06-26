@@ -417,7 +417,7 @@
 <section class="s5" id="g5" data-stage="2">
   <div class="dhead"><div class="num">БОНУС</div><h2>Дикие случаи</h2><p>Два места, где синус всплывает совсем неожиданно и красиво.</p></div>
   <div class="case"><div class="case-h">Маятник Фуко</div><div class="formula">ω_поворота ∝ sin φ</div><p>Плоскость качания маятника медленно поворачивается, и скорость этого поворота пропорциональна синусу широты. Так в 1851 году впервые наглядно доказали вращение Земли.</p><div class="fig" data-fig="foucault"></div></div>
-  <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в одно и то же время весь год, оно нарисует восьмёрку. Это комбинация синусов: наклон земной оси и положение по орбите.</p><div class="fig" data-fig="analemma"></div></div>
+  <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в один и тот же час весь год, оно нарисует высокую узкую восьмёрку с неравными петлями. Это два синуса: высота — наклон земной оси (склонение ±23°), ширина — уравнение времени. Петли неравные, потому что орбита Земли эллиптична.</p><div class="fig" data-fig="analemma"></div></div>
 </section>
 </div>
 <div class="wrap">
@@ -868,12 +868,13 @@ foucault:{vb:'0 0 360 190',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0
   return CC(110,100,78,'#dcdfe6',1.2)+'<line x1="'+n(cx-ux*R)+'" y1="'+n(cy-uy*R)+'" x2="'+n(cx+ux*R)+'" y2="'+n(cy+uy*R)+'" stroke="'+C.sl+'" stroke-width="1.6" stroke-dasharray="4 4"/>'
   +D(bx,by,7,C.sld)+D(cx,cy,3,C.mut)+TX(202,96,'плоскость качания',C.mut,11)+TX(202,114,'медленно вращается',C.mut,11);},
  rd:function(p){return 'скорость поворота плоскости ∝ sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b> — на экваторе 0, на полюсе максимум. Доказательство вращения Земли';}},
-analemma:{vb:'0 0 360 200',anim:true,ctrls:[],
- R:function(p,t){var cx=180,cy=100,A=44,B=80,tl=0.18;
-  function pt(th){var x=A*Math.sin(th),y=-B*Math.sin(2*th)*0.5,X=x*Math.cos(tl)-y*Math.sin(tl),Y=x*Math.sin(tl)+y*Math.cos(tl);return [cx+X,cy+Y];}
-  var d='M';for(var i=0;i<=120;i++){var th=i/120*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
-  var cur=pt((t*(2*PI/4.5))%(2*PI));return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+98,'путь Солнца за год',C.mut,11,'middle');},
- rd:function(p){return 'восьмёрка Солнца за год = синусы наклона оси (×2) и движения по орбите — фигура Лиссажу 1:2';}},
+analemma:{vb:'0 0 360 224',anim:true,ctrls:[],
+ R:function(p,t){var cx=182,cy=112,Vs=82,Hs=30;
+  function pt(th){var dec=Math.sin(th),eot=(-7.66*Math.sin(th)-9.87*Math.sin(2*th+3.588))/17.5;return [cx+eot*Hs,cy-dec*Vs];}
+  var d='M';for(var i=0;i<=160;i++){var th=i/160*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
+  var cur=pt((t*(2*PI/4.5))%(2*PI));
+  return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+Vs+24,'путь Солнца в полдень за год',C.mut,11,'middle');},
+ rd:function(p){return 'аналемма: высота = склонение Солнца (наклон оси, ±23°), ширина = уравнение времени (sin + sin двойной частоты). Несимметрична — орбита Земли эллиптична';}},
 /* ---- ДВЕРЬ 6: КРИВИЗНА ---- */
 spherical:{vb:'0 0 360 205',anim:false,ctrls:[{k:'sz',lab:'размер треугольника',min:15,max:80,step:5,val:50}],
  R:function(p){var cx=180,cy=104,R=86,f=p.sz/100,
