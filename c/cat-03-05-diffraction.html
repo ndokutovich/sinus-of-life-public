@@ -68,8 +68,11 @@ function frame(now){
   {const f=((t*0.33+0.5)%1), px=sx+f*(wx-sx); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
   // ===== веер: каждый цвет — одна линия из щелей к своему месту на стене =====
   COLS.forEach((C,i)=>{const src=[sx,cy+(i%2?7.5:-7.5)], land=[wx,cy-C.off];s+=ln(src,land,C.c,1,0.15);const f=((t*0.33+i*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
-  // ===== ГЛАВНЫЙ луч: ДВА из щелей (под лупой) сходятся на краю лупы → ОДИН к стене =====
-  s+=ln([sx,cy-7.5],[Ex,Ey],white?'#cfcdd6':pcol,1.7,0.9)+ln([sx,cy+7.5],[Ex,Ey],white?'#cfcdd6':pcol,1.7,0.9);
+  // ===== ГЛАВНЫЙ луч: два ПАРАЛЛЕЛЬНЫХ из щелей под лупой (clip) → сливаются в ОДИН на выходе к стене =====
+  s+='<clipPath id="loupe"><circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'"/></clipPath><g clip-path="url(#loupe)">';
+  s+=ln([sx,cy-7.5],[sx+70*ux,cy-7.5+70*uy],white?'#cfcdd6':pcol,1.7,0.92);
+  s+=ln([sx,cy+7.5],[sx+70*ux,cy+7.5+70*uy],white?'#cfcdd6':pcol,1.7,0.92);
+  s+='</g>';
   s+=ln([Ex,Ey],lp,white?'#cfcdd6':pcol,2.4,0.9);
   s+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(vis||white?5:3.3)+'" fill="'+pcol+'" stroke="#fff" stroke-width="0.8"/>';
   s+=tx(446,(cy-offP)+4,(white?'белый':vis?cname(pdLam):'темно'),white?'#6c7080':pcol,12,'end',600);
