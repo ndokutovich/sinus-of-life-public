@@ -28,15 +28,15 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
-var F={incline:{vb:'0 0 360 185',anim:false,ctrls:[{k:'th',lab:'наклон θ',min:8,max:50,val:28,unit:'°'}],
- R:function(p){var t=p.th*PI/180,cs=Math.cos(t),sn=Math.sin(t),ax=52,ay=152,bx=ax+255*cs,by=ay-255*sn,mx=ax+135*cs,my=ay-135*sn,g=58;
-  return L(ax,ay,bx,by,'#cfceC6'.replace('C6','c6'),1.6)+L(ax,ay,bx,ay,'#dedcd2',1.2)
+var F={incline:{vb:'0 0 360 190',anim:false,ctrls:[{k:'th',lab:'наклон θ',min:8,max:50,val:28,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,cs=Math.cos(t),sn=Math.sin(t),mx=185,my=95,Lh=115,g=58;
+  var tx=mx+Lh*cs,ty=my-Lh*sn,lx=mx-Lh*cs,ly=my+Lh*sn;
+  return L(lx,ly,tx,ty,'#cfcec6',7)+DL(lx,ly,lx+140,ly)
   +D(mx,my,8,C.co)
   +L(mx,my,mx,my+g,C.mut,2.2,1)
   +L(mx,my,mx-g*sn*cs,my+g*sn*sn,C.co,2.4,1)
   +L(mx,my,mx+g*cs*sn,my+g*cs*cs,C.cod,2.4,1)
-  +TX(ax-44+0,ay+0,'',C.mut)
-  +TX(mx-86,my+34,'g·sin θ',C.co)+TX(mx+18,my+52,'g·cos θ',C.cod);},
+  +TX(mx-92,my+36,'g·sin θ',C.co)+TX(mx+14,my+54,'g·cos θ',C.cod);},
  rd:function(p){var t=p.th*PI/180;return 'вдоль ската sin θ = <b>'+Math.sin(t).toFixed(2)+'</b>  ·  в поверхность cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>';}}};
 var d=F['incline'],P={},T=RM?0.7:0;
 var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');

@@ -478,15 +478,15 @@ vector:{vb:'0 0 360 190',anim:false,ctrls:[{k:'th',lab:'угол θ',min:5,max:8
   +TX(tx-14,ty-6,'F',C.ink,13)+TX(ox+62,176,'F·cos θ',C.cod)+TX(tx+6,(ty+160)/2,'F·sin θ',C.co);},
  rd:function(p){var t=p.th*PI/180;return 'cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>  ·  sin θ = <b>'+Math.sin(t).toFixed(2)+'</b>';}},
 
-incline:{vb:'0 0 360 185',anim:false,ctrls:[{k:'th',lab:'наклон θ',min:8,max:50,val:28,unit:'°'}],
- R:function(p){var t=p.th*PI/180,cs=Math.cos(t),sn=Math.sin(t),ax=52,ay=152,bx=ax+255*cs,by=ay-255*sn,mx=ax+135*cs,my=ay-135*sn,g=58;
-  return L(ax,ay,bx,by,'#cfceC6'.replace('C6','c6'),1.6)+L(ax,ay,bx,ay,'#dedcd2',1.2)
+incline:{vb:'0 0 360 190',anim:false,ctrls:[{k:'th',lab:'наклон θ',min:8,max:50,val:28,unit:'°'}],
+ R:function(p){var t=p.th*PI/180,cs=Math.cos(t),sn=Math.sin(t),mx=185,my=95,Lh=115,g=58;
+  var tx=mx+Lh*cs,ty=my-Lh*sn,lx=mx-Lh*cs,ly=my+Lh*sn;
+  return L(lx,ly,tx,ty,'#cfcec6',7)+DL(lx,ly,lx+140,ly)
   +D(mx,my,8,C.co)
   +L(mx,my,mx,my+g,C.mut,2.2,1)
   +L(mx,my,mx-g*sn*cs,my+g*sn*sn,C.co,2.4,1)
   +L(mx,my,mx+g*cs*sn,my+g*cs*cs,C.cod,2.4,1)
-  +TX(ax-44+0,ay+0,'',C.mut)
-  +TX(mx-86,my+34,'g·sin θ',C.co)+TX(mx+18,my+52,'g·cos θ',C.cod);},
+  +TX(mx-92,my+36,'g·sin θ',C.co)+TX(mx+14,my+54,'g·cos θ',C.cod);},
  rd:function(p){var t=p.th*PI/180;return 'вдоль ската sin θ = <b>'+Math.sin(t).toFixed(2)+'</b>  ·  в поверхность cos θ = <b>'+Math.cos(t).toFixed(2)+'</b>';}},
 
 work:{vb:'0 0 360 196',anim:false,ctrls:[{k:'th',lab:'угол силы θ',min:0,max:90,val:40,unit:'°'}],
@@ -604,7 +604,7 @@ ac:{vb:'0 0 360 150',anim:true,ctrls:[{k:'A',lab:'амплитуда I₀',min:2
  rd:function(p){return 'I(t) = I₀·sin(ωt − φ)';}},
 
 generator:{vb:'0 0 360 170',anim:true,ctrls:[{k:'spd',lab:'обороты',min:0.6,max:2.2,step:0.1,val:1.2}],
- R:function(p,t){var a=t*p.spd,cx=100,cy=88,tx=cx+38*Math.cos(a),ty=cy-38*Math.sin(a);
+ R:function(p,t){var a=t*p.spd,cx=100,cy=88,tx=cx+30*Math.cos(a),ty=cy-44*Math.sin(a);
   return '<rect x="38" y="42" width="24" height="92" rx="3" fill="#d7e6ea"/>'+TX(45,94,'N',C.mut)
   +'<rect x="138" y="42" width="24" height="92" rx="3" fill="#f0ddd7"/>'+TX(145,94,'S',C.mut)
   +'<ellipse cx="100" cy="88" rx="30" ry="44" fill="none" stroke="'+C.ted+'" stroke-width="2.2"/>'
@@ -646,7 +646,7 @@ standing:{vb:'0 0 360 170',anim:true,ctrls:[{k:'nn',lab:'мода n',min:1,max:5
   for(var k=0;k<=nn;k++){s+=D(46+(320-46)*k/nn,85,3.5,C.vid);} return s;},
  rd:function(p){return 'мода n='+p.nn+' · узлов '+(p.nn+1)+' — они стоят на месте';}},
 
-interference:{vb:'0 0 360 175',anim:true,ctrls:[{k:'d',lab:'разность хода Δ',min:0,max:2,step:0.05,val:0.5,unit:'λ'}],
+interference:{vb:'0 0 360 216',anim:true,ctrls:[{k:'d',lab:'разность хода Δ',min:0,max:2,step:0.05,val:0.5,unit:'λ'}],
  R:function(p,t){var ph=t*1.3,a1=ph,a2=ph+2*PI*p.d,ox=105,oy=108,Lr=50,
   bx=ox+Lr*Math.cos(a1),by=oy-Lr*Math.sin(a1),cx=bx+Lr*Math.cos(a2),cy=by-Lr*Math.sin(a2),
   br=Math.hypot(cx-ox,cy-oy)/(2*Lr);
@@ -894,27 +894,17 @@ hypsin:{vb:'0 0 360 205',anim:false,ctrls:[{k:'x',lab:'расстояние x',m
   +TX(px+10,by-40,'\u03a0(x)',C.sld,12)+TX((bx0+px)/2,by+18,'\u043f\u0440\u044f\u043c\u0430\u044f',C.mut,11)
   +TX(230,190,'\u043f\u0440\u0435\u0434\u0435\u043b\u044c\u043d\u0430\u044f \u043f\u0430\u0440\u0430\u043b\u043b\u0435\u043b\u044c',C.mut,11);},
  rd:function(p){var a=Math.asin(1/Math.cosh(p.x))*180/PI;return 'sin \u03a0(x) = 1/cosh(x) \u2192 \u03a0 = <b>'+a.toFixed(0)+'\u00b0</b>. \u0423 \u0415\u0432\u043a\u043b\u0438\u0434\u0430 \u0432\u0441\u0435\u0433\u0434\u0430 90\u00b0; \u0437\u0434\u0435\u0441\u044c \u0443\u0433\u043e\u043b \u0442\u0430\u0435\u0442 \u0441 \u0440\u0430\u0441\u0441\u0442\u043e\u044f\u043d\u0438\u0435\u043c';}},
-boost:{vb:'0 0 360 205',anim:false,ctrls:[{k:'u',lab:'\u0431\u044b\u0441\u0442\u0440\u043e\u0442\u0430 u\u2081',min:0,max:1.5,step:0.05,val:0.8},{k:'u2',lab:'\u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c u\u2082',min:0,max:1.5,step:0.05,val:0.6}],
- R:function(p){var cx=96,cy=104,sc=30,d='M',v;
-  for(v=-1.75;v<=1.75;v+=0.05){d+=' '+n(cx+sc*Math.cosh(v))+','+n(cy-sc*Math.sinh(v));}
-  var s=AX(30,104,250,104)+AX(100,196,100,16);
-  s+='<line x1="'+n(cx-14)+'" y1="'+n(cy+84)+'" x2="'+n(cx+154)+'" y2="'+n(cy-84)+'" stroke="#e0d6c4" stroke-width="1" stroke-dasharray="4 4"/>';
-  s+='<path d="'+d+'" fill="none" stroke="#9fb2c8" stroke-width="1.2"/>';
-  var hx=cx+sc*Math.cosh(p.u),hy=cy-sc*Math.sinh(p.u);
-  var ut=p.u+p.u2,hx2=cx+sc*Math.cosh(ut),hy2=cy-sc*Math.sinh(ut);
-  if(p.u2>0.01){s+='<g opacity="0.9">'+L(cx,cy,hx2,hy2,C.co,2.2,1)+'</g>';
-   s+=TX(Math.min(hx2+5,300),Math.max(hy2+4,14),'u₁+u₂',C.cod,11);}
-  s+=L(cx,cy,hx,hy,C.sl,2.8,1)+L(cx,cy,hx,cy,C.sld,2)+L(hx,cy,hx,hy,C.sl,2,0.6);
-  s+=TX(hx-28,cy+15,'cosh u',C.sld,11)+TX(hx+5,(hy+cy)/2,'sinh u',C.sl,11);
-  var bx=296,b0=30,b1=186;
-  s+='<line x1="'+bx+'" y1="'+b0+'" x2="'+bx+'" y2="'+b1+'" stroke="#c7c5bc" stroke-width="2"/>';
-  s+='<line x1="'+(bx-6)+'" y1="'+b0+'" x2="'+(bx+6)+'" y2="'+b0+'" stroke="'+C.sl+'" stroke-width="2"/>';
-  s+=TX(bx+10,b0+4,'c',C.sld,11)+TX(bx+10,b1+4,'0',C.mut,11);
-  var v1=Math.tanh(p.u),vs=Math.tanh(p.u+p.u2),y1=b1-(b1-b0)*v1,ys=b1-(b1-b0)*vs;
-  s+=D(bx,y1,5,C.sld)+TX(bx-10,y1+4,'v\u2081',C.sld,11,'end');
-  s+=D(bx,ys,5,C.co)+TX(bx-10,ys+4,'v\u2081\u2295v\u2082',C.cod,11,'end');
-  return s;},
- rd:function(p){return 'v\u2081 = tanh('+p.u.toFixed(2)+') = <b>'+Math.tanh(p.u).toFixed(3)+'c</b> \u00b7 \u043f\u043e\u0441\u043b\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f u\u2082: <b>'+Math.tanh(p.u+p.u2).toFixed(3)+'c</b> \u2014 \u043f\u043e \u0433\u0438\u043f\u0435\u0440\u0431\u043e\u043b\u0435 \u0442\u043e\u0447\u043a\u0430 \u0443\u043b\u0435\u0442\u0430\u0435\u0442, \u0430 tanh \u0443\u043f\u0438\u0440\u0430\u0435\u0442\u0441\u044f \u0432 1: \u0441\u0432\u0435\u0442 \u043d\u0435\u0434\u043e\u0441\u0442\u0438\u0436\u0438\u043c';}},
+boost:{vb:'0 0 360 205',anim:false,ctrls:[{k:'u',lab:'\u0431\u044b\u0441\u0442\u0440\u043e\u0442\u0430 u',min:0,max:1.3,step:0.05,val:0.7}],
+ R:function(p){var cx=150,cy=104,sc=46,ch=Math.cosh(p.u),sh=Math.sinh(p.u),
+  hx=cx+sc*ch,hy=cy-sc*sh,d='M';
+  for(var v=-1.35;v<=1.35;v+=0.05){d+=' '+n(cx+sc*Math.cosh(v))+','+n(cy-sc*Math.sinh(v));}
+  return AX(40,104,340,104)+AX(150,196,150,14)
+  +'<line x1="46" y1="208" x2="300" y2="-46" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>'
+  +'<path d="'+d+'" fill="none" stroke="#b9c4d6" stroke-width="1.3"/>'
+  +L(cx,cy,hx,hy,C.sl,2.8,1)+L(cx,cy,hx,cy,C.sld,2)+L(hx,cy,hx,hy,C.sl,2,0.6)
+  +TX(hx-30,cy+16,'cosh u',C.sld,11)+TX(hx+6,(cy+hy)/2,'sinh u',C.sl,11)
+  +TX(322,118,'x',C.mut)+TX(158,24,'t',C.mut);},
+ rd:function(p){var v=Math.tanh(p.u);return '\u0441\u043a\u043e\u0440\u043e\u0441\u0442\u044c = tanh(u) = <b>'+v.toFixed(2)+'c</b> \u2014 \u0431\u044b\u0441\u0442\u0440\u043e\u0442\u044b \u0441\u043a\u043b\u0430\u0434\u044b\u0432\u0430\u044e\u0442\u0441\u044f \u043a\u0430\u043a \u0443\u0433\u043b\u044b, \u043d\u043e tanh \u043d\u0435 \u0434\u043e\u0440\u0430\u0441\u0442\u0430\u0435\u0442 \u0434\u043e 1: \u0441\u0432\u0435\u0442 \u043d\u0435\u0434\u043e\u0441\u0442\u0438\u0436\u0438\u043c';}},
 
 koren:{vb:'0 0 360 205',anim:false,ctrls:[{k:'tp',lab:'\u0432\u0440\u0435\u043c\u044f t',min:0,max:3,step:0.02,val:1.5}],
  R:function(p){var x0=34,x1=330,cy=108,amp=58,N=160,i,t,ps='',pe='';
