@@ -28,13 +28,28 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
-var F={analemma:{vb:'0 0 360 224',anim:true,ctrls:[],
- R:function(p,t){var cx=182,cy=112,Vs=82,Hs=30;
-  function pt(th){var dec=Math.sin(th),eot=(-7.66*Math.sin(th)-9.87*Math.sin(2*th+3.588))/17.5;return [cx+eot*Hs,cy-dec*Vs];}
-  var d='M';for(var i=0;i<=160;i++){var th=i/160*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
-  var cur=pt((t*(2*PI/4.5))%(2*PI));
-  return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+Vs+24,'путь Солнца в полдень за год',C.mut,11,'middle');},
- rd:function(p){return 'аналемма: высота = склонение Солнца (наклон оси, ±23°), ширина = уравнение времени (sin + sin двойной частоты). Несимметрична — орбита Земли эллиптична';}}};
+var F={analemma:{vb:'0 0 360 232',anim:true,ctrls:[{k:'lat',lab:'широта',min:-55,max:60,step:5,val:50,unit:'°'}],
+ R:function(p,t){var eps=23.4*PI/180,H0=40*PI/180,phi=p.lat*PI/180,cx=186,horizon=198,Saz=2.5,Salt=2.35;
+  function grd(th){var dec=eps*Math.sin(th),eot=(-1.92*Math.sin(th)-2.47*Math.sin(2*th+3.588))*PI/180,H=H0+eot,
+   U=Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H),
+   E=-Math.cos(dec)*Math.sin(H),N=Math.cos(phi)*Math.sin(dec)-Math.sin(phi)*Math.cos(dec)*Math.cos(H);
+   return {E:E,N:N,alt:Math.asin(Math.max(-1,Math.min(1,U)))};}
+  var rf=grd(0),rl=Math.sqrt(rf.E*rf.E+rf.N*rf.N),rx=rf.E/rl,ry=rf.N/rl;
+  function proj(th){var g=grd(th),gl=Math.sqrt(g.E*g.E+g.N*g.N),ex=g.E/gl,ey=g.N/gl,
+   dAz=Math.atan2(rx*ey-ry*ex,rx*ex+ry*ey);return [cx+Saz*(dAz*180/PI),horizon-Salt*(g.alt*180/PI),g.alt];}
+  var out='<line x1="18" y1="'+horizon+'" x2="342" y2="'+horizon+'" stroke="#c7c5bc" stroke-width="1.4"/>'
+   +TX(338,horizon-6,'горизонт',C.mut,10,'end');
+  var i,q,dA='',dB='',sA=false,sB=false;
+  for(i=0;i<=200;i++){var th=i/200*2*PI;q=proj(th);
+   if(q[2]>=0){dA+=(sA?' L':' M')+' '+n(q[0])+','+n(q[1]);sA=true;sB=false;}
+   else{dB+=(sB?' L':' M')+' '+n(q[0])+','+n(q[1]);sB=true;sA=false;}}
+  if(dB)out+='<path d="'+dB+'" fill="none" stroke="'+C.sl+'" stroke-width="1.4" stroke-dasharray="3 3" opacity="0.45"/>';
+  out+='<path d="'+dA+'" fill="none" stroke="'+C.sl+'" stroke-width="2.2"/>';
+  var cur=proj((t*(2*PI/4.5))%(2*PI));out+=D(cur[0],cur[1],5.5,cur[2]>=0?'#e0a93b':'#b9b3a3');
+  out+=TX(cx,horizon+18,p.lat>=0?'смотрим на юг, день':'смотрим на север, день',C.mut,11,'middle');
+  return out;},
+ rd:function(p){var hemi=p.lat>=0?'северное':'южное (восьмёрка перевёрнута)';
+  return 'широта <b>'+Math.abs(p.lat)+'°'+(p.lat>=0?'с.ш.':'ю.ш.')+'</b> · '+hemi+' полушарие · форма та же — меняются наклон и высота над горизонтом';}}};
 var d=F['analemma'],P={},T=RM?0.7:0;
 var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');
 function fmt(c,v){var s=(c.step&&c.step<1)?(+v).toFixed(c.step<0.1?2:1):(''+v);return s+(c.unit||'')}
