@@ -25,13 +25,13 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 <div class="figbox"><svg id="fig" viewBox="0 0 448 372" preserveAspectRatio="xMidYMid meet"></svg></div>
 <div class="ctrl"><label for="th">смотрим под θ</label><input id="th" type="range" min="0" max="30" step="0.5" value="19.5"><span class="v" id="thv">19.5°</span></div>
 <div class="rdt" id="rdt"></div>
-<div class="cap">белый свет (все цвета вместе) летит прямо в щели, из щелей — веером, стена ловит радугу. <b>Внизу:</b> две волны того цвета, что ярче всего под этим углом — их сумма того же цвета и <b>краснеет</b>, пока ведёшь угол. Ключ: <b>длина волны и есть цвет</b> (короткая = фиолетовый, длинная = красный — полоса спектра внизу). У каждого цвета свой угол, где он в фазе — оттого веер и раскладывается в радугу</div>
+<div class="cap">белый свет (все цвета вместе) летит прямо в две щели на расстоянии d друг от друга, из щелей — веером, стена ловит радугу. <b>Внизу:</b> две волны того цвета, что ярче всего под этим углом — их сумма того же цвета и <b>краснеет</b>, пока ведёшь угол. Ключ: <b>длина волны и есть цвет</b> (короткая = фиолетовый, длинная = красный — полоса спектра внизу). У каждого цвета свой угол, где он в фазе — оттого веер и раскладывается в радугу</div>
 </div>
 <script>
 const PI=Math.PI,$=id=>document.getElementById(id);
 let TH=19.5;
 $('th').oninput=e=>{TH=+e.target.value;$('thv').textContent=TH+'°';};
-function cname(r){return r<0.76?'фиолетовый':r<0.85?'синий':r<0.96?'голубой':r<1.10?'зелёный':r<1.20?'жёлтый':r<1.27?'оранжевый':'красный';}
+function cname(r){return r<0.76?'фиолетовый':r<0.85?'синий':r<0.96?'голубой':r<1.10?'зелёный':r<1.20?'жёлтый':r<1.25?'оранжевый':'красный';}
 const sx=58, cy=104, wx=356, dN=3;
 const RV=0.72, RR=1.30, SCALE=150;
 function tx(x,y,s,col,sz,an,w){sz=Math.max(sz||12,12);return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="ui-monospace,monospace" font-size="'+sz+'" fill="'+col+'"'+(an?' text-anchor="'+an+'"':'')+(w?' font-weight="'+w+'"':'')+'>'+s+'</text>';}
