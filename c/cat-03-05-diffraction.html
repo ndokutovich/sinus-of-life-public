@@ -32,7 +32,7 @@ const PI=Math.PI,$=id=>document.getElementById(id);
 let TH=19.5;
 $('th').oninput=e=>{TH=+e.target.value;$('thv').textContent=TH+'°';};
 function cname(r){return r<0.76?'фиолет':r<0.85?'синий':r<0.96?'голубой':r<1.10?'зелёный':r<1.20?'жёлтый':r<1.27?'оранжевый':'красный';}
-const sx=58, cy=104, wx=396, dN=3;
+const sx=58, cy=104, wx=356, dN=3;
 const RV=0.72, RR=1.30, SCALE=150;
 function tx(x,y,s,col,sz,an,w){sz=Math.max(sz||12,12);return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="ui-monospace,monospace" font-size="'+sz+'" fill="'+col+'"'+(an?' text-anchor="'+an+'"':'')+(w?' font-weight="'+w+'"':'')+'>'+s+'</text>';}
 function ln(a,b,col,w,op){return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+'/>';}
