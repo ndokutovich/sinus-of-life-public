@@ -784,7 +784,7 @@ resonance:{vb:'0 0 360 200',anim:true,ctrls:[{k:'f',lab:'частота прив
   var mx=rp(Math.sqrt(Math.max(1e-4,f0*f0-2*gm*gm))),r=rp(p.f)/mx,x0=60,Wd=210,base=150,top=40;
   function px(x){return x0+Wd*(x-0.3)/1.9;}function py(v){return base-(base-top)*Math.min(1,v/mx);}
   var d='M';for(var x=0.3;x<=2.205;x+=0.02){d+=' '+n(px(x))+','+n(py(rp(x)));}
-  var mp=px(p.f),bx=305+34*r*Math.sin(t*2.4);
+  var mp=px(p.f),bx=305+34*r*Math.sin(t*2.2*p.f/0.9);
   return '<path d="'+d+'" fill="none" stroke="'+C.ted+'" stroke-width="2"/>'+AX(60,150,282,150)+AX(60,155,60,34)
   +'<line x1="'+n(mp)+'" y1="40" x2="'+n(mp)+'" y2="150" stroke="'+C.te+'" stroke-width="1.4" stroke-dasharray="4 4"/>'+D(mp,py(rp(p.f)),5,C.te)
   +'<line x1="305" y1="40" x2="305" y2="70" stroke="'+C.mut+'" stroke-width="1" stroke-dasharray="3 3"/>'+L(305,70,bx,70,C.te,2.4)+D(bx,70,9,C.te)
