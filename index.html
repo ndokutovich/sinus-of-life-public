@@ -417,7 +417,7 @@
 <section class="s5" id="g5" data-stage="2">
   <div class="dhead"><div class="num">БОНУС</div><h2>Дикие случаи</h2><p>Два места, где синус всплывает совсем неожиданно и красиво.</p></div>
   <div class="case"><div class="case-h">Маятник Фуко</div><div class="formula">ω_поворота ∝ sin φ</div><p>Плоскость качания маятника медленно поворачивается, и скорость этого поворота пропорциональна синусу широты. Так в 1851 году впервые наглядно доказали вращение Земли.</p><div class="fig" data-fig="foucault"></div></div>
-  <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в один и тот же час весь год, оно нарисует высокую узкую восьмёрку с неравными петлями. Это два синуса: высота — наклон земной оси (склонение ±23°), ширина — уравнение времени. Петли неравные, потому что орбита Земли эллиптична. Подвигай широту — сама форма та же, но восьмёрка наклоняется, поднимается над горизонтом, а в южном полушарии переворачивается.</p><div class="fig" data-fig="analemma"></div></div>
+  <div class="case"><div class="case-h">Аналемма</div><div class="formula">восьмёрка Солнца за год</div><p>Если фотографировать Солнце в один и тот же час весь год, оно нарисует восьмёрку. Её чертят <b>две синусоиды</b> (внизу демки): высота — склонение δ = sin(год), снос вбок — уравнение времени sin + sin(2·год). Неравные петли — от эллиптичности орбиты (форма — наша эпоха, за тысячи лет дрейфует). Широта проецирует восьмёрку на небо — наклоняет, поднимает над горизонтом, в южном полушарии переворачивает — и тоже через синус: sin(высота) = sinφ·sinδ + cosφ·cosδ·cosH.</p><div class="fig" data-fig="analemma"></div></div>
 </section>
 </div>
 <div class="wrap">
@@ -882,28 +882,39 @@ foucault:{vb:'0 0 360 190',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0
   return CC(110,100,78,'#dcdfe6',1.2)+'<line x1="'+n(cx-ux*R)+'" y1="'+n(cy-uy*R)+'" x2="'+n(cx+ux*R)+'" y2="'+n(cy+uy*R)+'" stroke="'+C.sl+'" stroke-width="1.6" stroke-dasharray="4 4"/>'
   +D(bx,by,7,C.sld)+D(cx,cy,3,C.mut)+TX(202,96,'плоскость качания',C.mut,11)+TX(202,114,'медленно вращается',C.mut,11);},
  rd:function(p){return 'скорость поворота плоскости ∝ sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b> — на экваторе 0, на полюсе максимум. Доказательство вращения Земли';}},
-analemma:{vb:'0 0 360 232',anim:true,ctrls:[{k:'lat',lab:'широта',min:-55,max:60,step:5,val:50,unit:'°'}],
- R:function(p,t){var eps=23.4*PI/180,H0=40*PI/180,phi=p.lat*PI/180,cx=186,horizon=198,Saz=2.5,Salt=2.35;
-  function grd(th){var dec=eps*Math.sin(th),eot=(-1.92*Math.sin(th)-2.47*Math.sin(2*th+3.588))*PI/180,H=H0+eot,
+analemma:{vb:'0 0 360 258',anim:true,ctrls:[{k:'lat',lab:'широта',min:-55,max:60,step:5,val:50,unit:'°'}],
+ R:function(p,t){var eps=23.4*PI/180,H0=40*PI/180,phi=p.lat*PI/180,cx=186,horizon=164,Saz=2.4,Salt=1.95;
+  function eotD(th){return -1.92*Math.sin(th)-2.47*Math.sin(2*th+3.588);}
+  function grd(th){var dec=eps*Math.sin(th),H=H0+eotD(th)*PI/180,
    U=Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H),
    E=-Math.cos(dec)*Math.sin(H),N=Math.cos(phi)*Math.sin(dec)-Math.sin(phi)*Math.cos(dec)*Math.cos(H);
    return {E:E,N:N,alt:Math.asin(Math.max(-1,Math.min(1,U)))};}
   var rf=grd(0),rl=Math.sqrt(rf.E*rf.E+rf.N*rf.N),rx=rf.E/rl,ry=rf.N/rl;
   function proj(th){var g=grd(th),gl=Math.sqrt(g.E*g.E+g.N*g.N),ex=g.E/gl,ey=g.N/gl,
    dAz=Math.atan2(rx*ey-ry*ex,rx*ex+ry*ey);return [cx+Saz*(dAz*180/PI),horizon-Salt*(g.alt*180/PI),g.alt];}
-  var out='<line x1="18" y1="'+horizon+'" x2="342" y2="'+horizon+'" stroke="#c7c5bc" stroke-width="1.4"/>'
-   +TX(338,horizon-6,'горизонт',C.mut,10,'end');
+  var out='<line x1="18" y1="'+horizon+'" x2="342" y2="'+horizon+'" stroke="#c7c5bc" stroke-width="1.3"/>'
+   +TX(338,horizon-5,'горизонт',C.mut,9,'end');
   var i,q,dA='',dB='',sA=false,sB=false;
   for(i=0;i<=200;i++){var th=i/200*2*PI;q=proj(th);
    if(q[2]>=0){dA+=(sA?' L':' M')+' '+n(q[0])+','+n(q[1]);sA=true;sB=false;}
    else{dB+=(sB?' L':' M')+' '+n(q[0])+','+n(q[1]);sB=true;sA=false;}}
-  if(dB)out+='<path d="'+dB+'" fill="none" stroke="'+C.sl+'" stroke-width="1.4" stroke-dasharray="3 3" opacity="0.45"/>';
-  out+='<path d="'+dA+'" fill="none" stroke="'+C.sl+'" stroke-width="2.2"/>';
-  var cur=proj((t*(2*PI/4.5))%(2*PI));out+=D(cur[0],cur[1],5.5,cur[2]>=0?'#e0a93b':'#b9b3a3');
-  out+=TX(cx,horizon+18,p.lat>=0?'смотрим на юг, день':'смотрим на север, день',C.mut,11,'middle');
+  if(dB)out+='<path d="'+dB+'" fill="none" stroke="'+C.sl+'" stroke-width="1.3" stroke-dasharray="3 3" opacity="0.4"/>';
+  out+='<path d="'+dA+'" fill="none" stroke="'+C.sl+'" stroke-width="2.1"/>';
+  var thNow=(t*(2*PI/4.5))%(2*PI),cur=proj(thNow);
+  out+=D(cur[0],cur[1],5,cur[2]>=0?'#e0a93b':'#b9b3a3')+TX(cx,horizon+13,p.lat>=0?'смотрим на юг':'смотрим на север',C.mut,10,'middle');
+  var py=206,x0=46,x1=316,W=x1-x0,j,xx,th2,wd='',we='';
+  for(j=0;j<=120;j++){th2=j/120*2*PI;xx=x0+W*j/120;
+   wd+=(j?' L':'M')+' '+n(xx)+','+n(py-14*Math.sin(th2));
+   we+=(j?' L':'M')+' '+n(xx)+','+n(py-14*(eotD(th2)/4.4));}
+  out+=AX(x0,py,x1+10,py)+TX(x1+12,py+4,'год',C.mut,9)
+   +'<path d="'+wd+'" fill="none" stroke="'+C.go+'" stroke-width="1.8"/>'
+   +'<path d="'+we+'" fill="none" stroke="'+C.sld+'" stroke-width="1.8" opacity="0.9"/>';
+  var cxn=x0+W*(thNow/(2*PI));
+  out+='<line x1="'+n(cxn)+'" y1="'+(py-20)+'" x2="'+n(cxn)+'" y2="'+(py+20)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="3 3"/>'
+   +D(cxn,py-14*Math.sin(thNow),3.4,C.god)+D(cxn,py-14*(eotD(thNow)/4.4),3.4,C.sld);
+  out+=TX(x0,py+36,'δ = sin(год)',C.god,10)+TX(x0+118,py+36,'уравнение = sin + sin(2·год)',C.sld,10);
   return out;},
- rd:function(p){var hemi=p.lat>=0?'северное':'южное (восьмёрка перевёрнута)';
-  return 'широта <b>'+Math.abs(p.lat)+'°'+(p.lat>=0?'с.ш.':'ю.ш.')+'</b> · '+hemi+' полушарие · форма та же — меняются наклон и высота над горизонтом';}},
+ rd:function(p){return 'широта <b>'+Math.abs(p.lat)+'°'+(p.lat>=0?'с.ш.':'ю.ш.')+'</b>'+(p.lat<0?' (перевёрнута)':'')+' · две синусоиды внизу чертят восьмёрку; широта проецирует её на небо — тоже синусом (×sinφ)';}},
 /* ---- ДВЕРЬ 6: КРИВИЗНА ---- */
 spherical:{vb:'0 0 360 205',anim:false,ctrls:[{k:'sz',lab:'размер треугольника',min:15,max:80,step:5,val:50}],
  R:function(p){var cx=180,cy=104,R=86,f=p.sz/100,
