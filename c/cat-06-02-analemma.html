@@ -32,7 +32,7 @@ var F={analemma:{vb:'0 0 360 200',anim:true,ctrls:[],
  R:function(p,t){var cx=180,cy=100,A=44,B=80,tl=0.18;
   function pt(th){var x=A*Math.sin(th),y=-B*Math.sin(2*th)*0.5,X=x*Math.cos(tl)-y*Math.sin(tl),Y=x*Math.sin(tl)+y*Math.cos(tl);return [cx+X,cy+Y];}
   var d='M';for(var i=0;i<=120;i++){var th=i/120*2*PI,q=pt(th);d+=' '+n(q[0])+','+n(q[1]);}
-  var cur=pt((t*0.4)%(2*PI));return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+98,'путь Солнца за год',C.mut,11,'middle');},
+  var cur=pt((t*(2*PI/4.5))%(2*PI));return '<path d="'+d+'" fill="none" stroke="'+C.sl+'" stroke-width="2"/>'+D(cur[0],cur[1],6,'#e0a93b')+TX(cx,cy+98,'путь Солнца за год',C.mut,11,'middle');},
  rd:function(p){return 'восьмёрка Солнца за год = синусы наклона оси (×2) и движения по орбите — фигура Лиссажу 1:2';}}};
 var d=F['analemma'],P={},T=RM?0.7:0;
 var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');
