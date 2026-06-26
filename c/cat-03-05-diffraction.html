@@ -65,8 +65,10 @@ function frame(now){
   {const f=((t*0.33+0.5)%1), px=sx+f*(wx-sx); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
   // ===== веер фотонов — ИЗ ОБЕИХ щелей под углами (чередуем верх/низ) =====
   COLS.forEach((C,i)=>{const src=[sx,cy+(i%2?7.5:-7.5)], land=[wx,cy-C.off];s+=ln(src,land,C.c,1,0.15);const f=((t*0.33+i*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
-  // ===== probe (направление обзора от пары щелей) =====
-  const lp=[wx,cy-offP]; s+=ln([sx,cy],lp,white?'#cfcdd6':pcol,2,0.9);
+  // ===== два луча ИЗ САМИХ ЩЕЛЕЙ, сходятся в точке: две дорожки, разность = d·sin θ =====
+  const lp=[wx,cy-offP];
+  s+='<line x1="'+sx+'" y1="'+cy+'" x2="'+lp[0].toFixed(1)+'" y2="'+lp[1].toFixed(1)+'" stroke="#bdb7a8" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>';   // тонкая ось-направление из середины — отсчёт θ
+  s+=ln([sx,cy-7.5],lp,white?'#cfcdd6':pcol,1.7,0.9)+ln([sx,cy+7.5],lp,white?'#cfcdd6':pcol,1.7,0.9);
   s+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(vis||white?5:3.3)+'" fill="'+pcol+'" stroke="#fff" stroke-width="0.8"/>';
   s+=tx(446,(cy-offP)+4,(white?'белый':vis?cname(pdLam):'темно'),white?'#6c7080':pcol,12,'end',600);
   // ===== НИЗ: сумма двух волн ЯРКОГО цвета — краснеет с углом (просторная раскладка) =====

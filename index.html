@@ -680,7 +680,9 @@ diffraction:{vb:'0 0 448 372',anim:true,ctrls:[{k:'th',lab:'смотрим по�
   s+=ln([sx,cy],[wx,cy],'#dcdad2',1.2,0.45);
   var fw=((t*0.33+0.5)%1),pxw=sx+fw*(wx-sx);for(i=0;i<=NC;i++){s+='<circle cx="'+pxw.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}
   COLS.forEach(function(C,j){var src=[sx,cy+(j%2?7.5:-7.5)],land=[wx,cy-C.off];s+=ln(src,land,C.c,1,0.15);var f=((t*0.33+j*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
-  var lp=[wx,cy-offP];s+=ln([sx,cy],lp,white?'#cfcdd6':pcol,2,0.9);
+  var lp=[wx,cy-offP];
+  s+='<line x1="'+sx+'" y1="'+cy+'" x2="'+n(lp[0])+'" y2="'+n(lp[1])+'" stroke="#bdb7a8" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>';
+  s+=ln([sx,cy-7.5],lp,white?'#cfcdd6':pcol,1.7,0.9)+ln([sx,cy+7.5],lp,white?'#cfcdd6':pcol,1.7,0.9);
   s+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(vis||white?5:3.3)+'" fill="'+pcol+'" stroke="#fff" stroke-width="0.8"/>';
   s+=tx(446,(cy-offP)+4,(white?'белый':vis?cname(pdLam):'темно'),white?'#6c7080':pcol,12,'end',600);
   var wpX0=72,wpX1=400,ya=164,yb=204,brkY=224,vrdY=244,ysum=278,amp=8.5;
