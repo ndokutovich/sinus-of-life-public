@@ -60,17 +60,31 @@ function frame(now){
   // ===== вход: белый = все цвета вместе, прямо =====
   s+=ln([6,cy],[sx-4,cy],'#e4e2da',1,0.8)+tx(2,cy-25,'белый','#6c7080',12,'',600)+tx(2,cy-13,'свет →','#6c7080',12,'',600);
   for(let b=0;b<2;b++){const finc=((t*0.5+b*0.5)%1), ix=8+finc*(sx-18-8);for(let i=0;i<=NC;i++){s+='<rect x="'+ix.toFixed(1)+'" y="'+(cy+(i-NC/2)*1.5-0.8).toFixed(1)+'" width="6" height="1.8" fill="'+COLS[i].c+'"/>';}}
-  // ===== белый (все цвета ВМЕСТЕ) летит ПРЯМО — в центральный белый максимум (θ=0, m=0) =====
-  s+=ln([sx,cy],[wx,cy],'#dcdad2',1.2,0.45);
-  {const f=((t*0.33+0.5)%1), px=sx+f*(wx-sx); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
-  // ===== веер фотонов — ИЗ ОБЕИХ щелей под углами (чередуем верх/низ) =====
-  COLS.forEach((C,i)=>{const src=[sx,cy+(i%2?7.5:-7.5)], land=[wx,cy-C.off];s+=ln(src,land,C.c,1,0.15);const f=((t*0.33+i*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
-  // ===== два луча ИЗ САМИХ ЩЕЛЕЙ, сходятся в точке: две дорожки, разность = d·sin θ =====
-  const lp=[wx,cy-offP];
-  s+='<line x1="'+sx+'" y1="'+cy+'" x2="'+lp[0].toFixed(1)+'" y2="'+lp[1].toFixed(1)+'" stroke="#bdb7a8" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>';   // тонкая ось-направление из середины — отсчёт θ
-  s+=ln([sx,cy-7.5],lp,white?'#cfcdd6':pcol,1.7,0.9)+ln([sx,cy+7.5],lp,white?'#cfcdd6':pcol,1.7,0.9);
+  // ===== геометрия лупы — нужна вееру, белому фотону и главному лучу: всё снаружи стартует с КРАЯ лупы =====
+  const lp=[wx,cy-offP], ang=Math.atan2(-offP,wx-sx), ux=Math.cos(ang), uy=Math.sin(ang);
+  const Cx=80, Cy=100, R=46, Ex=Cx+R*ux, Ey=Cy+R*uy;
+  const ledge=(p)=>{const a=Math.atan2(p[1]-Cy,p[0]-Cx);return [Cx+R*Math.cos(a),Cy+R*Math.sin(a)];};
+  // ===== белый (все цвета ВМЕСТЕ) — из ЛУПЫ прямо в центральный белый максимум =====
+  {const we=ledge([wx,cy]); s+=ln(we,[wx,cy],'#dcdad2',1.2,0.45); const f=((t*0.33+0.5)%1), px=we[0]+f*(wx-we[0]); for(let i=0;i<=NC;i++){s+='<circle cx="'+px.toFixed(1)+'" cy="'+(cy+(i-NC/2)*1.05-0.5).toFixed(1)+'" r="1.5" fill="'+COLS[i].c+'"/>';}}
+  // ===== веер: каждый цвет — ОДНА линия из ЛУПЫ к своему месту на стене («из щелей» — это деталь ВНУТРИ линзы) =====
+  COLS.forEach((C,i)=>{const land=[wx,cy-C.off], src=ledge(land);s+=ln(src,land,C.c,1,0.15);const f=((t*0.33+i*0.07)%1);s+='<circle cx="'+(src[0]+f*(land[0]-src[0])).toFixed(1)+'" cy="'+(src[1]+f*(land[1]-src[1])).toFixed(1)+'" r="2.2" fill="'+C.c+'"/>';});
+  // ===== ЛУПА над щелями: ВНУТРИ увеличено — лучи ПАРАЛЛЕЛЬНЫ, виден d·sin θ; СНАРУЖИ один пучок к стене =====
+  s+=ln([Ex,Ey],lp,white?'#cfcdd6':pcol,2.4,0.9);
   s+='<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(vis||white?5:3.3)+'" fill="'+pcol+'" stroke="#fff" stroke-width="0.8"/>';
   s+=tx(446,(cy-offP)+4,(white?'белый':vis?cname(pdLam):'темно'),white?'#6c7080':pcol,12,'end',600);
+  s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'" fill="#fbfaf6" opacity="0.97"/>';
+  s+='<clipPath id="loupe"><circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'"/></clipPath><g clip-path="url(#loupe)">';
+  {const mx=60, ms=20, Su=[mx,Cy-ms], Sl=[mx,Cy+ms], RL=94, ttv=-2*ms*uy, Fx=Sl[0]+ttv*ux, Fy=Sl[1]+ttv*uy;
+   s+=ln(Su,[Su[0]+RL*ux,Su[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
+   s+=ln(Sl,[Sl[0]+RL*ux,Sl[1]+RL*uy],white?'#cfcdd6':pcol,1.8,0.92);
+   s+=ln(Su,[Fx,Fy],'#473aa3',1);
+   s+='<line x1="'+mx+'" y1="'+Sl[1]+'" x2="'+Fx.toFixed(1)+'" y2="'+Fy.toFixed(1)+'" stroke="#d65f37" stroke-width="3.4"/>';
+   s+='<circle cx="'+mx+'" cy="'+Su[1]+'" r="2.8" fill="#473aa3"/><circle cx="'+mx+'" cy="'+Sl[1]+'" r="2.8" fill="#473aa3"/>';
+   s+=ln([mx-11,Su[1]],[mx-11,Sl[1]],'#473aa3',1)+tx(mx-15,Cy+4,'d','#473aa3',11,'end',700);}
+  s+='</g>';
+  s+='<circle cx="'+Cx+'" cy="'+Cy+'" r="'+R+'" fill="none" stroke="#473aa3" stroke-width="2.5"/>';
+  s+='<line x1="'+(Cx+R*0.72).toFixed(1)+'" y1="'+(Cy+R*0.72).toFixed(1)+'" x2="'+(Cx+R*0.72+15).toFixed(1)+'" y2="'+(Cy+R*0.72+15).toFixed(1)+'" stroke="#473aa3" stroke-width="4" stroke-linecap="round"/>';
+  s+=tx(Cx,Cy-R-3,'увеличено','#9a98a4',9,'middle',0)+tx(Cx-2,Cy+R-9,'d·sin θ','#d65f37',10.5,'middle',700);
   // ===== НИЗ: сумма двух волн ЯРКОГО цвета — краснеет с углом (просторная раскладка) =====
   const wpX0=72, wpX1=400, hdrY=134, ya=164, yb=204, brkY=224, vrdY=244, ysum=278, amp=8.5;
   const rM=pdLam, whiteC=pdLam<0.06, visC=rM>=RV&&rM<=RR, seen=whiteC||visC;
