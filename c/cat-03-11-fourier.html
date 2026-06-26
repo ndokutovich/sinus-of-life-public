@@ -36,10 +36,12 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 <script>
 const PI=Math.PI,$=id=>document.getElementById(id);
 let N=5;
-$('nn').oninput=e=>{N=+e.target.value;$('nnv').textContent=N;};
+$('nn').oninput=e=>{N=+e.target.value;$('nnv').textContent=N;$('formula').textContent=fmla(N);};
 const cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05;
 const SPEED=2*PI*1/4.5;   // 2 оборота за петлю захвата (90 кадров × 50мс = 4.5с) → гифка бесшовна
 function sumSq(m,th){let s=0;for(let k=0;k<m;k++){const n=2*k+1;s+=Math.sin(n*th)/n;}return s*4/PI;}
+function fmla(m){let t=[];for(let k=0;k<m;k++){const n=2*k+1;t.push(n===1?'sin ωt':'sin '+n+'ωt/'+n);}return m===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]';}
+$('formula').textContent=fmla(N);
 // звук: квадратная волна из N нечётных гармоник (как рисует эпицикл) → слышно, как тембр жужжит
 let AC=null;
 function play(){try{

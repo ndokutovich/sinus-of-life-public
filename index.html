@@ -744,7 +744,7 @@ fourEpi:{vb:'0 0 440 230',anim:true,ctrls:[{k:'nn',lab:'колёс (гармон
   for(px=wx0;px<=wx1;px+=2){th=w-(px-wx0)*kt;pts+=px+','+n(cy+sumSq(N,th)*SC)+' ';}
   s+='<polyline points="'+pts.trim()+'" fill="none" stroke="'+C.vid+'" stroke-width="2.6"/>';
   return s;},
- rd:function(p){return 'колёс: <b>'+p.nn+'</b> · их сумма чертит прямоугольный сигнал · на этом стоят MP3, JPEG, Shazam';}},
+ rd:function(p){var t=[],j,k;for(j=0;j<p.nn;j++){k=2*j+1;t.push(k===1?'sin ωt':'sin '+k+'ωt/'+k);}return '<b>'+p.nn+'</b> колёс: '+(p.nn===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]');}},
 
 /* ---- доп. кейсы: ПРОЕКЦИЯ ---- */
 vecadd:{vb:'0 0 360 185',anim:false,ctrls:[{k:'cur',lab:'течение',min:0,max:85,val:45}],
