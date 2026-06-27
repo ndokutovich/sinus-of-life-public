@@ -29,7 +29,7 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
 var F={groupvel:{vb:'0 0 360 165',anim:true,ctrls:[{k:'sep',lab:'разброс частот',min:1,max:4,step:0.5,val:2}],
- R:function(p,t){var K=2,Dk=p.sep*0.35,per=2*PI/9,vp=3*per,vg=per;function car(u){return Math.cos(u*2*PI*K-vp*t);}function env(u){return Math.cos(u*2*PI*Dk-vg*t);}
+ R:function(p,t){var K=2,Dk=p.sep*0.35,per=2*PI/13.5,vp=3*per,vg=per;function car(u){return Math.cos(u*2*PI*K-vp*t);}function env(u){return Math.cos(u*2*PI*Dk-vg*t);}
   return AX(40,82,330,82)+W(function(u){return env(u);},46,320,82,52,C.vi,1.2,'0.5',1)+W(function(u){return -env(u);},46,320,82,52,C.vi,1.2,'0.5',1)
   +W(function(u){return env(u)*car(u);},46,320,82,52,C.vid,2.4);},
  rd:function(p){return 'огибающая (группа) и несущая (фаза) бегут с разной скоростью: v_гр = dω/dk, v_ф = ω/k';}}};
