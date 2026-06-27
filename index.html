@@ -312,7 +312,7 @@
     <p>Корень всей системы. Это одна стрелка, крутящаяся по единичной окружности в комплексной плоскости. Её тень на вещественную ось — косинус, на мнимую — синус. cos и sin — это просто две тени одного вращения.</p>
     <div class="fig" data-fig="euler"></div>
   </div>
-  <div class="case" data-stage="2"><div class="case-h">Центростремительное ускорение</div><div class="formula">a = v²/R</div><p>Скорость по модулю постоянна, но её вектор всё время поворачивается — значит ускорение есть, и направлено оно к центру.</p><div class="fig" data-fig="centripetal"></div></div>
+  <div class="case" data-stage="2"><div class="case-h">Центростремительное ускорение</div><div class="formula">a = ω²R к центру · тень: −ω²R·sin ωt</div><p>Скорость по модулю постоянна, но её вектор всё время поворачивается — значит ускорение есть, и направлено оно к центру. Сам модуль синуса не прячет — а тень крутящегося вектора на ось качается как −ω²R·sin ωt. Проекция вращения и есть колебание.</p><div class="fig" data-fig="centripetal"></div></div>
   <div class="case" data-stage="2"><div class="case-h">Затухающие колебания</div><div class="formula">x = e^(−γt)·A·cos ωt</div><p>Реальный звон не вечен: синус сидит под убывающей экспонентой. Так гаснет струна, качели без подкачки, любой удар по колоколу.</p><div class="fig" data-fig="damped"></div></div>
   <div class="case"><div class="case-h">Вынужденные колебания и резонанс</div><div class="formula">A(ω) — пик у собственной частоты</div><p>Толкай систему на её частоте — амплитуда взлетает. Качели, мост, бокал от голоса, настройка радио на станцию.</p><div class="fig" data-fig="resonance"></div></div>
   <div class="case" data-stage="2"><div class="case-h">Комплексный импеданс</div><div class="formula">Z = R + iX</div><p>Ток и напряжение в цепи — вращающиеся стрелки со сдвигом фазы. Катушка заставляет ток отставать, конденсатор — опережать.</p><div class="fig" data-fig="impedance"></div></div>
@@ -776,12 +776,14 @@ brewster:{vb:'0 0 360 180',anim:false,ctrls:[{k:'nn',lab:'показатель n
  rd:function(p){return 'θ Брюстера = arctan(n) = <b>'+(Math.atan(p.nn)*180/PI).toFixed(0)+'°</b> — отражённый луч полностью поляризован (поляроид гасит блики)';}},
 /* ---- доп. кейсы: ВРАЩЕНИЕ ---- */
 centripetal:{vb:'0 0 360 205',anim:true,ctrls:[{k:'spd',lab:'скорость ω',min:0.6,max:2.2,step:0.1,val:1.3}],
- R:function(p,t){var a=t*p.spd,ox=180,oy=105,r=74,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a),
-  vl=18*p.spd,al=Math.min(18*p.spd*p.spd,72),
-  vx=px-vl*Math.sin(a),vy=py-vl*Math.cos(a),axx=px-al*Math.cos(a),ayy=py+al*Math.sin(a);
-  return CC(180,105,74,'#cfd9d3',1.3)+DL(ox,oy,px,py)+L(px,py,vx,vy,C.te,2.6,1)+L(px,py,axx,ayy,C.ted,2.6,1)
-  +D(px,py,4.5,C.te)+D(ox,oy,3,C.mut)+TX(vx-4,vy-6,'v',C.te,13)+TX(axx-2,ayy+14,'a',C.ted,13);},
- rd:function(p){return 'a = v²/R = ω²·R, к центру. Прибавь ω — скорость v растёт, а ускорение a ВЧЕТВЕРО быстрее (квадратично).';}},
+ R:function(p,t){var a=t*p.spd,ox=170,oy=104,r=72,px=ox+r*Math.cos(a),py=oy-r*Math.sin(a),
+  vl=17*p.spd,al=Math.min(17*p.spd*p.spd,66),
+  vx=px-vl*Math.sin(a),vy=py-vl*Math.cos(a),axx=px-al*Math.cos(a),ayy=py+al*Math.sin(a),sx=298;
+  return CC(ox,oy,r,'#cfd9d3',1.3)+DL(ox,oy,px,py)+L(px,py,vx,vy,C.te,2.6,1)+L(px,py,axx,ayy,C.ted,2.6,1)
+  +D(px,py,4.5,C.te)+D(ox,oy,3,C.mut)+TX(vx-4,vy-6,'v',C.te,13)+TX(axx-2,ayy+14,'a',C.ted,13)
+  +AX(sx,oy-r-4,sx,oy+r+4)+DL(px,py,sx,py)+L(sx,oy,sx,py,C.te,3,0)+D(sx,py,4.5,C.te)
+  +TX(sx,oy-r-9,'R·sin θ',C.ted,11,'middle')+TX(sx,oy+r+15,'тень',C.mut,10,'middle');},
+ rd:function(p){return 'модуль a = v²/R = ω²R постоянен и смотрит в центр — но тень вектора на ось это −ω²R·sin ωt. Вот синус: проекция вращения и есть колебание (та самая пружина соседней двери).';}},
 damped:{vb:'0 0 360 160',anim:true,ctrls:[{k:'g',lab:'затухание γ',min:0.1,max:1.6,step:0.1,val:0.6}],
  R:function(p,t){var g=p.g;function e(u){return Math.exp(-g*2.6*u);}
   return AX(40,80,330,80)+W(function(u){return e(u);},46,320,80,52,C.te,1.2,'0.5',1)+W(function(u){return -e(u);},46,320,80,52,C.te,1.2,'0.5',1)
