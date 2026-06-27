@@ -22,7 +22,7 @@ body{font-family:var(--sans);background:#f6f5f0;color:#15171f;display:flex;justi
 <div class="hd"><span class="num">ДИКИЙ СЛУЧАЙ</span><h3>Свет у дыры: синус, который гравитация рвёт</h3></div>
 <div class="f">прямой луч: 1/r = sin φ / b · у дыры: u″ + u = 1.5·u² → синус закручивается</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 470 252" preserveAspectRatio="xMidYMid meet"></svg></div>
-<div class="ctrl"><label for="b">прицел луча → к порогу b_кр</label><input id="b" type="range" min="-100" max="100" step="1" value="58"><span class="v" id="bv">2.60</span></div>
+<div class="ctrl"><label for="b">прицел b → порог → горизонт</label><input id="b" type="range" min="0" max="100" step="1" value="43"><span class="v" id="bv">2.60</span></div>
 <div class="rdt" id="rdt"></div>
 <div class="cap">слева — луч летит мимо дыры; справа — его «1/r» по углу φ. Далеко от дыры это чистый синус (бледный). Веди прицел к b_кр ≈ 2.60: синус всё круче загибается, луч наматывает петли. Ниже порога — проваливается в горизонт</div>
 </div>
@@ -31,7 +31,11 @@ const PI=Math.PI,$=id=>document.getElementById(id);
 const BCRIT=3*Math.sqrt(3)/2;          // ≈2.598 r_s (r_s=1)
 const cx=112,cy=128,SC=7.5;            // экран траектории
 let B=2.60, TR=null;
-function setB(t){const sign=t>=0?1:-1, off=1e-6*Math.pow(10,6.2*Math.abs(t)/100); B=Math.max(0.6, BCRIT+sign*off);}
+// ползунок 0..100: слева далеко (почти прямой луч), ~88 — критический порог b_кр, правее — проваливается в горизонт
+function setB(t){
+  if(t<=88){ B=BCRIT+1e-6*Math.pow(10,7*(88-t)/88); }
+  else { B=Math.max(0.7, BCRIT-1e-6*Math.pow(10,6.2*(t-88)/12)); }
+}
 
 // интеграция геодезической фотона: u=1/r, u'' = 1.5u² − u (r_s=1)
 function integrate(b){
@@ -55,7 +59,7 @@ setB(+$('b').value);$('bv').textContent=B.toFixed(3);rebuild();
 
 function frame(now){
   const pts=TR.pts, n=pts.length, cap=TR.cap;
-  const idx=Math.floor((now/1000*0.32*n)%n);
+  const idx=Math.floor((now/4500*n)%n);   // один проход фотона за 4.5с — под бесшовную петлю гифки
   const phiMax=pts[n-1].phi;
   let s='<defs><radialGradient id="sh" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#0a0b10"/><stop offset="0.72" stop-color="#15131c"/><stop offset="1" stop-color="#2c2740"/></radialGradient></defs>';
   // фотонная сфера (r=1.5) и критический прицел (r=b_кр)

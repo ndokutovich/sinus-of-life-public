@@ -1,0 +1,91 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Синус — проекция спирали: винт роняет круг, синус и косинус</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#138a64}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#138a64 12%,white);color:#0c5a41}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:448px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 110px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 48px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--ink);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#0c5a41}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ФИНАЛ</span><h3>e^(iθ) в 3D — винт, чьи тени cos, sin и круг</h3></div>
+<div class="f">винт = круг во времени · с торца круг · на стену sin · на пол cos</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 460 224" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="za">угол Z</label><input id="za" type="range" min="0" max="90" step="1" value="45"><span class="v" id="zav">45°</span></div>
+<div class="ctrl"><label for="mg">длина Z</label><input id="mg" type="range" min="10" max="95" step="1" value="68"><span class="v" id="mgv">68</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">красная спираль — круг, протянутый по оси времени. Она роняет три тени: на торец — круг, на дальнюю стену — синус, на пол — косинус. Все три — один и тот же винт с разных сторон</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+let ZA=11, MG=68;
+$('za').oninput=e=>{ZA=+e.target.value;$('zav').textContent=ZA+'°';};
+$('mg').oninput=e=>{MG=+e.target.value;$('mgv').textContent=MG;};
+// X=время → строго горизонталь; Y=sin → вертикаль; Z=cos → диагональ (угол ZA + длина MG задают слайдеры)
+const TT=[336,0], SS=[0,-54], NC=2, S=0.9, BX=232, BY=116;  // S — общий масштаб (−10%) вокруг центра короба (232,116)
+let CC=[46,-33];
+function P(t,c,s){return [BX+S*((t-0.5)*TT[0]+c*CC[0]+s*SS[0]), BY+S*((t-0.5)*TT[1]+c*CC[1]+s*SS[1])];}
+function pl(arr,col,w,op,dash){return '<polyline points="'+arr.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
+function ln(a,b,col,w,op,dash){return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+col+'" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
+let PH=0; const TH=t=>2*PI*NC*t+PH;   // винт + фаза вращения (винт крутится, КОРОБ стоит)
+
+function frame(now){
+  CC[0]=MG*Math.cos(ZA*PI/180); CC[1]=-MG*Math.sin(ZA*PI/180);  // направление (ZA) и длина (MG) глубины
+  PH=0.9;  // СТАТИКА: фаза заморожена — ни прокрутки синуса/косинуса, ни вращения винта
+  const GR='#cbc9c0', GR2='#e6e4dc';
+  let s='';
+  // --- короб: сетка пола и дальней стены, рёбра (статика) ---
+  for(let i=0;i<=4;i++){const t=i/4; s+=ln(P(t,-1,-1),P(t,1,-1),GR2,1);}
+  for(let j=0;j<=2;j++){const c=-1+j; s+=ln(P(0,c,-1),P(1,c,-1),GR2,1);}
+  for(let i=0;i<=4;i++){const t=i/4; s+=ln(P(t,1,-1),P(t,1,1),GR2,1);}
+  for(let j=0;j<=2;j++){const sv=-1+j; s+=ln(P(0,1,sv),P(1,1,sv),GR2,1);}
+  const corners=[[0,-1,-1],[1,-1,-1],[0,1,-1],[1,1,-1],[0,-1,1],[1,-1,1],[0,1,1],[1,1,1]];
+  [[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]].forEach(e=>{s+=ln(P(...corners[e[0]]),P(...corners[e[1]]),GR,1.1);});
+  s+='<text x="'+(P(0.26,1,1)[0])+'" y="'+(P(0.26,1,1)[1]-9)+'" font-family="ui-monospace,monospace" font-size="10.5" fill="#9a98a4">время →</text>';
+  // --- косинус на полу (статичная кривая) ---
+  let cosA=[];for(let i=0;i<=120;i++){const t=i/120;cosA.push(P(t,Math.cos(TH(t)),-1));}
+  s+=pl(cosA,'#c98a1b',2.2);
+  s+='<text x="'+(P(1,1,-1)[0]-2)+'" y="'+(P(1,1,-1)[1]+19)+'" font-family="ui-monospace,monospace" font-size="11" fill="#8a5e12" text-anchor="end">cos = глубина (пол)</text>';
+  // --- синус на дальней стене (статичная кривая) ---
+  let sinA=[];for(let i=0;i<=120;i++){const t=i/120;sinA.push(P(t,1,Math.sin(TH(t))));}
+  s+=pl(sinA,'#138a64',2.4);
+  s+='<text x="'+(P(1,1,1)[0]+4)+'" y="'+(P(1,1,1)[1]-13)+'" font-family="ui-monospace,monospace" font-size="11" fill="#0c5a41" text-anchor="end">sin = высота (стена)</text>';
+  // --- винт (статичная спираль) ---
+  let hx=[];for(let i=0;i<=400;i++){const t=i/400;hx.push(P(t,Math.cos(TH(t)),Math.sin(TH(t))));}  // 400 точек — гладкая дуга для маркера
+  s+=pl(hx,'#c0392b',2.3);
+  s+='<text x="'+(P(0.12,1,1)[0]+4)+'" y="'+(P(0.12,1,1)[1]-4)+'" font-family="ui-monospace,monospace" font-size="11" fill="#9c2f24">винт</text>';
+  // --- торцевое колесо со спицами (статика) ---
+  let circ=[];for(let i=0;i<=48;i++){const al=i/48*2*PI;circ.push(P(0,Math.cos(al),Math.sin(al)));}
+  s+=pl(circ,'#7a8a82',1.4);
+  for(let k=0;k<12;k++){const al=k/12*2*PI;s+=ln(P(0,0,0),P(0,Math.cos(al),Math.sin(al)),'#c4cdc7',0.8);}
+  s+='<text x="'+(P(0,0,-1)[0])+'" y="'+(P(0,0,-1)[1]+15)+'" font-family="ui-monospace,monospace" font-size="10.5" fill="#7a8a82" text-anchor="middle">торец = круг</text>';
+  // === бегущий маркер: равномерно по ВРЕМЕНИ (mt линейно) — синус-тень идёт ровно вперёд, без замираний.
+  // Раньше гнал по ДЛИНЕ спирали → mt замирал на петлях, и тормозились ВСЕ тени разом. Время — честный ход.
+  const mt=(now/1000*(1/7.5))%1;  // 1 проход за 7.5с (медленнее); захват 150 кадров → петля бесшовна и плотна
+  const ang=TH(mt), c0=Math.cos(ang), s0=Math.sin(ang);
+  const Hp=P(mt,c0,s0), Wp=P(mt,1,s0), Fp=P(mt,c0,-1), Cw=P(0,c0,s0);
+  // отвес вниз на пол = косинус (глубина), отвод назад на стену = синус (высота). Маркер всегда виден (без затухания).
+  s+=ln(Hp,Fp,'#caa44e',1.2,'','3 3')+ln(Hp,Wp,'#7bbfa6',1.2,'','3 3');
+  s+=ln(P(0,0,0),Cw,'#0c5a41',1.5);  // спица колеса = угол маркера
+  s+='<circle cx="'+Fp[0].toFixed(1)+'" cy="'+Fp[1].toFixed(1)+'" r="3.6" fill="#c98a1b"/>';
+  s+='<circle cx="'+Wp[0].toFixed(1)+'" cy="'+Wp[1].toFixed(1)+'" r="3.6" fill="#138a64"/>';
+  s+='<circle cx="'+Cw[0].toFixed(1)+'" cy="'+Cw[1].toFixed(1)+'" r="3.4" fill="#0c5a41"/>';
+  s+='<circle cx="'+Hp[0].toFixed(1)+'" cy="'+Hp[1].toFixed(1)+'" r="5" fill="#c0392b" stroke="#fff" stroke-width="1.2"/>';
+  $('fig').innerHTML=s;
+  $('rdt').innerHTML='одна точка на винте · вниз на пол — <b>cos</b> (глубина) · назад на стену — <b>sin</b> (высота)';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>
