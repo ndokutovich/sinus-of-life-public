@@ -29,7 +29,7 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
 var F={superposition:{vb:'0 0 360 170',anim:true,ctrls:[{k:'dphi',lab:'сдвиг фаз Δφ',min:0,max:360,step:5,val:60,unit:'°'}],
- R:function(p,t){var ph=t*(2*PI/4.5),dp=p.dphi*PI/180;
+ R:function(p,t){var ph=t*1.4,dp=p.dphi*PI/180;
   function y1(u){return Math.sin(u*2*PI*2-ph);} function y2(u){return Math.sin(u*2*PI*2-ph+dp);}
   return AX(40,85,330,85)+W(y1,46,320,85,30,C.vi,1.6,'0.4')+W(y2,46,320,85,30,C.vi,1.6,'0.4')
   +W(function(u){return y1(u)+y2(u);},46,320,85,30,C.vid,2.8);},
