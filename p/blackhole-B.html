@@ -1,0 +1,106 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Свет у чёрной дыры — синус, который гравитация закручивает</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:#0a0c12;color:#e9e7e0;display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:#11131b;border:1px solid #262a36;border-radius:14px;padding:13px 15px 11px}
+.hd{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#ffb27a}
+.hd h3{font-size:14.5px;font-weight:600;letter-spacing:-.01em;color:#f3f1ea}
+.f{font-family:var(--mono);font-size:12px;margin:5px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:#1c1f28;color:#ffb27a}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox svg{width:100%;max-width:470px;height:auto}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#9a98a4;margin:7px 0}
+.ctrl label{flex:0 0 180px}
+.ctrl input[type=range]{flex:1;accent-color:#f08a4a;height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 64px;text-align:right;font-family:var(--mono);color:#e9e7e0;font-size:12px}
+.rdt{margin-top:7px;text-align:center;font-family:var(--mono);font-size:12px;color:#9a98a4;line-height:1.5;min-height:18px}
+.rdt b{color:#ffd9a8;font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:#82808c}</style></head><body>
+<div class="pen">
+<div class="hd"><span class="num">ДИКИЙ СЛУЧАЙ</span><h3>Свет у дыры: синус, который гравитация рвёт</h3></div>
+<div class="f">прямой луч: 1/r = sin φ / b · у дыры: u″ + u = 1.5·u² → синус закручивается</div>
+<div class="figbox"><svg id="fig" viewBox="0 0 470 252" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="ctrl"><label for="b">прицел луча → к порогу b_кр</label><input id="b" type="range" min="-100" max="100" step="1" value="58"><span class="v" id="bv">2.60</span></div>
+<div class="rdt" id="rdt"></div>
+<div class="cap">слева — луч летит мимо дыры; справа — его «1/r» по углу φ. Далеко от дыры это чистый синус (бледный). Веди прицел к b_кр ≈ 2.60: синус всё круче загибается, луч наматывает петли. Ниже порога — проваливается в горизонт</div>
+</div>
+<script>
+const PI=Math.PI,$=id=>document.getElementById(id);
+const BCRIT=3*Math.sqrt(3)/2;          // ≈2.598 r_s (r_s=1)
+const cx=112,cy=128,SC=7.5;            // экран траектории
+let B=2.60, TR=null;
+function setB(t){const sign=t>=0?1:-1, off=1e-6*Math.pow(10,6.2*Math.abs(t)/100); B=Math.max(0.6, BCRIT+sign*off);}
+
+// интеграция геодезической фотона: u=1/r, u'' = 1.5u² − u (r_s=1)
+function integrate(b){
+  const f=(u,p)=>[p, 1.5*u*u-u];
+  let u=1/13, p=Math.sqrt(Math.max(1e-9, 1/(b*b)-u*u*(1-u))), phi=0, h=0.004;
+  const pts=[]; let cap=false, passed=false;
+  for(let i=0;i<14000;i++){
+    pts.push({phi:phi,u:u});
+    const [a1,b1]=f(u,p),[a2,b2]=f(u+.5*h*a1,p+.5*h*b1),[a3,b3]=f(u+.5*h*a2,p+.5*h*b2),[a4,b4]=f(u+h*a3,p+h*b3);
+    u+=h/6*(a1+2*a2+2*a3+a4); p+=h/6*(b1+2*b2+2*b3+b4); phi+=h;
+    if(p<0) passed=true;
+    if(u>=1){cap=true;break;}
+    if(passed&&u<=1/13) break;
+    if(phi>70) break;
+  }
+  return {pts:pts,cap:cap};
+}
+function rebuild(){TR=integrate(B);}
+$('b').oninput=e=>{setB(+e.target.value);$('bv').textContent=B.toFixed(3);rebuild();};
+setB(+$('b').value);$('bv').textContent=B.toFixed(3);rebuild();
+
+function frame(now){
+  const pts=TR.pts, n=pts.length, cap=TR.cap;
+  const idx=Math.floor((now/1000*0.32*n)%n);
+  const phiMax=pts[n-1].phi;
+  let s='<defs><radialGradient id="sh" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#000"/><stop offset="0.7" stop-color="#05060a"/><stop offset="1" stop-color="#14161f"/></radialGradient></defs>';
+  // звёзды
+  const ST=[[30,28],[80,200],[300,30],[455,180],[200,220],[60,120],[230,18]];
+  for(const q of ST) s+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="0.9" fill="#cfd6e6" opacity="0.4"/>';
+  // фотонная сфера (r=1.5) и горизонт (r=1)
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(1.5*SC).toFixed(1)+'" fill="none" stroke="#5a4634" stroke-width="1" stroke-dasharray="3 3"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(BCRIT*SC).toFixed(1)+'" fill="none" stroke="#3a4150" stroke-width="1" opacity="0.6"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(1*SC).toFixed(1)+'" fill="url(#sh)" stroke="#2a2d39" stroke-width="1"/>';
+  // вся траектория (бледная)
+  let tp='';for(let i=0;i<n;i++){const r=1/pts[i].u,x=cx+SC*r*Math.cos(pts[i].phi),y=cy-SC*r*Math.sin(pts[i].phi);tp+=x.toFixed(1)+','+y.toFixed(1)+' ';}
+  s+='<polyline points="'+tp.trim()+'" fill="none" stroke="#f0894a" stroke-width="1.4" opacity="0.32"/>';
+  // пройденный участок до фотона (яркий)
+  let bp='';for(let i=Math.max(0,idx-90);i<=idx;i++){const r=1/pts[i].u,x=cx+SC*r*Math.cos(pts[i].phi),y=cy-SC*r*Math.sin(pts[i].phi);bp+=x.toFixed(1)+','+y.toFixed(1)+' ';}
+  s+='<polyline points="'+bp.trim()+'" fill="none" stroke="#ffd9a8" stroke-width="2.4" stroke-linecap="round"/>';
+  // фотон
+  {const r=1/pts[idx].u,x=cx+SC*r*Math.cos(pts[idx].phi),y=cy-SC*r*Math.sin(pts[idx].phi);
+   s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.4" fill="#fff6e6"/>';}
+  s+='<text x="'+cx+'" y="246" font-family="ui-monospace,monospace" font-size="10" fill="#6c7080" text-anchor="middle">путь луча</text>';
+  // --- график 1/r от φ ---
+  const gx0=258,gx1=452,gy0=205,gyT=46;
+  const mapx=ph=>gx0+(gx1-gx0)*ph/Math.max(PI,phiMax), mapy=u=>gy0-(gy0-gyT)*Math.min(1,u);
+  s+='<line x1="'+gx0+'" y1="'+gy0+'" x2="'+gx1+'" y2="'+gy0+'" stroke="#3a4150" stroke-width="1"/>';
+  s+='<line x1="'+gx0+'" y1="'+gy0+'" x2="'+gx0+'" y2="'+(gyT-4)+'" stroke="#3a4150" stroke-width="1"/>';
+  // эталон — прямой луч: 1/r = sin φ / b (бледный синус)
+  let rf='';for(let i=0;i<=60;i++){const ph=i/60*Math.min(PI,phiMax);rf+=mapx(ph).toFixed(1)+','+mapy(Math.sin(ph)/B).toFixed(1)+' ';}
+  s+='<polyline points="'+rf.trim()+'" fill="none" stroke="#8a8f9e" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>';
+  // реальная кривая u(φ)
+  let gc='';for(let i=0;i<n;i+=2){gc+=mapx(pts[i].phi).toFixed(1)+','+mapy(pts[i].u).toFixed(1)+' ';}
+  s+='<polyline points="'+gc.trim()+'" fill="none" stroke="#ffae5e" stroke-width="2.2"/>';
+  // вертикаль φ=π — конец прямого луча (синус вернулся бы к нулю)
+  if(phiMax>PI*1.04){const xpi=mapx(PI);
+    s+='<line x1="'+xpi.toFixed(1)+'" y1="'+gyT+'" x2="'+xpi.toFixed(1)+'" y2="'+(gy0+4)+'" stroke="#c0533a" stroke-width="1" stroke-dasharray="2 3" opacity="0.8"/>';
+    s+='<text x="'+(xpi+3).toFixed(1)+'" y="'+(gyT+8)+'" font-family="ui-monospace,monospace" font-size="9" fill="#d98f6a">тут синус кончился →</text>';}
+  // маркер фотона на графике
+  s+='<circle cx="'+mapx(pts[idx].phi).toFixed(1)+'" cy="'+mapy(pts[idx].u).toFixed(1)+'" r="3" fill="#fff6e6"/>';
+  s+='<text x="'+gx0+'" y="'+(gyT-8)+'" font-family="ui-monospace,monospace" font-size="9.5" fill="#8a8f9e">1/r</text>';
+  s+='<text x="'+gx1+'" y="'+(gy0+13)+'" font-family="ui-monospace,monospace" font-size="9.5" fill="#8a8f9e" text-anchor="end">φ</text>';
+  s+='<text x="'+((gx0+gx1)/2)+'" y="'+(gyT-8)+'" font-family="ui-monospace,monospace" font-size="9" fill="#8a8f9e" text-anchor="middle">пунктир — прямой луч (синус)</text>';
+  $('fig').innerHTML=s;
+  const loops=(phiMax/(2*PI));
+  $('rdt').innerHTML = cap
+    ? 'b = <b>'+B.toFixed(3)+'</b> r_s &lt; b_кр — намотал <b>'+loops.toFixed(2)+'</b> витка и <b>упал</b> в горизонт'
+    : 'b = <b>'+B.toFixed(3)+'</b> r_s · намотал <b>'+loops.toFixed(2)+'</b> витка · отклонение <b>'+((phiMax-PI)*180/PI).toFixed(0)+'°</b>';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>
