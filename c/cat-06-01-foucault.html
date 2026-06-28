@@ -28,11 +28,36 @@ function sq(u){return Math.sin(u*2*PI*1.5)>=0?1:-1;}
 
 var VOWA=null;
 const DEFS='<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1.5L8 5L2 8.5" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>';
-var F={foucault:{vb:'0 0 360 190',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0,max:90,step:5,val:45,unit:'°'}],
- R:function(p,t){var cx=110,cy=100,R=78,rt=t*0.25*Math.sin(p.lat*PI/180),ux=Math.cos(rt),uy=Math.sin(rt),sw=Math.cos(t*2.2)*R,bx=cx+ux*sw,by=cy+uy*sw;
-  return CC(110,100,78,'#dcdfe6',1.2)+'<line x1="'+n(cx-ux*R)+'" y1="'+n(cy-uy*R)+'" x2="'+n(cx+ux*R)+'" y2="'+n(cy+uy*R)+'" stroke="'+C.sl+'" stroke-width="1.6" stroke-dasharray="4 4"/>'
-  +D(bx,by,7,C.sld)+D(cx,cy,3,C.mut)+TX(202,96,'плоскость качания',C.mut,11)+TX(202,114,'медленно вращается',C.mut,11);},
- rd:function(p){return 'скорость поворота плоскости ∝ sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b> — на экваторе 0, на полюсе максимум. Доказательство вращения Земли';}}};
+var F={foucault:{vb:'0 0 380 200',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0,max:90,step:5,val:45,unit:'°'}],
+ R:function(p,t){var gx=90,gy=98,Rg=70,phi=p.lat*PI/180,spin=t*1.396,i,s='';
+  // ===== ГЛОБУС (ось наклонена 23.5°, как у Земли) =====
+  var TIL=23.5*PI/180,cT=Math.cos(TIL),sT=Math.sin(TIL);
+  s+=CC(gx,gy,Rg,'#cfd9e2',1.5);
+  // кольца широт + ось — в наклонённой группе; точки/наблюдатель доворачиваю вручную (чтобы подписи остались прямыми)
+  s+='<g transform="rotate(23.5 '+gx+' '+gy+')">';
+  for(i=-2;i<=2;i++){var yy=gy-Rg*Math.sin(i*PI/6),rr=Rg*Math.cos(i*PI/6);s+='<ellipse cx="'+gx+'" cy="'+n(yy)+'" rx="'+n(rr)+'" ry="'+n(rr*0.28)+'" fill="none" stroke="#e1e7ef" stroke-width="0.8"/>';}
+  s+=L(gx,gy-Rg-10,gx,gy+Rg+10,'#9aa4b4',1.5);
+  s+='</g>';
+  s+=TX(gx+(Rg+14)*sT,gy-(Rg+14)*cT,'ось',C.mut,9,'middle');
+  // точки на поверхности — орбитят со спином; экранная позиция = доворот на наклон оси
+  var dots=[[18,0],[18,2.1],[18,4.2],[52,0.8],[52,3.0],[-22,0.4],[-22,3.5]];
+  for(i=0;i<dots.length;i++){var ps=dots[i][0]*PI/180,lo=dots[i][1]+spin,ax=Rg*Math.cos(ps)*Math.cos(lo),ay=-Rg*Math.sin(ps),dep=Math.sin(lo);
+    s+='<circle cx="'+n(gx+ax*cT-ay*sT)+'" cy="'+n(gy+ax*sT+ay*cT)+'" r="2.3" fill="#9fb0c2" opacity="'+(dep>0?'0.9':'0.22')+'"/>';}
+  // наблюдатель — точка на широте φ (с доворотом на наклон)
+  var oax=Rg*Math.cos(phi)*Math.cos(spin),oay=-Rg*Math.sin(phi),oxx=gx+oax*cT-oay*sT,oyy=gy+oax*sT+oay*cT;
+  s+=D(oxx,oyy,4.5,C.cod)+TX(oxx,oyy-8,'ты',C.cod,10,'middle');
+  s+=TX(gx,gy+Rg+18,'Земля вращается, ты на широте φ',C.mut,9.5,'middle');
+  // ===== ЛОКАЛЬНО У ТЕБЯ: маятник =====
+  var lcx=298,lcy=82,lR=46,fr=spin*Math.sin(phi),sw=Math.cos(t*4.19)*lR*0.84,kk;
+  s+=CC(lcx,lcy,lR,'#dcdfe6',1.2);
+  for(kk=0;kk<8;kk++){var fa=fr+kk/8*2*PI;s+=L(lcx,lcy,lcx+lR*Math.cos(fa),lcy+lR*Math.sin(fa),'#ece9e1',0.8);}   // пол крутится под плоскостью
+  var ma=fr-PI/2,mmx=lcx+(lR-4)*Math.cos(ma),mmy=lcy+(lR-4)*Math.sin(ma);
+  s+=L(lcx,lcy,mmx,mmy,'#e3ca96',1)+D(mmx,mmy,4.5,C.go);   // метка на полу — едет с полом
+  s+='<line x1="'+n(lcx-lR)+'" y1="'+lcy+'" x2="'+n(lcx+lR)+'" y2="'+lcy+'" stroke="'+C.sl+'" stroke-width="2" stroke-dasharray="5 4"/>';   // плоскость качания — НЕПОДВИЖНА
+  s+=D(lcx+sw,lcy,6,C.sld)+D(lcx,lcy,2.5,C.mut);
+  s+=TX(lcx,lcy-lR-8,'твой маятник',C.sld,10,'middle')+TX(lcx,lcy+lR+13,'плоскость держит, пол едет',C.mut,9.5,'middle')+TX(lcx,lcy+lR+25,'∝ sin φ = '+Math.sin(phi).toFixed(2),C.god,10,'middle');
+  return s;},
+ rd:function(p){return 'Земля крутится целиком, а твоя плоскость качания держит направление — под ней поворачивается ПОЛ, но лишь на вертикальную долю спина Земли = ω·sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b>·ω. Полюс — оборот за сутки, экватор — стоит. Ты в любой точке, не на полюсе';}}};
 var d=F['foucault'],P={},T=RM?0.7:0;
 var figEl=document.getElementById('fig'),ctrlEl=document.getElementById('ctrls'),rdEl=document.getElementById('rdt');
 function fmt(c,v){var s=(c.step&&c.step<1)?(+v).toFixed(c.step<0.1?2:1):(''+v);return s+(c.unit||'')}

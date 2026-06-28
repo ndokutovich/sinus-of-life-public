@@ -29,56 +29,79 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 <div class="f" id="formula">сумма колёс (4/π)·sin((2k−1)ωt)/(2k−1) чертит прямоугольник</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 230" preserveAspectRatio="xMidYMid meet"></svg></div>
 <div class="ctrl"><label for="nn">колёс (гармоник)</label><input id="nn" type="range" min="1" max="8" step="1" value="5"><span class="v" id="nnv">5</span></div>
-<div class="btnrow"><button class="play" onclick="play()">♪ слушать эти гармоники</button></div>
+<div class="btnrow"><button class="play" id="sndbtn" onclick="toggleSnd()">♪ слушать</button></div>
 <div class="rdt" id="rdt"></div>
 <div class="cap">каждое колесо — синус-гармоника; их перо-сумма чертит прямоугольник. И это буквально звук: жми «слушать» — 1 колесо даёт чистый тон, добавляешь — тембр жужжит. Так же отличаются флейта и зуммер: разный набор гармоник</div>
 </div>
 <script>
 const PI=Math.PI,$=id=>document.getElementById(id);
-let N=5;
-$('nn').oninput=e=>{N=+e.target.value;$('nnv').textContent=N;$('formula').textContent=fmla(N);};
-const cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05;
-const SPEED=2*PI*1/4.5;   // 2 оборота за петлю захвата (90 кадров × 50мс = 4.5с) → гифка бесшовна
+let N=5, Ndisp=1;
+const GIF = !!(typeof window!=='undefined' && window.__GIF);   // гифка двигает ползунок сама (лесенка); живой пен — нет, ползунок твой
+$('nn').oninput=e=>{N=+e.target.value;$('nnv').textContent=N;$('formula').textContent=fmla(N);updateSnd();};
+const cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.0296;   // ~1 период волны на панель — окно короче, ступень успевает сложиться
+const SPEED=PI;   // период волны 2с (быстрее колёса) → окно ≈ 2с, фронт ступени проходит за 2с
 function sumSq(m,th){let s=0;for(let k=0;k<m;k++){const n=2*k+1;s+=Math.sin(n*th)/n;}return s*4/PI;}
+// дробное число гармоник — верхняя входит частично (мягкий фронт, как cross-fade у синтезатора без щелчка)
+function sumSqF(m,th){let s=0;const mi=Math.floor(m),fr=m-mi;for(let k=0;k<mi;k++){const n=2*k+1;s+=Math.sin(n*th)/n;}if(fr>1e-3){const n=2*mi+1;s+=fr*Math.sin(n*th)/n;}return s*4/PI;}
+// число гармоник в момент времени tau — детерминированный цикл: держим пик (квадрат) полпериода, 1 (синус) полпериода, быстрые переходы.
+// формула, а не буфер — оттого петля идеальна и сигнал «помнит» прошлое точно (даже отрицательное tau заворачивается периодом)
+function Nval(tau,peak){var SEG=2,UPS=peak,CYC=(UPS+1)*SEG;var ph=(((tau%CYC)+CYC)%CYC),idx=ph/SEG;if(idx<UPS)return Math.floor(idx)+1;return 1+(peak-1)*Math.max(0,1-(idx-UPS));}
 function fmla(m){let t=[];for(let k=0;k<m;k++){const n=2*k+1;t.push(n===1?'sin ωt':'sin '+n+'ωt/'+n);}return m===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]';}
 $('formula').textContent=fmla(N);
-// звук: квадратная волна из N нечётных гармоник (как рисует эпицикл) → слышно, как тембр жужжит
-let AC=null;
-function play(){try{
+// звук — ТУГЛ: 8 осцилляторов жужжат непрерывно, гармоника k слышна если k<N. Двигаешь ползунок — тембр меняется вживую (чистый тон → жужжащий квадрат)
+let AC=null, SND=false, snOscs=[], snGains=[], snMaster=null;
+function snTargets(){var a=[];for(var k=0;k<8;k++)a.push(k<N?(4/PI)/(2*k+1)*0.3:0);return a;}
+function toggleSnd(){try{
   AC=AC||new (window.AudioContext||window.webkitAudioContext)();
   if(AC.state==='suspended')AC.resume();
-  const L=2*N, re=new Float32Array(L), im=new Float32Array(L);
-  for(let k=0;k<N;k++){const n=2*k+1; im[n]=(4/PI)/n;}   // нечётные гармоники, синус-фаза
-  const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime;
-  o.setPeriodicWave(AC.createPeriodicWave(re,im)); o.frequency.value=140;
-  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.16,t+0.05);
-  g.gain.setValueAtTime(0.16,t+1.1); g.gain.linearRampToValueAtTime(0,t+1.45);
-  o.connect(g); g.connect(AC.destination); o.start(); o.stop(t+1.5);
+  if(!SND){
+    snMaster=AC.createGain(); snMaster.connect(AC.destination);
+    const t=AC.currentTime; snMaster.gain.setValueAtTime(0.0001,t); snMaster.gain.exponentialRampToValueAtTime(1,t+0.05);
+    snOscs=[]; snGains=[]; const tg=snTargets();
+    for(let k=0;k<8;k++){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=140*(2*k+1);g.gain.value=tg[k];o.connect(g);g.connect(snMaster);o.start();snOscs.push(o);snGains.push(g);}
+    SND=true; $('sndbtn').textContent='■ стоп';
+  } else {
+    const t=AC.currentTime; snMaster.gain.cancelScheduledValues(t); snMaster.gain.setValueAtTime(snMaster.gain.value,t); snMaster.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+    snOscs.forEach(o=>o.stop(t+0.12)); SND=false; $('sndbtn').textContent='♪ слушать';
+  }
 }catch(e){}}
+// при сдвиге ползунка плавно подводим громкости гармоник к новому N — тембр меняется без щелчков
+function updateSnd(){if(!SND||!AC)return;const t=AC.currentTime,tg=snTargets();for(let k=0;k<8;k++){snGains[k].gain.cancelScheduledValues(t);snGains[k].gain.setValueAtTime(snGains[k].gain.value,t);snGains[k].gain.linearRampToValueAtTime(tg[k],t+0.05);}}
 
 function frame(now){
   const w=now/1000*SPEED;
   let x=cx,y=cy,s='';
   // ось волны
   s+='<line x1="'+wx0+'" y1="'+cy+'" x2="'+wx1+'" y2="'+cy+'" stroke="#c7c5bc" stroke-width="1"/>';
-  // цепочка эпициклов
-  for(let k=0;k<N;k++){
-    const n=2*k+1, r=(4/PI)/n*SC, ang=n*w;
+  // ГИФКА: авто-лесенка через все гармоники, ползунок-индикатор едет с ней. ЖИВОЙ ПЕН: число держит пользователь ползунком
+  var curN, waveFn;
+  if(GIF){
+    Ndisp = Nval(now/1000, 8);
+    curN = Math.max(1,Math.round(Ndisp));
+    $('nn').value=curN; $('nnv').textContent=curN; $('formula').textContent=fmla(curN);
+    waveFn = function(th){return Nval(th/SPEED,8);};   // волна-история: по ней едет фронт лесенки
+  } else {
+    Ndisp += (N-Ndisp)*0.14;                            // плавно подтягиваемся к ползунку (без рывка)
+    curN = N;
+    waveFn = function(){return Ndisp;};                 // ровная волна, отражает ползунок
+  }
+  const full=Math.floor(Ndisp+1e-6), frac=Ndisp-full, nw=frac>0.004?full+1:full;
+  // цепочка эпициклов (верхнее колесо вплывает по размеру вместе с гармоникой)
+  for(let k=0;k<nw;k++){
+    const n=2*k+1; let r=(4/PI)/n*SC; if(k===full && frac>0.004) r*=frac;
+    const ang=n*w, nx=x+r*Math.cos(ang), ny=y+r*Math.sin(ang);
     s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="none" stroke="#c2abee" stroke-width="1.1" opacity="0.85"/>';
-    const nx=x+r*Math.cos(ang), ny=y+r*Math.sin(ang);
     s+='<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="#6a5bd6" stroke-width="1.7"/>';
     s+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="1.6" fill="#8a7be0"/>';
     x=nx; y=ny;
   }
-  // перо
   s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.2" fill="#473aa3"/>';
-  // соединитель перо → начало волны
   s+='<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+wx0+'" y2="'+y.toFixed(1)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>';
-  // прямоугольник-волна (история пера)
-  let pts='';for(let px=wx0;px<=wx1;px+=2){const th=w-(px-wx0)*kt;pts+=px+','+(cy+sumSq(N,th)*SC).toFixed(1)+' ';}
+  // волна — реальная история сигнала: каждый x это прошлый момент, и гармоник там столько, сколько было ТОГДА. держишь N — ровно; меняешь — по волне едет фронт
+  let pts='';for(let px=wx0;px<=wx1;px+=2){const th=w-(px-wx0)*kt;const Nt=waveFn(th);pts+=px+','+(cy+sumSqF(Nt,th)*SC).toFixed(1)+' ';}
   s+='<polyline points="'+pts.trim()+'" fill="none" stroke="#473aa3" stroke-width="2.6"/>';
   $('fig').innerHTML=s;
-  $('rdt').innerHTML='колёс: <b>'+N+'</b> · их сумма чертит прямоугольник · на этом стоят MP3, JPEG, Shazam';
+  $('rdt').innerHTML='колёс: <b>'+curN+'</b> · их сумма чертит прямоугольник · на этом стоят MP3, JPEG, Shazam';
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

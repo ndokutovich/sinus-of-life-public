@@ -738,22 +738,25 @@ fourier:{vb:'0 0 360 160',anim:false,ctrls:[{k:'nn',lab:'гармоник',min:1
   return s+W(function(u){return Math.max(-1.18,Math.min(1.18,part(u,p.nn)));},46,320,80,48,C.vid,2.6);},
  rd:function(p){var t=[],j,k;for(j=0;j<p.nn;j++){k=2*j+1;t.push(k===1?'sin ωt':'sin '+k+'ωt/'+k);}
   return p.nn===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]';}},
-fourEpi:{vb:'0 0 440 230',anim:true,ctrls:[{k:'nn',lab:'колёс (гармоник)',min:1,max:8,step:1,val:5}],
- R:function(p,t){var N=p.nn,cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.05,SPEED=2*PI*1/4.5,
+fourEpi:{vb:'0 0 440 230',anim:true,ctrls:[{k:'nn',lab:'колёс (до скольких)',min:1,max:8,step:1,val:8}],
+ R:function(p,t){var peak=p.nn,cx=96,cy=114,SC=40,wx0=214,wx1=426,kt=0.0296,SPEED=PI,
   w=t*SPEED,x=cx,y=cy,s='',k,nn,r,ang,nx,ny,px,th,pts='';
-  var sumSq=function(m,a){var ss=0,kk,q;for(kk=0;kk<m;kk++){q=2*kk+1;ss+=Math.sin(q*a)/q;}return ss*4/PI;};
+  // лесенка: число гармоник само едет 1→2→…→peak→1, потолок задаёт ползунок. Чистая функция t — без состояния
+  var Nval=function(tau){var SEG=2,UPS=peak,CYC=(UPS+1)*SEG,ph=(((tau%CYC)+CYC)%CYC),idx=ph/SEG;if(idx<UPS)return Math.floor(idx)+1;return 1+(peak-1)*Math.max(0,1-(idx-UPS));};
+  var sumSqF=function(m,a){var ss=0,mi=Math.floor(m),fr=m-mi,kk,q;for(kk=0;kk<mi;kk++){q=2*kk+1;ss+=Math.sin(q*a)/q;}if(fr>1e-3){q=2*mi+1;ss+=fr*Math.sin(q*a)/q;}return ss*4/PI;};
+  var Ndisp=Nval(t),full=Math.floor(Ndisp+1e-6),frac=Ndisp-full,nw=frac>0.004?full+1:full;
   s+='<line x1="'+wx0+'" y1="'+cy+'" x2="'+wx1+'" y2="'+cy+'" stroke="#c7c5bc" stroke-width="1"/>';
-  for(k=0;k<N;k++){nn=2*k+1;r=(4/PI)/nn*SC;ang=nn*w;
+  for(k=0;k<nw;k++){nn=2*k+1;r=(4/PI)/nn*SC;if(k===full&&frac>0.004)r*=frac;ang=nn*w;
    s+='<circle cx="'+n(x)+'" cy="'+n(y)+'" r="'+n(r)+'" fill="none" stroke="#c2abee" stroke-width="1.1" opacity="0.85"/>';
    nx=x+r*Math.cos(ang);ny=y+r*Math.sin(ang);
    s+='<line x1="'+n(x)+'" y1="'+n(y)+'" x2="'+n(nx)+'" y2="'+n(ny)+'" stroke="'+C.vi+'" stroke-width="1.7"/>'+D(nx,ny,1.6,'#8a7be0');
    x=nx;y=ny;}
   s+=D(x,y,3.2,C.vid);
   s+='<line x1="'+n(x)+'" y1="'+n(y)+'" x2="'+wx0+'" y2="'+n(y)+'" stroke="#b4b2a9" stroke-width="1" stroke-dasharray="4 4"/>';
-  for(px=wx0;px<=wx1;px+=2){th=w-(px-wx0)*kt;pts+=px+','+n(cy+sumSq(N,th)*SC)+' ';}
+  for(px=wx0;px<=wx1;px+=2){th=w-(px-wx0)*kt;pts+=px+','+n(cy+sumSqF(Nval(th/SPEED),th)*SC)+' ';}
   s+='<polyline points="'+pts.trim()+'" fill="none" stroke="'+C.vid+'" stroke-width="2.6"/>';
   return s;},
- rd:function(p){var t=[],j,k;for(j=0;j<p.nn;j++){k=2*j+1;t.push(k===1?'sin ωt':'sin '+k+'ωt/'+k);}return '<b>'+p.nn+'</b> колёс: '+(p.nn===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]');}},
+ rd:function(p){var t=[],j,k;for(j=0;j<p.nn;j++){k=2*j+1;t.push(k===1?'sin ωt':'sin '+k+'ωt/'+k);}return 'лесенка 1→<b>'+p.nn+'</b> колёс и назад — на пике: '+(p.nn===1?'(4/π)·sin ωt':'(4/π)·[ '+t.join(' + ')+' ]');}},
 
 /* ---- доп. кейсы: ПРОЕКЦИЯ ---- */
 vecadd:{vb:'0 0 360 185',anim:false,ctrls:[{k:'cur',lab:'течение',min:0,max:85,val:45}],
@@ -888,11 +891,36 @@ quaternion:{vb:'0 0 360 218',anim:false,ctrls:[{k:'th',lab:'поворот θ',m
   if(p.th%720===0&&p.th>0)m=' — и куб, и q дома';else if(p.th%360===0&&p.th>0)m=' — куб ДОМА, а q = −1 (перевёрнут!)';
   return 'θ='+p.th+'°  ·  q = cos(θ/2) = <b>'+w.toFixed(2)+'</b>'+m;}},
 /* ---- БОНУС: ДИКИЕ СЛУЧАИ ---- */
-foucault:{vb:'0 0 360 190',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0,max:90,step:5,val:45,unit:'°'}],
- R:function(p,t){var cx=110,cy=100,R=78,rt=t*0.25*Math.sin(p.lat*PI/180),ux=Math.cos(rt),uy=Math.sin(rt),sw=Math.cos(t*2.2)*R,bx=cx+ux*sw,by=cy+uy*sw;
-  return CC(110,100,78,'#dcdfe6',1.2)+'<line x1="'+n(cx-ux*R)+'" y1="'+n(cy-uy*R)+'" x2="'+n(cx+ux*R)+'" y2="'+n(cy+uy*R)+'" stroke="'+C.sl+'" stroke-width="1.6" stroke-dasharray="4 4"/>'
-  +D(bx,by,7,C.sld)+D(cx,cy,3,C.mut)+TX(202,96,'плоскость качания',C.mut,11)+TX(202,114,'медленно вращается',C.mut,11);},
- rd:function(p){return 'скорость поворота плоскости ∝ sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b> — на экваторе 0, на полюсе максимум. Доказательство вращения Земли';}},
+foucault:{vb:'0 0 380 200',anim:true,ctrls:[{k:'lat',lab:'широта φ',min:0,max:90,step:5,val:45,unit:'°'}],
+ R:function(p,t){var gx=90,gy=98,Rg=70,phi=p.lat*PI/180,spin=t*1.396,i,s='';
+  // ===== ГЛОБУС (ось наклонена 23.5°, как у Земли) =====
+  var TIL=23.5*PI/180,cT=Math.cos(TIL),sT=Math.sin(TIL);
+  s+=CC(gx,gy,Rg,'#cfd9e2',1.5);
+  // кольца широт + ось — в наклонённой группе; точки/наблюдатель доворачиваю вручную (чтобы подписи остались прямыми)
+  s+='<g transform="rotate(23.5 '+gx+' '+gy+')">';
+  for(i=-2;i<=2;i++){var yy=gy-Rg*Math.sin(i*PI/6),rr=Rg*Math.cos(i*PI/6);s+='<ellipse cx="'+gx+'" cy="'+n(yy)+'" rx="'+n(rr)+'" ry="'+n(rr*0.28)+'" fill="none" stroke="#e1e7ef" stroke-width="0.8"/>';}
+  s+=L(gx,gy-Rg-10,gx,gy+Rg+10,'#9aa4b4',1.5);
+  s+='</g>';
+  s+=TX(gx+(Rg+14)*sT,gy-(Rg+14)*cT,'ось',C.mut,9,'middle');
+  // точки на поверхности — орбитят со спином; экранная позиция = доворот на наклон оси
+  var dots=[[18,0],[18,2.1],[18,4.2],[52,0.8],[52,3.0],[-22,0.4],[-22,3.5]];
+  for(i=0;i<dots.length;i++){var ps=dots[i][0]*PI/180,lo=dots[i][1]+spin,ax=Rg*Math.cos(ps)*Math.cos(lo),ay=-Rg*Math.sin(ps),dep=Math.sin(lo);
+    s+='<circle cx="'+n(gx+ax*cT-ay*sT)+'" cy="'+n(gy+ax*sT+ay*cT)+'" r="2.3" fill="#9fb0c2" opacity="'+(dep>0?'0.9':'0.22')+'"/>';}
+  // наблюдатель — точка на широте φ (с доворотом на наклон)
+  var oax=Rg*Math.cos(phi)*Math.cos(spin),oay=-Rg*Math.sin(phi),oxx=gx+oax*cT-oay*sT,oyy=gy+oax*sT+oay*cT;
+  s+=D(oxx,oyy,4.5,C.cod)+TX(oxx,oyy-8,'ты',C.cod,10,'middle');
+  s+=TX(gx,gy+Rg+18,'Земля вращается, ты на широте φ',C.mut,9.5,'middle');
+  // ===== ЛОКАЛЬНО У ТЕБЯ: маятник =====
+  var lcx=298,lcy=82,lR=46,fr=spin*Math.sin(phi),sw=Math.cos(t*4.19)*lR*0.84,kk;
+  s+=CC(lcx,lcy,lR,'#dcdfe6',1.2);
+  for(kk=0;kk<8;kk++){var fa=fr+kk/8*2*PI;s+=L(lcx,lcy,lcx+lR*Math.cos(fa),lcy+lR*Math.sin(fa),'#ece9e1',0.8);}   // пол крутится под плоскостью
+  var ma=fr-PI/2,mmx=lcx+(lR-4)*Math.cos(ma),mmy=lcy+(lR-4)*Math.sin(ma);
+  s+=L(lcx,lcy,mmx,mmy,'#e3ca96',1)+D(mmx,mmy,4.5,C.go);   // метка на полу — едет с полом
+  s+='<line x1="'+n(lcx-lR)+'" y1="'+lcy+'" x2="'+n(lcx+lR)+'" y2="'+lcy+'" stroke="'+C.sl+'" stroke-width="2" stroke-dasharray="5 4"/>';   // плоскость качания — НЕПОДВИЖНА
+  s+=D(lcx+sw,lcy,6,C.sld)+D(lcx,lcy,2.5,C.mut);
+  s+=TX(lcx,lcy-lR-8,'твой маятник',C.sld,10,'middle')+TX(lcx,lcy+lR+13,'плоскость держит, пол едет',C.mut,9.5,'middle')+TX(lcx,lcy+lR+25,'∝ sin φ = '+Math.sin(phi).toFixed(2),C.god,10,'middle');
+  return s;},
+ rd:function(p){return 'Земля крутится целиком, а твоя плоскость качания держит направление — под ней поворачивается ПОЛ, но лишь на вертикальную долю спина Земли = ω·sin φ = <b>'+Math.sin(p.lat*PI/180).toFixed(2)+'</b>·ω. Полюс — оборот за сутки, экватор — стоит. Ты в любой точке, не на полюсе';}},
 analemma:{vb:'0 0 360 258',anim:true,ctrls:[{k:'lat',lab:'широта',min:-55,max:60,step:5,val:50,unit:'°'}],
  R:function(p,t){var eps=23.4*PI/180,H0=40*PI/180,phi=p.lat*PI/180,cx=186,horizon=164,Saz=2.4,Salt=1.95;
   function eotD(th){return -1.92*Math.sin(th)-2.47*Math.sin(2*th+3.588);}
