@@ -1,0 +1,121 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Слово «синус», написанное суммой синусов</title>
+<style>/* Общий стиль пенов «Карты синуса» — компакт под embed */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
+--coral:#d65f37;--coral-d:#9c3f1f;--violet:#6a5bd6;--violet-d:#473aa3;
+--mono:ui-monospace,'JetBrains Mono',Consolas,monospace;
+--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);
+display:flex;justify-content:center;padding:10px}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);
+border-radius:14px;padding:14px 16px 12px;--acc:#3d6b9e}
+.pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.fx{font-family:var(--mono);font-size:11.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;
+overflow-x:auto;white-space:nowrap;line-height:1.7;background:color-mix(in srgb,#3d6b9e 10%,white)}
+.fx .vx{color:var(--violet-d)}.fx .vy{color:var(--coral-d)}.fx .mut{color:var(--muted)}
+.figbox{display:flex;justify-content:center;padding:2px 0 6px}
+.figbox canvas{width:100%;max-width:488px;height:auto;background:#fff;
+border:1px solid var(--line);border-radius:10px}
+.ctrl{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin:7px 0}
+.ctrl label{flex:0 0 118px}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
+.ctrl .v{flex:0 0 52px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
+.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;
+color:var(--muted);line-height:1.5;min-height:18px}
+.rdt b{color:var(--coral-d);font-weight:600}
+.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+</style></head><body>
+<div class="pen"><h3>Слово «синус», написанное суммой синусов</h3>
+<div class="fx" id="fx"></div>
+<div class="figbox"><canvas id="cv" width="1040" height="850"></canvas></div>
+<div class="ctrl"><label>число гармоник</label>
+<input id="nn" type="range" min="2" max="161" step="1" value="161"><span class="v" id="nv"></span></div>
+<div class="ctrl"><label>замедление</label>
+<input id="ss" type="range" min="0" max="100" step="1" value="100"><span class="v" id="sv"></span></div>
+<div class="rdt">каждая стрелка крутится со своей частотой; их сумма — кончик пера.
+внизу — те же гармоники как два колебания руки: <b>две волны пишут слово</b></div>
+<div class="cap">мало стрелок — каракули, много — пропись</div>
+</div><script>
+var C=[[0,1.748777,0.382729],[1,-0.602946,0.061418],[-1,-0.602946,0.061418],[9,0.025086,0.109602],[-9,0.025086,0.109602],[-17,0.012387,0.102636],[17,0.012387,0.102636],[-11,0.042303,0.083768],[11,0.042303,0.083768],[19,-0.015676,-0.085880],[-19,-0.015676,-0.085880],[3,-0.079408,-0.025202],[-3,-0.079408,-0.025202],[-5,-0.069456,-0.043973],[5,-0.069456,-0.043973],[-4,0.003116,0.075170],[4,0.003116,0.075170],[10,-0.031479,-0.064212],[-10,-0.031479,-0.064212],[-14,0.020409,0.060307],[14,0.020409,0.060307],[18,0.043637,-0.038622],[-18,0.043637,-0.038622],[16,0.040439,0.033793],[-16,0.040439,0.033793],[6,0.013383,0.048501],[-6,0.013383,0.048501],[-8,-0.023353,-0.035148],[8,-0.023353,-0.035148],[-2,-0.032356,-0.017394],[2,-0.032356,-0.017394],[-20,0.012706,-0.027988],[20,0.012706,-0.027988],[-13,0.006385,0.028346],[13,0.006385,0.028346],[-24,0.015545,0.020227],[24,0.015545,0.020227],[25,0.001438,-0.022466],[-25,0.001438,-0.022466],[12,0.001408,-0.014733],[-12,0.001408,-0.014733],[22,0.011303,-0.007174],[-22,0.011303,-0.007174],[-7,-0.008416,0.008588],[7,-0.008416,0.008588],[23,-0.011909,0.001305],[-23,-0.011909,0.001305],[30,0.001959,-0.011534],[-30,0.001959,-0.011534],[-32,-0.007650,0.008780],[32,-0.007650,0.008780],[-26,0.010383,-0.000627],[26,0.010383,-0.000627],[35,-0.004642,-0.009002],[-35,-0.004642,-0.009002],[55,0.000560,0.009713],[-55,0.000560,0.009713],[-21,0.004028,-0.008623],[21,0.004028,-0.008623],[-37,0.004731,0.008224],[37,0.004731,0.008224],[-53,-0.001543,-0.009125],[53,-0.001543,-0.009125],[31,0.002677,-0.007959],[-31,0.002677,-0.007959],[-54,-0.002260,0.007482],[54,-0.002260,0.007482],[-44,0.006608,-0.003936],[44,0.006608,-0.003936],[-15,-0.005263,0.005358],[15,-0.005263,0.005358],[36,0.005414,-0.004226],[-36,0.005414,-0.004226],[-49,0.002960,-0.006028],[49,0.002960,-0.006028],[39,0.001439,-0.005958],[-39,0.001439,-0.005958],[-29,0.005341,0.001260],[29,0.005341,0.001260],[45,-0.003255,-0.004270],[-45,-0.003255,-0.004270],[-43,0.000108,-0.004996],[43,0.000108,-0.004996],[-42,0.001212,0.004816],[42,0.001212,0.004816],[-40,0.004210,-0.002108],[40,0.004210,-0.002108],[-38,0.004660,-0.000292],[38,0.004660,-0.000292],[41,-0.004349,-0.000314],[-41,-0.004349,-0.000314],[-48,0.001796,-0.003944],[48,0.001796,-0.003944],[-59,-0.000120,-0.004251],[59,-0.000120,-0.004251],[73,-0.002029,-0.002897],[-73,-0.002029,-0.002897],[-34,0.002047,-0.002759],[34,0.002047,-0.002759],[56,0.002570,-0.002238],[-56,0.002570,-0.002238],[57,0.000783,-0.003280],[-57,0.000783,-0.003280],[27,-0.003173,0.000867],[-27,-0.003173,0.000867],[-46,0.002041,0.002566],[46,0.002041,0.002566],[50,-0.003247,-0.000278],[-50,-0.003247,-0.000278],[-28,-0.000467,0.003152],[28,-0.000467,0.003152],[47,-0.000436,-0.003091],[-47,-0.000436,-0.003091],[72,-0.001864,0.002250],[-72,-0.001864,0.002250],[63,-0.001489,-0.001706],[-63,-0.001489,-0.001706],[-62,0.002205,0.000095],[62,0.002205,0.000095],[-33,0.000050,-0.002179],[33,0.000050,-0.002179],[-79,-0.000353,-0.001925],[79,-0.000353,-0.001925],[-74,-0.000057,-0.001929],[74,-0.000057,-0.001929],[-58,0.000998,-0.001605],[58,0.000998,-0.001605],[60,-0.001168,-0.001247],[-60,-0.001168,-0.001247],[-65,-0.000874,-0.001400],[65,-0.000874,-0.001400],[-51,0.000180,-0.001627],[51,0.000180,-0.001627],[-52,0.000201,-0.001599],[52,0.000201,-0.001599],[69,-0.000191,-0.001600],[-69,-0.000191,-0.001600],[61,-0.000918,-0.001130],[-61,-0.000918,-0.001130],[-66,0.001418,0.000304],[66,0.001418,0.000304],[-71,0.001243,-0.000744],[71,0.001243,-0.000744],[-64,0.001275,-0.000023],[64,0.001275,-0.000023],[-75,0.000965,-0.000629],[75,0.000965,-0.000629],[-77,0.000824,0.000422],[77,0.000824,0.000422],[80,0.000002,0.000634],[-80,0.000002,0.000634],[-67,0.000494,0.000161],[67,0.000494,0.000161],[76,-0.000421,-0.000023],[-76,-0.000421,-0.000023],[70,0.000207,0.000334],[-70,0.000207,0.000334],[78,-0.000132,0.000169],[-78,-0.000132,0.000169],[68,0.000073,0.000091],[-68,0.000073,0.000091]];
+var cv=document.getElementById('cv'),cx=cv.getContext('2d');
+var nn=document.getElementById('nn'),nv=document.getElementById('nv');
+var N=+nn.value;
+var BX=40,BY=508.4,SC=280;
+function pt(t,n){
+  var re=0,im=0;
+  for(var j=0;j<n;j++){var k=C[j][0],a=2*Math.PI*k*t,ca=Math.cos(a),sa=Math.sin(a);
+    re+=C[j][1]*ca-C[j][2]*sa; im+=C[j][1]*sa+C[j][2]*ca;}
+  return [BX+(re-(0.039143))*SC, BY-(im-(-0.719162))*SC, re, im];
+}
+var trace=[],fx=document.getElementById('fx');
+function fmtTerm(j,fn){var k=C[j][0],re2=C[j][1],im2=C[j][2],r=Math.hypot(re2,im2),ph=Math.atan2(im2,re2);
+  var kk=(k===1?'':(k===-1?'\u2212':k))+'\u03b8';
+  return r.toFixed(2)+'\u00b7'+fn+'('+kk+(ph>=0?'+':'\u2212')+Math.abs(ph).toFixed(2)+')';}
+function formulas(){
+  var tx='',ty='',shown=0;
+  for(var j=0;j<N&&shown<3;j++){
+    if(C[j][0]===0)continue;
+    tx+=(shown?' + ':'')+fmtTerm(j,'cos');
+    ty+=(shown?' + ':'')+fmtTerm(j,'sin');
+    shown++;}
+  var rest=N-shown-(N>0&&C[0][0]===0?1:0);
+  var tail=rest>0?' <span class="mut">+ \u2026\u0435\u0449\u0451 '+rest+'</span>':'';
+  fx.innerHTML='<span class="vx">x(t) = '+tx+tail+'</span><br><span class="vy">y(t) = '+ty+tail+'</span>'
+    +'<br><span class="mut">\u043e\u0434\u043d\u0430 \u0442\u0430\u0431\u043b\u0438\u0446\u0430 (r,\u03c6): x \u0447\u0438\u0442\u0430\u0435\u0442 \u0435\u0451 \u043a\u043e\u0441\u0438\u043d\u0443\u0441\u0430\u043c\u0438, y \u2014 \u0441\u0438\u043d\u0443\u0441\u0430\u043c\u0438</span>';
+}
+function rebuild(){trace=[];for(var m=0;m<=700;m++)trace.push(pt(m/700,N));formulas();}
+nn.addEventListener('input',function(){N=+nn.value;nv.textContent=N;rebuild();});
+nv.textContent=N;rebuild();
+var ghost=[];(function(){for(var m=0;m<=700;m++)ghost.push(pt(m/700,C.length));})();
+var ss=document.getElementById('ss'),sv=document.getElementById('sv');
+var SPD=1;
+function updSpd(){SPD=Math.pow(10,(+ss.value-100)/50);sv.textContent='\u00d7'+(SPD>=0.1?SPD.toFixed(2):SPD.toFixed(3));}
+ss.addEventListener('input',updSpd);updSpd();
+var vt=0,prev=performance.now();
+(function loop(now){
+  vt+=(now-prev)*SPD;prev=now;
+  var t=(vt/14000)%1;
+  cx.clearRect(0,0,cv.width,cv.height);
+  cx.strokeStyle='#eceadf';cx.lineWidth=3;cx.beginPath();
+  for(var m=0;m<ghost.length;m++){if(m)cx.lineTo(ghost[m][0],ghost[m][1]);else cx.moveTo(ghost[m][0],ghost[m][1]);}
+  cx.stroke();
+  cx.strokeStyle='#d65f37';cx.lineWidth=3.5;cx.lineCap='round';cx.beginPath();
+  var upto=Math.floor(t*700);
+  for(var m=0;m<=upto;m++){if(m)cx.lineTo(trace[m][0],trace[m][1]);else cx.moveTo(trace[m][0],trace[m][1]);}
+  cx.stroke();
+  var re=0,im=0,px=null,py=null;
+  cx.lineWidth=1;
+  for(var j=0;j<N;j++){
+    var k=C[j][0],a=2*Math.PI*k*t,ca=Math.cos(a),sa=Math.sin(a);
+    var r2=C[j][1]*ca-C[j][2]*sa, i2=C[j][1]*sa+C[j][2]*ca;
+    var x0=BX+(re-(0.039143))*SC, y0=BY-(im-(-0.719162))*SC;
+    re+=r2; im+=i2;
+    if(j===0&&k===0)continue;
+    var x1=BX+(re-(0.039143))*SC, y1=BY-(im-(-0.719162))*SC;
+    var rad=Math.hypot(x1-x0,y1-y0);
+    if(rad>1.5){cx.strokeStyle='rgba(106,91,214,0.22)';cx.beginPath();cx.arc(x0,y0,rad,0,7);cx.stroke();}
+    cx.strokeStyle='rgba(106,91,214,0.8)';cx.beginPath();cx.moveTo(x0,y0);cx.lineTo(x1,y1);cx.stroke();
+    px=x1;py=y1;
+  }
+  if(px!==null){cx.fillStyle='#473aa3';cx.beginPath();cx.arc(px,py,4,0,7);cx.fill();}
+  // осциллограммы: те же N гармоник как два колебания руки
+  var LX=40,LW=960,S0=575,SH=240,MID=S0+SH/2,AMP=SH/2-14,RX=3.362786,RY=1.672879;
+  cx.strokeStyle='#e4e2da';cx.lineWidth=1;cx.beginPath();cx.moveTo(LX,MID);cx.lineTo(LX+LW,MID);cx.stroke();
+  cx.strokeStyle='rgba(71,58,163,0.9)';cx.lineWidth=2;cx.beginPath();
+  for(var m=0;m<trace.length;m++){var u=((trace[m][2]-(0.039143))/RX*2-1)*AMP,xx=LX+LW*m/700;if(m)cx.lineTo(xx,MID-u);else cx.moveTo(xx,MID-u);}
+  cx.stroke();
+  cx.strokeStyle='#d65f37';cx.lineWidth=2;cx.beginPath();
+  for(m=0;m<trace.length;m++){var v=((trace[m][3]-(-0.719162))/RY*2-1)*AMP,x2=LX+LW*m/700;if(m)cx.lineTo(x2,MID-v);else cx.moveTo(x2,MID-v);}
+  cx.stroke();
+  var mx=LX+LW*t;
+  cx.strokeStyle='rgba(21,23,31,0.35)';cx.lineWidth=1;cx.beginPath();cx.moveTo(mx,S0);cx.lineTo(mx,S0+SH);cx.stroke();
+  var cu=((re-(0.039143))/RX*2-1)*AMP, cv2=((im-(-0.719162))/RY*2-1)*AMP;
+  cx.fillStyle='#473aa3';cx.beginPath();cx.arc(mx,MID-cu,4,0,7);cx.fill();
+  cx.fillStyle='#d65f37';cx.beginPath();cx.arc(mx,MID-cv2,4,0,7);cx.fill();
+  cx.font='21px ui-monospace,Consolas,monospace';
+  cx.fillStyle='#473aa3';cx.fillText('x(t) \u2014 \u0440\u0443\u043a\u0430 \u0432\u043f\u0440\u0430\u0432\u043e-\u0432\u043b\u0435\u0432\u043e',LX,S0-6);
+  cx.fillStyle='#9c3f1f';cx.fillText('y(t) \u2014 \u0432\u0432\u0435\u0440\u0445-\u0432\u043d\u0438\u0437',LX+660,S0-6);
+  requestAnimationFrame(loop);
+})(prev);
+</script></body></html>
