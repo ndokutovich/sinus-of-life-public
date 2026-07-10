@@ -59,8 +59,9 @@ function draw(){
   let d='M';
   for(let v=-1.5;v<=1.5;v+=0.05){ d+=` ${n(Rc[0]+sc*Math.cosh(v))},${n(Rc[1]-sc*Math.sinh(v))}`; }
   s+=AX(225,120,425,120)+AX(265,210,265,30);
-  s+=`<line x1="245" y1="195" x2="420" y2="45" stroke="#d6cbb8" stroke-width="1" stroke-dasharray="4 4"/>`;
-  s+=`<line x1="245" y1="45" x2="420" y2="195" stroke="#d6cbb8" stroke-width="1" stroke-dasharray="4 4"/>`;
+  // асимптоты t=±x — через ЦЕНТР гиперболы (265,120) под 45°
+  s+=`<line x1="${Rc[0]-95}" y1="${Rc[1]+95}" x2="${Rc[0]+95}" y2="${Rc[1]-95}" stroke="#d6cbb8" stroke-width="1" stroke-dasharray="4 4"/>`;
+  s+=`<line x1="${Rc[0]-95}" y1="${Rc[1]-95}" x2="${Rc[0]+95}" y2="${Rc[1]+95}" stroke="#d6cbb8" stroke-width="1" stroke-dasharray="4 4"/>`;
   s+=`<path d="${d}" fill="none" stroke="#9fb2c8" stroke-width="1.3"/>`;
   const hx=Rc[0]+sc*Math.cosh(a), hy=Rc[1]-sc*Math.sinh(a);
   s+=L(Rc[0],Rc[1],hx,Rc[1],'#9c3f1f',2)+L(hx,Rc[1],hx,hy,'#d65f37',2);
@@ -68,6 +69,9 @@ function draw(){
   s+=TX(Rc[0]-2,138,'cosh','#9c3f1f',11)+TX(hx+5,(hy+Rc[1])/2,'sinh','#d65f37',11);
   s+=TX(265,228,'гипербола','#6c7080',11,'middle');
   $('fig').innerHTML=s;
+  // живой инвариант: одно и то же «1», но через + и через −
+  const c2=Math.cos(a)**2, si2=Math.sin(a)**2, ch2=Math.cosh(a)**2, sh2=Math.sinh(a)**2;
+  $('rdt').innerHTML=`<span style="color:#0c5a41">cos²+sin² = ${c2.toFixed(2)}+${si2.toFixed(2)} = <b>1</b></span> · <span style="color:#9c3f1f">cosh²−sinh² = ${ch2.toFixed(2)}−${sh2.toFixed(2)} = <b>1</b></span>`;
 }
 draw();
 
