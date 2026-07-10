@@ -89,16 +89,24 @@ function draw(){
   // точка встречи = край диска = бесконечность
   const Es=toS(E);
   s+=D(Es.X,Es.Y,3.6,'#c98a1b')+TX(Es.X+4,Es.Y-8,'∞','#8a5e12',13);
-  // угол Π(x) в точке P: между перпендикуляром ВНИЗ и касательной предельной дуги
-  // касательная численно: маленький шаг по дуге cR от P к E
+  // угол Π(x) в точке P: между перпендикуляром ВНИЗ (к O) и касательной предельной дуги к E.
+  // модель конформна → нарисованный угол = истинный Π(x). Касательная = шаг по дуге cR от P к E.
   const phP=Math.atan2(P.y-cR.y,P.x-cR.x), phE=Math.atan2(E.y-cR.y,E.x-cR.x);
   let dph=(phE-phP); while(dph>PI)dph-=2*PI; while(dph<-PI)dph+=2*PI;
-  const P2={x:cR.x+cR.r*Math.cos(phP+dph*0.02), y:cR.y+cR.r*Math.sin(phP+dph*0.02)};
+  const P2={x:cR.x+cR.r*Math.cos(phP+dph*0.006), y:cR.y+cR.r*Math.sin(phP+dph*0.006)};
   const P2s=toS(P2);
-  let tx=P2s.X-Ps.X, ty=P2s.Y-Ps.Y; const tl=Math.hypot(tx,ty); tx/=tl; ty/=tl;
-  const AR=24;
-  s+=`<path d="M${n(Ps.X)} ${n(Ps.Y+AR)} A${AR} ${AR} 0 0 0 ${n(Ps.X+AR*tx)} ${n(Ps.Y+AR*ty)}" fill="none" stroke="#6c7080" stroke-width="1.2"/>`;
-  s+=TX(Ps.X+10,Ps.Y+AR+2,'Π(x)','#274a73',11.5);
+  const AR=26;
+  const aPerp=Math.atan2(1,0);                       // вниз в экранных коорд (y растёт вниз)
+  const aTan=Math.atan2(P2s.Y-Ps.Y, P2s.X-Ps.X);     // касательная к синей дуге
+  let d=aTan-aPerp; while(d>PI)d-=2*PI; while(d<-PI)d+=2*PI;   // короткий путь
+  // короткие лучи-стороны угла (чтобы створ читался явно) + дуга полилинией
+  s+=L(Ps.X,Ps.Y, Ps.X+(AR+9)*Math.cos(aPerp), Ps.Y+(AR+9)*Math.sin(aPerp), '#9fb2c8',1.3);
+  s+=L(Ps.X,Ps.Y, Ps.X+(AR+9)*Math.cos(aTan),  Ps.Y+(AR+9)*Math.sin(aTan),  '#9fb2c8',1.3);
+  let arcp='';
+  for(let i=0;i<=18;i++){const aa=aPerp+d*i/18; arcp+=`${n(Ps.X+AR*Math.cos(aa))},${n(Ps.Y+AR*Math.sin(aa))} `;}
+  s+=`<polyline points="${arcp.trim()}" fill="none" stroke="#6c7080" stroke-width="1.4"/>`;
+  const aMid=aPerp+d/2;
+  s+=TX(Ps.X+(AR+16)*Math.cos(aMid), Ps.Y+(AR+16)*Math.sin(aMid)+4,'Π(x)','#274a73',11.5,'middle');
   s+=D(Ps.X,Ps.Y,4.2,'#3d6b9e')+TX(Ps.X-8,Ps.Y-8,'вы','#274a73',11,'end');
   // === правая панель: Π(x) от расстояния, маркер на текущем x ===
   const gx=290,gy1=200,gy0=44,gw=126;
