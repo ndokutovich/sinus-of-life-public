@@ -28,7 +28,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 .pen{--acc:#3d6b9e} .pen .f{background:color-mix(in srgb,#3d6b9e 12%,white);color:#274a73}</style></head><body>
 <div class="pen"><h3>Корень всего: один знак в y'' = ∓y</h3><div class="f">y'' = −y → sin (круг)   ·   y'' = +y → sinh (гипербола)</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 250" preserveAspectRatio="xMidYMid meet"></svg></div>
-<div class="ctrl"><label for="p">время / параметр</label><input id="p" type="range" min="0" max="3" step="0.02" value="1.5"><span class="v" id="pv">1.50</span></div><div class="rdt" id="rdt">минус возвращает к нулю, плюс гонит прочь</div><div class="cap">одно уравнение, один знак — и круг разъезжается с гиперболой</div></div>
+<div class="ctrl"><label for="p">время / параметр</label><input id="p" type="range" min="0" max="3" step="0.02" value="1.5"><span class="v" id="pv">1.50</span></div><div class="rdt" id="rdt">минус возвращает к нулю, плюс гонит прочь</div><div class="cap">масштаб честный, обе стартуют с 1 — одно уравнение, один знак, и круг разъезжается с гиперболой</div></div>
 <script>
 const PI=Math.PI, $=id=>document.getElementById(id);
 const RM=false;
@@ -46,24 +46,30 @@ $('p').oninput=e=>{P=+e.target.value;$('pv').textContent=P.toFixed(2);draw()};
 function draw(){
   const x0=40,x1=420,N=200;
   const baseTop=30,baseBot=215;             // верхняя зона — графики во времени
-  const cy=122, amp=70;
+  const cy=122, amp=46;   // ЧЕСТНЫЙ общий масштаб: обе кривые y=cy−amp·v, без сжатий и сдвигов
   let s=DEFS+AX(x0,cy,x1,cy);
+  // коридор ±1 — клетка, в которой живёт колебание
+  s+=DL(x0,cy-amp,x1,cy-amp,'#dcdad0')+DL(x0,cy+amp,x1,cy+amp,'#dcdad0');
   // вертикаль "сейчас"
   const px=x0+(x1-x0)*(P/3);
   s+=DL(px,baseTop,px,baseBot,'#c9c7be');
-  // sin: y''=-y  -> cos(t) (стартует 1, качается)
+  // y''=−y -> cos(t): качается в коридоре. y''=+y -> cosh(t): В ТОМ ЖЕ масштабе, честно улетает за кадр
   let ps='', pe='';
   for(let i=0;i<=N;i++){const t=3*i/N; ps+=`${n(x0+(x1-x0)*i/N)},${n(cy-amp*Math.cos(t))} `;}
-  // sinh-разгон: y''=+y -> cosh(t) растёт; нормируем чтоб влезало
-  for(let i=0;i<=N;i++){const t=3*i/N; const v=Math.cosh(t); pe+=`${n(x0+(x1-x0)*i/N)},${n(cy-amp*0.13*(v-1)-amp*0.0)} `;}
+  for(let i=0;i<=N;i++){const t=3*i/N; const y=cy-amp*Math.cosh(t); if(y<baseTop-8)break; pe+=`${n(x0+(x1-x0)*i/N)},${n(y)} `;}
   s+=`<polyline points="${ps.trim()}" fill="none" stroke="#138a64" stroke-width="2.6"/>`;
   s+=`<polyline points="${pe.trim()}" fill="none" stroke="#d65f37" stroke-width="2.6"/>`;
-  // точки "сейчас"
-  const yc=cy-amp*Math.cos(P), ye=cy-amp*0.13*(Math.cosh(P)-1);
-  s+=D(px,yc,4.5,'#138a64')+D(px,ye,4.5,'#d65f37');
+  // общий старт: cos(0)=cosh(0)=1 — одна точка, одна касательная; расходятся кривизной
+  s+=`<circle cx="${x0}" cy="${n(cy-amp)}" r="4.5" fill="none" stroke="#15171f" stroke-width="1.4"/>`;
+  s+=TX(x0+9,cy-amp-9,'обе = 1','#6c7080',10.5);
+  // точки "сейчас": разгон за кадром -> стрелка вверх у кромки
+  const yc=cy-amp*Math.cos(P), ye=cy-amp*Math.cosh(P);
+  s+=D(px,yc,4.5,'#138a64');
+  if(ye>=baseTop) s+=D(px,ye,4.5,'#d65f37');
+  else s+=`<line x1="${n(px)}" y1="${baseTop+16}" x2="${n(px)}" y2="${baseTop+3}" stroke="#d65f37" stroke-width="2" marker-end="url(#ah)"/>`;
   // подписи
-  s+=TX(x0+6,cy-amp-6,'y\'\'= +y : разгон (cosh)','#9c3f1f',11);
-  s+=TX(x0+6,cy+amp+16,'y\'\'= −y : колебание (cos)','#0c5a41',11);
+  s+=TX(x1-4,64,'y\'\'= +y : разгон — ушёл за кадр ↑','#9c3f1f',11,'end');
+  s+=TX(x1-4,cy+amp+16,'y\'\'= −y : колебание (cos)','#0c5a41',11,'end');
   $('fig').innerHTML=s;
   $('rdt').innerHTML=`при t=${P.toFixed(2)}: колебание держится в коридоре ±1, разгон ушёл в <b>${Math.cosh(P).toFixed(1)}</b> и продолжает по экспоненте`;
 }
