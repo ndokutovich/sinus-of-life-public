@@ -29,7 +29,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 </style></head><body>
 <div class="pen"><h3>Буст Лоренца: скорость как гиперболический угол</h3><div class="f">v = tanh(u)  ·  быстроты складываются: u₁+u₂</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 250" preserveAspectRatio="xMidYMid meet"></svg></div>
-<div class="ctrl"><label for="u">быстрота u</label><input id="u" type="range" min="0" max="1.6" step="0.05" value="0.8"><span class="v" id="uv">0.80</span></div><div class="ctrl"><label for="u2">добавить ещё u₂</label><input id="u2" type="range" min="0" max="1.4" step="0.05" value="0.6"><span class="v" id="u2v">0.60</span></div><div class="rdt" id="rdt"></div><div class="cap">разгон — это поворот, только по гиперболе; скорости упираются в потолок c</div></div>
+<div class="ctrl"><label for="u">быстрота u₁</label><input id="u" type="range" min="0" max="1.2" step="0.05" value="0.8"><span class="v" id="uv">0.80</span></div><div class="ctrl"><label for="u2">добавить ещё u₂</label><input id="u2" type="range" min="0" max="1.1" step="0.05" value="0.6"><span class="v" id="u2v">0.60</span></div><div class="rdt" id="rdt"></div><div class="cap">быстроты складываются как обычные углы; скорости — нет, они упираются в потолок c</div></div>
 <script>
 const PI=Math.PI, $=id=>document.getElementById(id);
 const RM=false;
@@ -45,32 +45,45 @@ const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" marker
 let U=0.8,U2=0.6;
 $('u').oninput=e=>{U=+e.target.value;$('uv').textContent=U.toFixed(2);draw()};
 $('u2').oninput=e=>{U2=+e.target.value;$('u2v').textContent=U2.toFixed(2);draw()};
+const O={x:95,y:155}, sc=24;
+function HP(v){return {X:O.x+sc*Math.cosh(v), Y:O.y-sc*Math.sinh(v)};}   // точка гиперболы для быстроты v
+function arcPL(a,b){ let p=''; const st=b>=a?0.04:-0.04; for(let v=a; b>=a? v<=b+1e-9: v>=b-1e-9; v+=st){const P=HP(v); p+=`${n(P.X)},${n(P.Y)} `;} return p.trim(); }
 function draw(){
-  const cx=115,cy=135,sc=34;
-  let d='M';
-  for(let v=-1.7;v<=1.7;v+=0.05){ d+=` ${n(cx+sc*Math.cosh(v))},${n(cy-sc*Math.sinh(v))}`; }
-  let s=DEFS+AX(40,130,250,130)+AX(120,225,120,25);
-  s+=`<line x1="60" y1="230" x2="220" y2="40" stroke="#e0d6c4" stroke-width="1" stroke-dasharray="4 4"/>`;
-  s+=`<path d="${d}" fill="none" stroke="#9fb2c8" stroke-width="1.3"/>`;
-  const hx=cx+sc*Math.cosh(U), hy=cy-sc*Math.sinh(U);
-  const ut=U+U2, hx2=cx+sc*Math.cosh(ut), hy2=cy-sc*Math.sinh(ut);
-  if(U2>0.01){s+=`<g opacity="0.9">`+L(cx,cy,hx2,hy2,'#c98a1b',2.4,1)+`</g>`
-    +TX(Math.min(hx2+5,248),Math.max(hy2+4,18),'u₁+u₂','#8a5e12',11);}
-  s+=L(cx,cy,hx,hy,'#d65f37',2.8,1)+L(cx,cy,hx,cy,'#9c3f1f',2)+L(hx,cy,hx,hy,'#d65f37',2,0.6);
-  s+=TX(hx-30,cy+15,'cosh u','#9c3f1f',11)+TX(hx+5,(hy+cy)/2,'sinh u','#d65f37',11);
-  s+=TX(244,144,'x','#6c7080')+TX(128,38,'t','#6c7080');
-  // шкала скорости справа
-  const bx=300, b0=40, b1=210;
+  const ut=U+U2, v1=Math.tanh(U), v2=Math.tanh(U2), vsum=Math.tanh(ut), vnaive=v1+v2;
+  let s=DEFS+AX(O.x-55,O.y,262,O.y)+AX(O.x,232,O.x,20);
+  // асимптота-свет: настоящая (t=x через центр, 45°), золотая
+  const D0=118;
+  s+=`<line x1="${O.x}" y1="${O.y}" x2="${n(O.x+D0)}" y2="${n(O.y-D0)}" stroke="#e0a93b" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  s+=TX(O.x+D0-2,O.y-D0+12,'свет (v=c)','#b07d1a',10,'end');
+  // сама гипербола (все быстроты)
+  let d='M'; for(let v=-1.0;v<=2.55;v+=0.05){const P=HP(v); d+=` ${n(P.X)},${n(P.Y)}`;}
+  s+=`<path d="${d}" fill="none" stroke="#9fb2c8" stroke-width="1.2"/>`;
+  s+=TX(262,O.y+4,'x','#6c7080')+TX(O.x+4,26,'t','#6c7080');
+  // ДУГИ БЫСТРОТ стыкуются: 0→u₁ (коралл) + u₁→u₁+u₂ (золото) = 0→u₁+u₂. Быстроты складываются линейно
+  s+=`<polyline points="${arcPL(0,U)}" fill="none" stroke="#d65f37" stroke-width="4"/>`;
+  if(U2>0.01) s+=`<polyline points="${arcPL(U,ut)}" fill="none" stroke="#c98a1b" stroke-width="4"/>`;
+  // лучи из центра: наклон = скорость. cosh/sinh-ноги для u₁ (связь с формулой)
+  const H1=HP(U), H2=HP(ut);
+  s+=L(O.x,O.y,H1.X,O.y,'#9c3f1f',1.6,0)+L(H1.X,O.y,H1.X,H1.Y,'#d65f37',1.6,0.6);
+  s+=TX((O.x+H1.X)/2-6,O.y+13,'cosh u₁','#9c3f1f',9.5,'middle')+TX(H1.X+4,(H1.Y+O.y)/2,'sinh u₁','#d65f37',9.5);
+  if(U2>0.01) s+=L(O.x,O.y,H2.X,H2.Y,'#c98a1b',1.6);
+  s+=L(O.x,O.y,H1.X,H1.Y,'#d65f37',2.2);
+  s+=D(H1.X,H1.Y,4,'#d65f37')+D(H2.X,H2.Y,4,'#c98a1b');
+  s+=TX(H1.X+5,H1.Y-3,'u₁','#9c3f1f',10)+(U2>0.01?TX(Math.min(H2.X+5,250),H2.Y-2,'u₁+u₂','#8a5e12',10):'');
+  // ── шкала скорости справа: v₁, реальная сумма, и НАИВНАЯ сумма (срывается за c) ──
+  const bx=300, b0=42, b1=214, H=b1-b0;
   s+=`<line x1="${bx}" y1="${b0}" x2="${bx}" y2="${b1}" stroke="#c7c5bc" stroke-width="2"/>`;
-  s+=`<line x1="${bx-6}" y1="${b0}" x2="${bx+6}" y2="${b0}" stroke="#d65f37" stroke-width="2"/>`;
-  s+=TX(bx+10,b0+4,'c (свет)','#9c3f1f',11);
-  s+=TX(bx+10,b1+4,'0','#6c7080',11);
-  const v1=Math.tanh(U), vsum=Math.tanh(U+U2);
-  const y1=b1-(b1-b0)*v1, ys=b1-(b1-b0)*vsum;
-  s+=D(bx,y1,5,'#d65f37')+TX(bx-10,y1+4,'v₁','#9c3f1f',11,'end');
-  s+=D(bx,ys,5,'#c98a1b')+TX(bx-10,ys+4,'v₁⊕v₂','#8a5e12',11,'end');
+  s+=`<line x1="${bx-7}" y1="${b0}" x2="${bx+7}" y2="${b0}" stroke="#d65f37" stroke-width="2.4"/>`;
+  s+=TX(bx+11,b0+4,'c','#9c3f1f',11)+TX(bx+11,b1+4,'0','#6c7080',11);
+  const y1=b1-H*v1, ys=b1-H*vsum;
+  s+=D(bx,y1,5,'#d65f37')+TX(bx-11,y1+4,'v₁','#9c3f1f',11,'end');
+  s+=D(bx,ys,5,'#c98a1b')+TX(bx-11,ys+4,'v₁⊕v₂','#8a5e12',11,'end');
+  // наивная сумма — выше c: показать, что так НЕЛЬЗЯ (клампим к верху, если улетает за кадр)
+  const yn=Math.max(b1-H*vnaive, 24), off=(b1-H*vnaive)<24;
+  s+=`<line x1="${bx-7}" y1="${n(yn)}" x2="${bx+7}" y2="${n(yn)}" stroke="#b9536b" stroke-width="1.6" stroke-dasharray="3 2"/>`;
+  s+=TX(bx+11,yn+4,`v₁+v₂=${vnaive.toFixed(2)}${off?' ↑':''} ✗`,'#a03050',10);
   $('fig').innerHTML=s;
-  $('rdt').innerHTML=`v₁ = tanh(${U.toFixed(2)}) = <b>${v1.toFixed(3)}c</b> · после сложения = <b>${vsum.toFixed(3)}c</b> — по гиперболе точка улетает, а tanh упирается в 1: свет недостижим`;
+  $('rdt').innerHTML=`быстроты: u₁+u₂ = <b>${ut.toFixed(2)}</b> (просто сумма). Скорости — нет: наивно ${v1.toFixed(2)}+${v2.toFixed(2)}=${vnaive.toFixed(2)}c невозможно, реально tanh(${ut.toFixed(2)}) = <b>${vsum.toFixed(3)}c</b>`;
 }
 draw();
 
