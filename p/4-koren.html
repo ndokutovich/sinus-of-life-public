@@ -27,7 +27,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 
 .pen{--acc:#3d6b9e} .pen .f{background:color-mix(in srgb,#3d6b9e 12%,white);color:#274a73}</style></head><body>
 <div class="pen"><h3>Корень всего: один знак в y'' = ∓y</h3><div class="f">y'' = −y → sin (круг)   ·   y'' = +y → sinh (гипербола)</div>
-<div class="figbox"><svg id="fig" viewBox="0 0 440 250" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="figbox"><svg id="fig" viewBox="0 0 440 330" preserveAspectRatio="xMidYMid meet"></svg></div>
 <div class="ctrl"><label for="p">время / параметр</label><input id="p" type="range" min="0" max="3" step="0.02" value="1.5"><span class="v" id="pv">1.50</span></div><div class="rdt" id="rdt">минус возвращает к нулю, плюс гонит прочь</div><div class="cap">масштаб честный, обе стартуют с 1 — одно уравнение, один знак, и круг разъезжается с гиперболой</div></div>
 <script>
 const PI=Math.PI, $=id=>document.getElementById(id);
@@ -70,6 +70,19 @@ function draw(){
   // подписи
   s+=TX(x1-4,64,'y\'\'= +y : разгон — ушёл за кадр ↑','#9c3f1f',11,'end');
   s+=TX(x1-4,cy+amp+16,'y\'\'= −y : колебание (cos)','#0c5a41',11,'end');
+  // === ВИД ИЗДАЛЕКА: те же кривые, в 10 раз мельче — видно, КУДА уходит разгон (весь cosh до ≈10)
+  const iy=316, amp2=amp/10;
+  s+=AX(x0,iy,x1,iy);
+  s+=DL(x0,iy-amp2,x1,iy-amp2,'#e2e0d6')+DL(x0,iy+amp2,x1,iy+amp2,'#e2e0d6');
+  let ps2='', pe2='';
+  for(let i=0;i<=N;i++){const t=3*i/N; ps2+=`${n(x0+(x1-x0)*i/N)},${n(iy-amp2*Math.cos(t))} `;}
+  for(let i=0;i<=N;i++){const t=3*i/N; pe2+=`${n(x0+(x1-x0)*i/N)},${n(iy-amp2*Math.cosh(t))} `;}
+  s+=`<polyline points="${ps2.trim()}" fill="none" stroke="#138a64" stroke-width="1.8"/>`;
+  s+=`<polyline points="${pe2.trim()}" fill="none" stroke="#d65f37" stroke-width="2"/>`;
+  s+=DL(px,iy-amp2*10.1,px,iy+10,'#c9c7be');
+  s+=D(px,iy-amp2*Math.cos(P),3,'#138a64')+D(px,iy-amp2*Math.cosh(P),3,'#d65f37');
+  s+=TX(x0,iy-amp2*10.1-8,'вид издалека (×10): колебание — рябь, разгон — вот он весь','#6c7080',10);
+  s+=TX(x1-2,iy-amp2*10.07-5,'≈10','#9c3f1f',10,'end');
   $('fig').innerHTML=s;
   $('rdt').innerHTML=`при t=${P.toFixed(2)}: колебание держится в коридоре ±1, разгон ушёл в <b>${Math.cosh(P).toFixed(1)}</b> и продолжает по экспоненте`;
 }
