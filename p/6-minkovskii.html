@@ -26,7 +26,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 .cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
 
 .pen{--acc:#d65f37} .pen .f{background:color-mix(in srgb,#d65f37 12%,white);color:#9c3f1f}</style></head><body>
-<div class="pen"><h3>Диаграмма Минковского: буст — это поворот</h3><div class="f">оси t' и x' наклоняются к лучу света на угол arctan(v/c)</div>
+<div class="pen"><h3>Диаграмма Минковского: буст — это поворот</h3><div class="f">буст сдвигает метку по гиперболе t²−x²=1 — поворот на быстроту́ u</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 440 300" preserveAspectRatio="xMidYMid meet"></svg></div>
 <div class="ctrl"><label for="b">скорость v</label><input id="b" type="range" min="-0.85" max="0.85" step="0.05" value="0.5"><span class="v" id="bv">0.50c</span></div><div class="rdt" id="rdt"></div><div class="cap">разгон сжимает оси к лучу света; обогнать его = сомкнуть ножницы, что невозможно</div></div>
 <script>
@@ -43,39 +43,46 @@ const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" marker
 
 let beta=0.5;
 $('b').oninput=e=>{beta=+e.target.value;$('bv').textContent=beta.toFixed(2)+'c';draw()};
-const O={x:220,y:165}, S=120;   // центр и масштаб
+const O={x:200,y:158}, S=72;    // центр и масштаб
 function P(t,x){ return {X:O.x + x*S, Y:O.y - t*S}; }  // t вверх, x вправо
+function hypPL(fn){ let p=''; for(let u=-1.35;u<=1.3501;u+=0.09){const A=fn(u); p+=`${n(A.X)},${n(A.Y)} `;} return p.trim(); }
 function draw(){
+  const g=1/Math.sqrt(1-beta*beta), U=Math.atanh(beta);  // γ и быстрота́
+  const AXn=1.85, LC=1.95;
   let s=DEFS;
   // световой конус (диагонали t=±x)
-  s+=`<line x1="${P(-1.3,-1.3).X}" y1="${P(-1.3,-1.3).Y}" x2="${P(1.3,1.3).X}" y2="${P(1.3,1.3).Y}" stroke="#e0a93b" stroke-width="2"/>`;
-  s+=`<line x1="${P(-1.3,1.3).X}" y1="${P(-1.3,1.3).Y}" x2="${P(1.3,-1.3).X}" y2="${P(1.3,-1.3).Y}" stroke="#e0a93b" stroke-width="2"/>`;
-  s+=TX(P(1.32,1.18).X,P(1.32,1.18).Y,'свет','#b07d1a',11);
+  s+=`<line x1="${P(-LC,-LC).X}" y1="${P(-LC,-LC).Y}" x2="${P(LC,LC).X}" y2="${P(LC,LC).Y}" stroke="#e0a93b" stroke-width="2"/>`;
+  s+=`<line x1="${P(-LC,LC).X}" y1="${P(-LC,LC).Y}" x2="${P(LC,-LC).X}" y2="${P(LC,-LC).Y}" stroke="#e0a93b" stroke-width="2"/>`;
+  s+=TX(P(LC,LC-0.12).X-2,P(LC,LC-0.12).Y-2,'свет','#b07d1a',11,'end');
+  // ИНВАРИАНТНЫЕ ГИПЕРБОЛЫ: t²−x²=1 (времениподобная, вверх) и x²−t²=1 (пространственноподобная, вправо)
+  s+=`<polyline points="${hypPL(u=>P(Math.cosh(u),Math.sinh(u)))}" fill="none" stroke="#cbb892" stroke-width="1.3" stroke-dasharray="2 3"/>`;
+  s+=`<polyline points="${hypPL(u=>P(Math.sinh(u),Math.cosh(u)))}" fill="none" stroke="#cbb892" stroke-width="1.3" stroke-dasharray="2 3"/>`;
   // неподвижные оси (наблюдатель A) — серые
-  s+=L(P(0,-1.35).X,P(0,-1.35).Y,P(0,1.4).X,P(0,1.4).Y,'#bfc0b8',1.6,1);
-  s+=L(P(-1.35,0).X,P(-1.35,0).Y,P(1.4,0).X,P(1.4,0).Y,'#bfc0b8',1.6,1);
-  s+=TX(P(1.46,0).X,P(1.46,0).Y+4,'t','#9a9b92',12)+TX(P(0,1.46).X+4,P(0,1.46).Y,'x','#9a9b92',12);
-  // движущиеся оси (наблюдатель B): t' вдоль (1,beta) в (x,t)? 
-  // t'-ось: мировая линия B, наклон x=beta*t -> направление (x,t)=(beta,1)
-  // x'-ось: линия одновременности B, наклон t=beta*x -> направление (1,beta)
-  const tp1=P(1.3, beta*1.3), tp2=P(-1.3,-beta*1.3);
-  const xp1=P(beta*1.3, 1.3), xp2=P(-beta*1.3,-1.3);
+  s+=L(P(-AXn,0).X,P(-AXn,0).Y,P(AXn,0).X,P(AXn,0).Y,'#bfc0b8',1.6,1);   // t (вертикаль)
+  s+=L(P(0,-AXn).X,P(0,-AXn).Y,P(0,AXn).X,P(0,AXn).Y,'#bfc0b8',1.6,1);   // x (горизонталь)
+  s+=TX(P(AXn,0).X+5,P(AXn,0).Y+4,'t','#9a9b92',12)+TX(P(0,AXn).X+4,P(0,AXn).Y+2,'x','#9a9b92',12);
+  // движущиеся оси (наблюдатель B): t'-ось x=βt, x'-ось t=βx — обе жмутся к свету
+  const tp1=P(AXn, beta*AXn), tp2=P(-AXn,-beta*AXn);
+  const xp1=P(beta*AXn, AXn), xp2=P(-beta*AXn,-AXn);
   s+=L(tp2.X,tp2.Y,tp1.X,tp1.Y,'#d65f37',2.4,1);
   s+=L(xp2.X,xp2.Y,xp1.X,xp1.Y,'#d65f37',2.4,1);
   s+=TX(tp1.X+4,tp1.Y,"t'","#9c3f1f",12)+TX(xp1.X+4,xp1.Y+4,"x'","#9c3f1f",12);
-  // сетка одновременности B (несколько линий t'=const) — пунктир, показывает наклон
-  for(let k=-1;k<=1;k++){ if(k===0)continue;
-    const a=P(0.5*k+beta*(-1.2), 0.5*k? 0:0); // линия x'=const? нарисуем одновременность: t = beta*x + c
-    const c=0.55*k;
-    const A=P(c+beta*(-1.2),-1.2), Bp=P(c+beta*1.2,1.2);
-    s+=`<line x1="${A.X}" y1="${A.Y}" x2="${Bp.X}" y2="${Bp.Y}" stroke="#d65f37" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>`;
+  // ЕДИНИЧНАЯ МЕТКА скользит ПО ГИПЕРБОЛЕ: A в (1,0)/(0,1), B в (γ,γβ)/(γβ,γ) — на той же гиперболе
+  // жирный сегмент гиперболы от метки A до метки B = сам буст (гиперболический поворот на u)
+  let slT='', slX=''; const st=U>=0?0.03:-0.03;
+  for(let u=0; U>=0? u<=U+1e-9: u>=U-1e-9; u+=st){
+    const a=P(Math.cosh(u),Math.sinh(u)); slT+=`${n(a.X)},${n(a.Y)} `;
+    const b=P(Math.sinh(u),Math.cosh(u)); slX+=`${n(b.X)},${n(b.Y)} `;
   }
-  // точка-событие на луче света остаётся на луче для всех (демонстрация инвариантности c)
-  const ev=P(0.9,0.9);
-  s+=D(ev.X,ev.Y,4.5,'#b07d1a');
+  s+=`<polyline points="${slT.trim()}" fill="none" stroke="#d65f37" stroke-width="2.6"/>`;
+  s+=`<polyline points="${slX.trim()}" fill="none" stroke="#d65f37" stroke-width="2.6"/>`;
+  const At=P(1,0), Ax=P(0,1), Bt=P(g,g*beta), Bx=P(g*beta,g);
+  s+=D(At.X,At.Y,3,'#9a9b92')+D(Ax.X,Ax.Y,3,'#9a9b92');
+  s+=D(Bt.X,Bt.Y,4.2,'#d65f37')+D(Bx.X,Bx.Y,4.2,'#d65f37');
+  s+=TX(At.X-6,At.Y+4,'1','#9a9b92',10,'end')+TX(Bt.X+6,Bt.Y+3,"1'","#9c3f1f",10);
   $('fig').innerHTML=s;
   const ang=Math.atan(Math.abs(beta))*180/PI;
-  $('rdt').innerHTML=`v=${beta.toFixed(2)}c: оси t' и x' повернулись к лучу света на <b>${ang.toFixed(0)}°</b> (как ножницы). Луч света (диагональ) — на месте для обоих: c одинакова`;
+  $('rdt').innerHTML=`v=${beta.toFixed(2)}c: оси сомкнулись к свету на ${ang.toFixed(0)}°. Метка «1» уехала в «1'» <b>по гиперболе</b> — буст это поворот на быстроту́ u=${U.toFixed(2)}`;
 }
 draw();
 
