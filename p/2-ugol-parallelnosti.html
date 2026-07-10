@@ -44,22 +44,77 @@ const DEFS=`<defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" marker
 
 let X=1;
 $('x').oninput=e=>{X=+e.target.value;$('xv').textContent=X.toFixed(2);draw()};
+// СЦЕНА — диск Пуанкаре (честная модель): «данная прямая» = диаметр, вы = точка P над ним
+// на гиперболическом расстоянии x (евклидово tanh(x/2)), предельная параллель = дуга,
+// ортогональная краю, встречающая диаметр РОВНО на крае диска — то есть на бесконечности.
+const CXd=136, CYd=126, Rd=92;
+function toS(v){return {X:CXd+v.x*Rd, Y:CYd-v.y*Rd};}
+// окружность через a,b, ортогональная единичной (как в пене диска; работает и для точек на границе)
+function geoC(a,b){
+  const a2=a.x*a.x+a.y*a.y, b2=b.x*b.x+b.y*b.y;
+  const det=2*(a.x*b.y-a.y*b.x);
+  if(Math.abs(det)<1e-9) return null;
+  const cx=((1+a2)*b.y-(1+b2)*a.y)/det, cy=((1+b2)*a.x-(1+a2)*b.x)/det;
+  return {x:cx,y:cy,r:Math.sqrt(Math.max(1e-12,cx*cx+cy*cy-1))};
+}
+function arcSVG(a,b,c){ // дуга c от a до b (модельные координаты)
+  const A=toS(a),B=toS(b);
+  if(!c) return `M${n(A.X)} ${n(A.Y)} L${n(B.X)} ${n(B.Y)}`;
+  const Cs={X:CXd+c.x*Rd, Y:CYd-c.y*Rd};
+  const cross=(A.X-Cs.X)*(B.Y-Cs.Y)-(A.Y-Cs.Y)*(B.X-Cs.X);
+  return `M${n(A.X)} ${n(A.Y)} A${n(c.r*Rd)} ${n(c.r*Rd)} 0 0 ${cross>0?0:1} ${n(B.X)} ${n(B.Y)}`;
+}
 function draw(){
-  const by=180, top=40, px=130;
-  const ang=Math.asin(1/Math.cosh(X));            // Π(x) от вертикали
-  // опускаем перпендикуляр и рисуем "предельную" прямую под углом Π от него
-  const ex=px+(by-top)*Math.tan(ang);
+  const ang=Math.asin(1/Math.cosh(X));   // Π(x)
+  const t=Math.tanh(X/2);                // евклидов радиус точки P в модели
+  const P={x:0,y:t}, O={x:0,y:0}, E={x:1,y:0}, W={x:-1,y:0};
   let s=DEFS;
-  s+=L(40,by,420,by,'#274a73',2.2)+TX(((40+px)/2),by+18,'данная прямая','#6c7080',11,'middle');
-  s+=DL(px,by,px,top)+TX(px-6,top+12,'перпендикуляр','#6c7080',10,'end');
-  s+=L(px,by,Math.min(420,ex),by-(Math.min(420,ex)-px)/Math.tan(ang),'#3d6b9e',2.6,1);
-  s+=D(px,by,4,'#274a73');
-  // дуга угла
-  s+=`<path d="M${n(px)} ${n(by-34)} A34 34 0 0 1 ${n(px+34*Math.sin(ang))} ${n(by-34*Math.cos(ang))}" fill="none" stroke="#6c7080" stroke-width="1.2"/>`;
-  s+=TX(px+12,by-42,'Π(x)','#274a73',12);
+  // диск и «данная прямая» (диаметр)
+  s+=`<circle cx="${CXd}" cy="${CYd}" r="${Rd}" fill="#fbfbf9" stroke="#9fb2c8" stroke-width="1.4"/>`;
+  s+=L(CXd-Rd,CYd,CXd+Rd,CYd,'#274a73',2.2);
+  s+=TX(CXd-Rd+6,CYd+14,'данная прямая','#6c7080',10);
+  // перпендикуляр P->O (вертикальный диаметр — тоже геодезическая), длина x
+  const Ps=toS(P);
+  s+=DL(Ps.X,Ps.Y,CXd,CYd)+TX(Ps.X-7,(Ps.Y+CYd)/2+4,'x','#6c7080',11,'end');
+  s+=D(CXd,CYd,3,'#274a73');
+  // веер серых лучей из P, которые прямую ПЕРЕСЕКАЮТ (уходят к нижней границе)
+  for(const th of [-0.35,-0.75,-1.2]){
+    const B={x:Math.cos(th),y:Math.sin(th)};
+    s+=`<path d="${arcSVG(P,B,geoC(P,B))}" fill="none" stroke="#c9c7be" stroke-width="1.1"/>`;
+  }
+  // предельные параллели: к ∞ справа (жирная) и слева (бледная, симметрия)
+  const cR=geoC(P,E), cL=geoC(P,W);
+  s+=`<path d="${arcSVG(P,W,cL)}" fill="none" stroke="#9fb2c8" stroke-width="1.4"/>`;
+  s+=`<path d="${arcSVG(P,E,cR)}" fill="none" stroke="#3d6b9e" stroke-width="2.6"/>`;
+  // точка встречи = край диска = бесконечность
+  const Es=toS(E);
+  s+=D(Es.X,Es.Y,3.6,'#c98a1b')+TX(Es.X+4,Es.Y-8,'∞','#8a5e12',13);
+  // угол Π(x) в точке P: между перпендикуляром ВНИЗ и касательной предельной дуги
+  // касательная численно: маленький шаг по дуге cR от P к E
+  const phP=Math.atan2(P.y-cR.y,P.x-cR.x), phE=Math.atan2(E.y-cR.y,E.x-cR.x);
+  let dph=(phE-phP); while(dph>PI)dph-=2*PI; while(dph<-PI)dph+=2*PI;
+  const P2={x:cR.x+cR.r*Math.cos(phP+dph*0.02), y:cR.y+cR.r*Math.sin(phP+dph*0.02)};
+  const P2s=toS(P2);
+  let tx=P2s.X-Ps.X, ty=P2s.Y-Ps.Y; const tl=Math.hypot(tx,ty); tx/=tl; ty/=tl;
+  const AR=24;
+  s+=`<path d="M${n(Ps.X)} ${n(Ps.Y+AR)} A${AR} ${AR} 0 0 0 ${n(Ps.X+AR*tx)} ${n(Ps.Y+AR*ty)}" fill="none" stroke="#6c7080" stroke-width="1.2"/>`;
+  s+=TX(Ps.X+10,Ps.Y+AR+2,'Π(x)','#274a73',11.5);
+  s+=D(Ps.X,Ps.Y,4.2,'#3d6b9e')+TX(Ps.X-8,Ps.Y-8,'вы','#274a73',11,'end');
+  // === правая панель: Π(x) от расстояния, маркер на текущем x ===
+  const gx=290,gy1=200,gy0=44,gw=126;
+  s+=AX(gx,gy1,gx+gw,gy1)+AX(gx,gy1,gx,gy0);
+  s+=DL(gx,gy0,gx+gw,gy0)+TX(gx+gw-2,gy0-5,'90° (Евклид)','#9fa3b2',9.5,'end');
+  let pl='';
+  for(let i=0;i<=80;i++){const xx=0.02+3*i/80;
+    pl+=`${n(gx+gw*xx/3)},${n(gy1-(gy1-gy0)*(Math.asin(1/Math.cosh(xx))/(PI/2)))} `;}
+  s+=`<polyline points="${pl.trim()}" fill="none" stroke="#274a73" stroke-width="2.2"/>`;
+  const Xg=gx+gw*X/3;
+  s+=DL(Xg,gy0,Xg,gy1)+D(Xg,gy1-(gy1-gy0)*(ang/(PI/2)),3.6,'#c98a1b');
+  s+=TX(gx,gy0-16,'угол Π от расстояния','#6c7080',10.5);
+  s+=TX(gx+gw/2,gy1+15,'расстояние x →','#6c7080',10,'middle');
   $('fig').innerHTML=s;
   const a=ang*180/PI;
-  $('rdt').innerHTML=`x = ${X.toFixed(2)} → Π(x) = <b>${a.toFixed(0)}°</b>`+(X<0.4?' (почти 90°, как у Евклида)':(X>2.4?' — прямая «убегает» далеко вбок':''));
+  $('rdt').innerHTML=`x = ${X.toFixed(2)} → Π(x) = <b>${a.toFixed(0)}°</b>: серые лучи пересекают прямую, синий — предельный, встречает её только на бесконечности (край диска)`;
 }
 draw();
 
