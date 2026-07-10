@@ -5,7 +5,7 @@
 :root{--ink:#15171f;--paper:#f6f5f0;--card:#fffefb;--muted:#6c7080;--line:#e4e2da;
 --mono:ui-monospace,'JetBrains Mono',Consolas,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:flex;justify-content:center;padding:10px}
-.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;--acc:#138a64}
+.pen{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 18px;--acc:#138a64}
 .pen h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
 .pen .f{font-family:var(--mono);font-size:12.5px;margin:6px 0 8px;padding:7px 10px;border-radius:8px;overflow-x:auto;white-space:nowrap;background:color-mix(in srgb,#138a64 12%,white);color:#0c5a41}
 .figbox{display:flex;justify-content:center;padding:2px 0 6px}
@@ -14,22 +14,22 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);display:fl
 .ctrl label{flex:0 0 110px}
 .ctrl input[type=range]{flex:1;accent-color:var(--acc);height:4px;cursor:pointer}
 .ctrl .v{flex:0 0 48px;text-align:right;font-family:var(--mono);color:var(--ink);font-size:12px}
-.rdt{margin-top:8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
+.rdt{margin:2px 0 10px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
 .rdt b{color:var(--ink);font-weight:600}
-.cap{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+.cap{margin-top:10px;text-align:center;font-size:11px;color:var(--muted)}
 .hd{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
 .hd .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#0c5a41}</style></head><body>
 <div class="pen">
 <div class="hd"><span class="num">ФИНАЛ</span><h3>e^(iθ) в 3D — винт, чьи тени cos, sin и круг</h3></div>
 <div class="f">винт = круг во времени · с торца круг · на стену sin · на пол cos</div>
 <div class="figbox"><svg id="fig" viewBox="0 0 460 224" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="rdt" id="rdt"></div>
 <div class="ctrl"><label for="za">угол Z</label><input id="za" type="range" min="0" max="90" step="1" value="30"><span class="v" id="zav">30°</span></div>
 <div class="ctrl"><label for="mg">длина Z</label><input id="mg" type="range" min="10" max="95" step="1" value="60"><span class="v" id="mgv">60</span></div>
 <div class="ctrl"><label for="xa">наклон времени</label><input id="xa" type="range" min="-25" max="25" step="1" value="0"><span class="v" id="xav">0°</span></div>
 <div class="ctrl"><label for="yh">высота (sin)</label><input id="yh" type="range" min="28" max="95" step="1" value="71"><span class="v" id="yhv">71</span></div>
 <div class="ctrl"><label for="ph">фаза винта</label><input id="ph" type="range" min="0" max="360" step="1" value="95"><span class="v" id="phv">95°</span></div>
 <div class="ctrl"><label for="sc">масштаб</label><input id="sc" type="range" min="55" max="115" step="1" value="90"><span class="v" id="scv">90%</span></div>
-<div class="rdt" id="rdt"></div>
 <div class="cap">красная спираль — круг, протянутый по оси времени. Она роняет три тени: на торец — круг, на дальнюю стену — синус, на пол — косинус. Все три — один и тот же винт с разных сторон</div>
 </div>
 <script>
