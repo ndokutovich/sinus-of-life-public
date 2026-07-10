@@ -62,7 +62,7 @@ const PASS=4200;                          // один проход фотона,
 function frame(now){
   // GIF-режим: авто-цикл трёх состояний — подгибается → облетает → закручивается внутрь
   if(window.__GIF){
-    const regs=[3.3, 2.63, 2.56], ri=Math.floor(now/PASS)%3;
+    const regs=[3.3, 2.63, 2.597], ri=Math.floor(now/PASS)%3;   // 2.597 — захват после ~1.4 витка (пара оборотов, не резко)
     if(ri!==curReg){curReg=ri; B=regs[ri]; $('bv').textContent=B.toFixed(3); rebuild();}
   }
   const pts=TR.pts, n=pts.length, cap=TR.cap;
@@ -100,11 +100,10 @@ function frame(now){
   // вертикаль φ=π — конец прямого луча (синус вернулся бы к нулю)
   if(phiMax>PI*1.04){const xpi=mapx(PI);
     s+='<line x1="'+xpi.toFixed(1)+'" y1="'+gyT+'" x2="'+xpi.toFixed(1)+'" y2="'+(gy0+4)+'" stroke="#c0533a" stroke-width="1" stroke-dasharray="2 3" opacity="0.8"/>';
-    s+='<text x="'+(xpi+3).toFixed(1)+'" y="'+(gyT+8)+'" font-family="ui-monospace,monospace" font-size="9" fill="#9c3f1f">тут синус кончился →</text>';}
+    s+='<text x="'+xpi.toFixed(1)+'" y="'+(gy0+13)+'" font-family="ui-monospace,monospace" font-size="9" fill="#9c3f1f" text-anchor="middle">φ=π</text>';}
   // маркер фотона на графике
   s+='<circle cx="'+mapx(pts[idx].phi).toFixed(1)+'" cy="'+mapy(pts[idx].u).toFixed(1)+'" r="3" fill="#d65f37" stroke="#fff" stroke-width="0.8"/>';
   s+='<text x="'+gx1+'" y="'+(gy0+13)+'" font-family="ui-monospace,monospace" font-size="9.5" fill="#8a8e9c" text-anchor="end">φ — угол облёта</text>';
-  s+='<text x="'+((gx0+gx1)/2)+'" y="'+(gyT-8)+'" font-family="ui-monospace,monospace" font-size="9" fill="#8a8e9c" text-anchor="middle">пунктир — прямой луч (синус)</text>';
   $('fig').innerHTML=s;
   const loops=(phiMax/(2*PI));
   $('rdt').innerHTML = cap
