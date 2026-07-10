@@ -186,7 +186,8 @@ function draw(){
   s+=D(Xg,gy1-(gy1-gy0)*(Math.sinh(rG)/NORM),3.6,'#c98a1b');
   s+=D(Xg,gy1-(gy1-gy0)*(rG/NORM),3,'#9fa3b2');
   s+=TX(gx,gy0-6,'длина окружности','#6c7080',11);
-  s+=TX(gx+gw-2,gy1-(gy1-gy0)*(RMAX/NORM)-6,'2π·r (Евклид)','#9fa3b2',10,'end');
+  s+=TX(gx+4,gy1-(gy1-gy0)*(RMAX/NORM)-6,'2π·r','#9fa3b2',10);
+  s+=TX(gx+gw-2,gy1-(gy1-gy0)*(RMAX/NORM)-6,'(Евклид)','#9fa3b2',10,'end');
   s+=TX(gx+gw-34,gy0+14,'2π·sinh(r)','#274a73',10,'end');
   s+=TX(gx+gw/2,gy1+16,'радиус r →','#6c7080',10,'middle');
   $('fig').innerHTML=s;
