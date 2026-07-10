@@ -162,23 +162,36 @@ function draw(){
       s+=`<path d="${arcPath(A,B,circ)}" fill="none" stroke="#3d6b9e" stroke-width="${Math.max(0.6,1.6-poly.depth*0.22)}" opacity="${op.toFixed(2)}"/>`;
     }
   }
-  // вторая панель справа: длина окружности vs радиус
-  const gx=300,gy0=40,gy1=250,gw=120;
+  // докуда дотянулось замощение: max|z| вершин -> гиперболический радиус r = 2·artanh|z|
+  let mz=0;
+  for(const poly of polys) for(const v of poly.verts){const av=Math.hypot(v.x,v.y); if(av>mz)mz=av;}
+  mz=Math.min(mz,0.9995);
+  const rTile=Math.log((1+mz)/(1-mz));   // = 2·artanh(mz)
+  // золотая окружность на диске — граница замощённого
+  s+=`<circle cx="${CXp}" cy="${CYp}" r="${n(mz*Rd)}" fill="none" stroke="#c98a1b" stroke-width="1.6" stroke-dasharray="5 4"/>`;
+  // вторая панель справа: длина окружности vs радиус — ЧЕСТНЫЙ общий масштаб (обе делим на 2π·sinh(RMAX))
+  const gx=300,gy0=40,gy1=250,gw=120,RMAX=6,NORM=Math.sinh(RMAX);
   s+=AX(gx,gy1,gx+gw,gy1)+AX(gx,gy1,gx,gy0);
   let pe='',pl='';
-  for(let i=0;i<=60;i++){const r=i/20; // r до 3
-    const X=gx+gw*(r/3);
-    pe+=`${n(X)},${n(gy1-(gy1-gy0)*Math.min(1,(2*PI*r)/(2*PI*3)))} `;       // евклид 2πr
-    pl+=`${n(X)},${n(gy1-(gy1-gy0)*Math.min(1,(2*PI*Math.sinh(r))/(2*PI*Math.sinh(3))))} `; // гипербол 2π sinh r
+  for(let i=0;i<=80;i++){const r=RMAX*i/80;
+    const X=gx+gw*(r/RMAX);
+    pe+=`${n(X)},${n(gy1-(gy1-gy0)*(r/NORM))} `;                    // евклид 2πr
+    pl+=`${n(X)},${n(gy1-(gy1-gy0)*(Math.sinh(r)/NORM))} `;         // гипербола 2π·sinh(r)
   }
   s+=`<polyline points="${pe.trim()}" fill="none" stroke="#9fa3b2" stroke-width="1.6" stroke-dasharray="4 3"/>`;
   s+=`<polyline points="${pl.trim()}" fill="none" stroke="#274a73" stroke-width="2.4"/>`;
+  // маркер замощения: тот же r на графике, точки на обеих кривых
+  const rG=Math.min(rTile,RMAX), Xg=gx+gw*(rG/RMAX);
+  s+=DL(Xg,gy0,Xg,gy1,'#d9c193');
+  s+=D(Xg,gy1-(gy1-gy0)*(Math.sinh(rG)/NORM),3.6,'#c98a1b');
+  s+=D(Xg,gy1-(gy1-gy0)*(rG/NORM),3,'#9fa3b2');
   s+=TX(gx,gy0-6,'длина окружности','#6c7080',11);
-  s+=TX(gx+4,gy1-4,'2πr','#9fa3b2',10);
-  s+=TX(gx+gw-2,gy0+30,'2π·sinh r','#274a73',10,'end');
+  s+=TX(gx+gw-2,gy1-(gy1-gy0)*(RMAX/NORM)-6,'2π·r (Евклид)','#9fa3b2',10,'end');
+  s+=TX(gx+gw-34,gy0+14,'2π·sinh(r)','#274a73',10,'end');
   s+=TX(gx+gw/2,gy1+16,'радиус r →','#6c7080',10,'middle');
   $('fig').innerHTML=s;
-  $('rdt').innerHTML=`замощение {7,3}: к краю фигуры мельчают, но «на самом деле» все одинаковы — край бесконечно далёк. Длина окружности растёт как <b>sinh r</b>, не как r`;
+  const Lh=2*PI*Math.sinh(rTile), Le=2*PI*rTile;
+  $('rdt').innerHTML=`замощение дошло до r≈${rTile.toFixed(1)} (жёлтая окружность): её длина 2π·sinh(r)≈<b>${Lh.toFixed(0)}</b>, у Евклида было бы 2π·r≈${Le.toFixed(0)}. Все семиугольники одинаковы — просто места к краю всё больше`;
 }
 draw();
 
