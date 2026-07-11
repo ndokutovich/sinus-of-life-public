@@ -73,12 +73,14 @@ var SPD=1;
 function updSpd(){SPD=Math.pow(10,(+ss.value-100)/50);sv.textContent='\u00d7'+(SPD>=0.1?SPD.toFixed(2):SPD.toFixed(3));}
 ss.addEventListener('input',updSpd);updSpd();
 var vt=0,prev=performance.now();
-function gifN(f){  // f: прогресс письма 0→1; число гармоник ползёт вверх через пороги статьи 8/30/161 с паузами
-  if(f<0.10) return Math.round(3+(8-3)*f/0.10);
-  if(f<0.30) return 8;
-  if(f<0.40) return Math.round(8+(30-8)*(f-0.30)/0.10);
-  if(f<0.62) return 30;
-  if(f<0.74) return Math.round(30+(161-30)*(f-0.62)/0.12);
+function gifN(f){  // f: прогресс письма 0→1; гармоники ползут через пороги 8 → 30 → 60 → 161 с паузами
+  if(f<0.06) return Math.round(3+(8-3)*f/0.06);
+  if(f<0.22) return 8;
+  if(f<0.29) return Math.round(8+(30-8)*(f-0.22)/0.07);
+  if(f<0.45) return 30;
+  if(f<0.52) return Math.round(30+(60-30)*(f-0.45)/0.07);
+  if(f<0.68) return 60;
+  if(f<0.75) return Math.round(60+(161-60)*(f-0.68)/0.07);
   return 161;
 }
 (function loop(now){
