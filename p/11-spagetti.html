@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Спагеттификация: sinh тянет, sin жмёт</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .card{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+        box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.7;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  .row label{min-width:118px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Спагеттификация: sinh тянет, sin жмёт</h1>
+  <div class="sub">кружок свободно падающих частиц у массивного тела. вдоль падения его тянет, поперёк — сжимает. это и есть спагеттификация — оба знака кривизны разом.</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <label>близость к массе</label>
+    <input id="k" type="range" min="0.1" max="1" step="0.01" value="0.5">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">один и тот же знак ∓ здесь берётся не рукой, а тензором кривизны — и оба режима включаются разом. sinh тянет, sin жмёт.</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502,H=548;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.height=H+'px';
+  ctx.scale(DPR,DPR);
+  const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
+  const cx=W/2;
+  const scene={x:0,y:40,w:W,h:332}, osc={x:46,y:406,w:W-70,h:120};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+
+  let G=0.5, t0=performance.now();
+  const R0=0.7, PXU_B=36, OSCU_B=32, TAU_MAX=1.55;              // фикс. окно «прожитого» времени падения
+  const rateR=g=>Math.sqrt(2*g), rateT=g=>Math.sqrt(g);         // приливные собств.значения +2g, −g
+  const xir=(tau,g)=>R0*Math.cosh(rateR(g)*tau);               // радиально: тянет (sinh)
+  const xit=(tau,g)=>R0*Math.cos (rateT(g)*tau);              // поперёк: жмёт (sin)
+
+  function panel(){
+    kv.textContent=G.toFixed(2); kv.style.color=COL.ink; kEl.style.accentColor=COL.ink;
+    fx.innerHTML='<b>радиально:</b> ξ_r″ = <b>+</b>2g·ξ_r → тянет (sinh)&nbsp;&nbsp;·&nbsp;&nbsp;'
+                +'<b>поперёк:</b> ξ_t″ = <b>−</b>g·ξ_t → жмёт (sin)';
+    rd.innerHTML='<span class="reg">Оба знака сразу.</span> Возле массы кривизна — не число, а тензор: вдоль падения тянет (<span style="color:'+COL.violet+'">sinh</span>), поперёк жмёт (<span style="color:'+COL.coral+'">sin</span>). Кружок частиц вытягивается в спагетти. Тянет вдвое сильнее, чем жмёт с каждой стороны (+2 вдоль, −1 поперёк): в 3D объём сохраняется, две поперечные оси гасят одну радиальную — на нашем 2D-срезе видна лишь одна из них.';
+  }
+
+  function frame(now){
+    const ph=((now-t0)/5000)%1, p=ph<0.5?ph*2:2*(1-ph), tau=p*TAU_MAX, N=200;   // бумеранг: круг→спагетти→круг
+    const rC={x:cx, y:scene.y+scene.h*0.42};
+    const massY=scene.y+scene.h-4;
+    const AVMAX=scene.h*0.40, YTOP=osc.y+6;
+    ctx.clearRect(0,0,W,H);
+
+    // масса внизу
+    ctx.fillStyle='#2a2c36';
+    ctx.beginPath();ctx.arc(cx,massY,15,0,7);ctx.fill();
+    ctx.fillStyle='#a9a79e';ctx.font='11px sans-serif';ctx.textAlign='center';
+    ctx.fillText('масса — падаем к ней ↓',cx,massY-24);
+
+    // исходный кружок (призрак)
+    ctx.strokeStyle=COL.faint;ctx.lineWidth=1.3;
+    ctx.beginPath();ctx.arc(rC.x,rC.y,R0*PXU_B,0,7);ctx.stroke();
+
+    // текущий эллипс
+    const av=Math.min(xir(tau,G)*PXU_B, AVMAX);
+    const ah=Math.max(0.6, xit(tau,G)*PXU_B);
+    ctx.save();ctx.beginPath();ctx.rect(scene.x,scene.y,scene.w,scene.h);ctx.clip();
+    ctx.strokeStyle=COL.ink;ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(rC.x,rC.y,ah,av,0,0,7);ctx.stroke();
+    ctx.fillStyle=COL.ink;
+    for(let i=0;i<12;i++){const a=i/12*Math.PI*2,px=rC.x+ah*Math.cos(a),py=rC.y+av*Math.sin(a);
+      ctx.beginPath();ctx.arc(px,py,2.6,0,7);ctx.fill();}
+    const arw=(x1,y1,x2,y2,cc)=>{ctx.strokeStyle=cc;ctx.fillStyle=cc;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      const an=Math.atan2(y2-y1,x2-x1);ctx.beginPath();
+      ctx.moveTo(x2,y2);ctx.lineTo(x2-7*Math.cos(an-0.4),y2-7*Math.sin(an-0.4));
+      ctx.lineTo(x2-7*Math.cos(an+0.4),y2-7*Math.sin(an+0.4));ctx.closePath();ctx.fill();};
+    arw(rC.x,rC.y-av-4,rC.x,rC.y-av-22,COL.violet);
+    arw(rC.x,rC.y+av+4,rC.x,rC.y+av+22,COL.violet);
+    arw(rC.x-ah-16,rC.y,rC.x-ah-2,rC.y,COL.coral);
+    arw(rC.x+ah+16,rC.y,rC.x+ah+2,rC.y,COL.coral);
+    ctx.restore();
+    ctx.font='600 11px sans-serif';ctx.textAlign='center';
+    ctx.fillStyle=COL.violet;ctx.fillText('радиально — тянет (sinh)',cx,scene.y+14);
+    ctx.fillStyle=COL.coral;ctx.textAlign='left';ctx.fillText('поперёк — жмёт (sin)',scene.x+14,scene.y+scene.h*0.42+4);
+
+    // осциллограмма: оба зазора во времени
+    const yb=osc.y+osc.h-4;
+    ctx.strokeStyle='#e2e0d9';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(osc.x,yb);ctx.lineTo(osc.x+osc.w,yb);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(osc.x,osc.y-2);ctx.lineTo(osc.x,osc.y+osc.h+2);ctx.stroke();
+    ctx.fillStyle='#a9a79e';ctx.font='11px sans-serif';ctx.textAlign='left';
+    ctx.fillText('оба зазора из одного падения',osc.x+4,osc.y+10);
+    ctx.save();ctx.beginPath();ctx.rect(osc.x,osc.y-2,osc.w+2,osc.h+6);ctx.clip();
+    const yv=v=>Math.max(YTOP, yb-v*OSCU_B);
+    const plot=(fn,cc)=>{ctx.beginPath();
+      for(let i=0;i<=N;i++){const t2=i/N*TAU_MAX,x=osc.x+(t2/TAU_MAX)*osc.w,y=yv(Math.max(0,fn(t2,G)));i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+      ctx.strokeStyle=cc;ctx.lineWidth=2.2;ctx.stroke();};
+    plot(xir,COL.violet); plot(xit,COL.coral);
+    const mx=osc.x+(tau/TAU_MAX)*osc.w;
+    ctx.strokeStyle='#cfcdc6';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mx,osc.y-2);ctx.lineTo(mx,osc.y+osc.h+2);ctx.stroke();
+    ctx.fillStyle=COL.violet;ctx.beginPath();ctx.arc(mx,yv(xir(tau,G)),4,0,7);ctx.fill();
+    ctx.fillStyle=COL.coral;ctx.beginPath();ctx.arc(mx,yv(Math.max(0,xit(tau,G))),4,0,7);ctx.fill();
+    ctx.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  kEl.addEventListener('input',()=>{G=+kEl.value; panel();});
+  panel(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

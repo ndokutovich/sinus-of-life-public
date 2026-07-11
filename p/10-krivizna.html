@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кривизна выбирает знак</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .card{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+        box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.7;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  .row label{min-width:118px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Разбегаются или сходятся: кривизна выбирает знак</h1>
+  <div class="sub">две частицы отпущены параллельно и свободно падают. что делает зазор между ними — решает кривизна пространства (здесь — одна постоянная K, идеализация).</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <label>кривизна&nbsp;K</label>
+    <input id="k" type="range" min="-1" max="1" step="0.01" value="0.45">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">следишь за зазором — читаешь K. осциллятор здесь не материал, а прибор: линейка для кривизны. тот же синус, только с другой стороны.</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502,H=548;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.height=H+'px';
+  ctx.scale(DPR,DPR);
+  const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
+  const cx=W/2;
+  const scene={x:0,y:40,w:W,h:332}, osc={x:46,y:406,w:W-70,h:120};
+  const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')';};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+
+  let K=0.45, t0=performance.now();
+  const XI0=1, SMAX=6.3, PXU=64, OSCU=38;
+  const f=(s,k)=>{ if(Math.abs(k)<0.02) return 1;
+                   if(k>0){const r=Math.sqrt(k);return Math.cos(r*s);}
+                   const r=Math.sqrt(-k);return Math.cosh(r*s); };
+  const col=k=> k>0.02?COL.coral : k<-0.02?COL.violet : COL.gray;
+
+  function panel(){
+    const c=col(K), pos=K>0.02, neg=K<-0.02, zero=!pos&&!neg;
+    kv.textContent=(K>=0?'+':'')+K.toFixed(2); kv.style.color=c; kEl.style.accentColor=c;
+    const eff=(-K).toFixed(2);
+    const tail = pos?'коэффициент <b>минус</b> → возврат → колебание (sin)'
+               : neg?'коэффициент <b>плюс</b> → разгон → экспонента (sinh)'
+               :     'коэффициент <b>ноль</b> → зазор постоянный (Евклид)';
+    fx.innerHTML= zero
+      ? '<b>ξ″ = −K·ξ</b>&nbsp;·&nbsp;K ≈ 0&nbsp;⟹&nbsp;ξ″ ≈ 0<br>'+tail
+      : '<b>ξ″ = −K·ξ</b>&nbsp;·&nbsp;K = '+(K>=0?'+':'')+K.toFixed(2)
+        +'&nbsp;⟹&nbsp;ξ″ = '+(eff>=0?'+':'')+eff+'·ξ<br>'+tail;
+    rd.innerHTML = pos?'<span class="reg" style="color:'+COL.coral+'">K &gt; 0 — сходятся.</span> Как две тропы, идущие на север от экватора: стартовали параллельно, встретились на полюсе. sin-режим, фокусировка (линзирование).'
+                 : neg?'<span class="reg" style="color:'+COL.violet+'">K &lt; 0 — разбегаются.</span> Как две «прямые» на седле: расходятся всё быстрее, по экспоненте. sinh-режим.'
+                 :     '<span class="reg" style="color:'+COL.gray+'">K = 0 — параллельны навсегда.</span> Плоский Евклид: зазор постоянный.';
+  }
+
+  function frame(now){
+    const s=((now-t0)/6000)%1*SMAX, c=col(K), N=240;
+    const s2y=v=>scene.y+(v/SMAX)*scene.h;
+    ctx.clearRect(0,0,W,H);
+
+    ctx.save(); ctx.beginPath(); ctx.rect(scene.x,scene.y-6,scene.w,scene.h+16); ctx.clip();
+    ctx.strokeStyle='#e2e0d9'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx,scene.y); ctx.lineTo(cx,scene.y+scene.h); ctx.stroke();
+    // заливка зазора
+    ctx.beginPath();
+    for(let i=0;i<=N;i++){const s2=i/N*SMAX,x=cx-XI0*f(s2,K)*PXU/2;i?ctx.lineTo(x,s2y(s2)):ctx.moveTo(x,s2y(s2));}
+    for(let i=N;i>=0;i--){const s2=i/N*SMAX,x=cx+XI0*f(s2,K)*PXU/2;ctx.lineTo(x,s2y(s2));}
+    ctx.closePath(); ctx.fillStyle=rgba(c,0.13); ctx.fill();
+    for(const side of [-1,1]){
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){const s2=i/N*SMAX,x=cx+side*XI0*f(s2,K)*PXU/2;i?ctx.lineTo(x,s2y(s2)):ctx.moveTo(x,s2y(s2));}
+      ctx.strokeStyle=rgba(c,0.55); ctx.lineWidth=1.6; ctx.stroke();
+    }
+    const h0=XI0*PXU/2;
+    ctx.fillStyle='#9a988f'; [-1,1].forEach(sd=>{ctx.beginPath();ctx.arc(cx+sd*h0,scene.y,3.4,0,7);ctx.fill();});
+    ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('время падения ↓',cx+10,scene.y+scene.h-8);
+    const half=XI0*f(s,K)*PXU/2, ym=s2y(s);
+    const maxH=W/2-8, inside=Math.abs(half)<=maxH, cl=v=>Math.max(8,Math.min(W-8,v));
+    const xL=cl(cx-half), xR=cl(cx+half);
+    ctx.fillStyle=c; ctx.strokeStyle=c;
+    if(inside){ ctx.lineWidth=2; ctx.setLineDash([2,3]); ctx.beginPath();ctx.moveTo(xL,ym);ctx.lineTo(xR,ym);ctx.stroke();ctx.setLineDash([]); }
+    ctx.beginPath();ctx.arc(xL,ym,5,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(xR,ym,5,0,7);ctx.fill();
+    if(inside){ctx.font='600 11px sans-serif';ctx.textAlign='center';ctx.fillText('ξ',(xL+xR)/2,ym-9);}
+    ctx.restore();
+    ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('две частицы — старт параллельно',cx,scene.y-14);
+
+    // осциллограмма
+    const y0=osc.y+osc.h/2;
+    ctx.strokeStyle='#e2e0d9'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(osc.x,y0);ctx.lineTo(osc.x+osc.w,y0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(osc.x,osc.y-2);ctx.lineTo(osc.x,osc.y+osc.h+2);ctx.stroke();
+    ctx.fillStyle='#a9a79e';ctx.font='11px sans-serif';ctx.textAlign='left';
+    ctx.fillText('тот же зазор ξ, развёрнутый по времени',osc.x+4,osc.y+10);
+    ctx.fillText('0',osc.x-14,y0+4);
+    ctx.save();ctx.beginPath();ctx.rect(osc.x,osc.y-2,osc.w+2,osc.h+4);ctx.clip();
+    ctx.beginPath();
+    for(let i=0;i<=N;i++){const s2=i/N*SMAX,v=XI0*f(s2,K),x=osc.x+(s2/SMAX)*osc.w,y=y0-v*OSCU;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.stroke();
+    const vm=XI0*f(s,K),mx=osc.x+(s/SMAX)*osc.w,my=y0-vm*OSCU;
+    ctx.strokeStyle='#cfcdc6';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mx,osc.y-2);ctx.lineTo(mx,osc.y+osc.h+2);ctx.stroke();
+    ctx.fillStyle=c;ctx.beginPath();ctx.arc(mx,my,4,0,7);ctx.fill();
+    ctx.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  kEl.addEventListener('input',()=>{K=+kEl.value; panel();});
+  panel(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
