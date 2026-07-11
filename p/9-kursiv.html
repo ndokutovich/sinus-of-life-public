@@ -32,7 +32,7 @@ color:var(--muted);line-height:1.5;min-height:18px}
 <div class="ctrl"><label>число гармоник</label>
 <input id="nn" type="range" min="2" max="161" step="1" value="161"><span class="v" id="nv"></span></div>
 <div class="ctrl"><label>замедление</label>
-<input id="ss" type="range" min="0" max="100" step="1" value="100"><span class="v" id="sv"></span></div>
+<input id="ss" type="range" min="0" max="100" step="1" value="90"><span class="v" id="sv"></span></div>
 <div class="rdt">каждая стрелка крутится со своей частотой; их сумма — кончик пера.
 внизу — те же гармоники как два колебания руки: <b>две волны пишут слово</b></div>
 <div class="cap">мало стрелок — каракули, много — пропись</div>
@@ -72,13 +72,22 @@ var ss=document.getElementById('ss'),sv=document.getElementById('sv');
 var SPD=1;
 function updSpd(){SPD=Math.pow(10,(+ss.value-100)/50);sv.textContent='\u00d7'+(SPD>=0.1?SPD.toFixed(2):SPD.toFixed(3));}
 ss.addEventListener('input',updSpd);updSpd();
-var vt=0,prev=performance.now(),GIFN=[8,30,161],GIFPER=7000,curGifN=-1;
+var vt=0,prev=performance.now();
+function gifN(f){  // f: прогресс письма 0→1; число гармоник ползёт вверх через пороги статьи 8/30/161 с паузами
+  if(f<0.10) return Math.round(3+(8-3)*f/0.10);
+  if(f<0.30) return 8;
+  if(f<0.40) return Math.round(8+(30-8)*(f-0.30)/0.10);
+  if(f<0.62) return 30;
+  if(f<0.74) return Math.round(30+(161-30)*(f-0.62)/0.12);
+  return 161;
+}
 (function loop(now){
   var t;
-  if(window.__GIF){                         // гифка: пороги из статьи — 8 (сейсмограмма) / 30 (почерк врача) / 161 (пропись), пауза-акцент на каждом
-    var ri=Math.floor(now/GIFPER)%3;
-    if(ri!==curGifN){curGifN=ri;N=GIFN[ri];nv.textContent=N;nn.value=N;rebuild();}
-    t=(now%GIFPER)/GIFPER;
+  if(window.__GIF){                         // гифка: ОДИН прогон, гармоники растут по ходу письма (сейсмограмма → почерк врача → пропись). медленно
+    t=(now/16000)%1;
+    var f=t<0.5?t*2:1;                       // прямой ход письма — гармоники ползут вверх; возврат — уже полная пропись
+    var wn=gifN(f);
+    if(wn!==N){N=wn;nv.textContent=N;nn.value=N;rebuild();}
   } else {
     vt+=(now-prev)*SPD;prev=now;
     t=(vt/14000)%1;
