@@ -72,7 +72,7 @@ var ss=document.getElementById('ss'),sv=document.getElementById('sv');
 var SPD=1;
 function updSpd(){SPD=Math.pow(10,(+ss.value-100)/50);sv.textContent='\u00d7'+(SPD>=0.1?SPD.toFixed(2):SPD.toFixed(3));}
 ss.addEventListener('input',updSpd);updSpd();
-var vt=0,prev=performance.now(),GIFN=[8,30,161],GIFPER=4000,curGifN=-1;
+var vt=0,prev=performance.now(),GIFN=[8,30,161],GIFPER=7000,curGifN=-1;
 (function loop(now){
   var t;
   if(window.__GIF){                         // гифка: пороги из статьи — 8 (сейсмограмма) / 30 (почерк врача) / 161 (пропись), пауза-акцент на каждом
