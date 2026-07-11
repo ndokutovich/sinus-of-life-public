@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прецессия перигелия: косинус, которому сбили частоту</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+        box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.7;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  .row label{min-width:118px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:4.6em}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="pen">
+  <h1>Прецессия перигелия: косинус, которому сбили частоту</h1>
+  <div class="sub">планета на эллипсе. ОТО добавляет к орбите чуть-чуть — и эллипс перестаёт замыкаться: перигелий (ближайшая точка) уползает по кругу. у Меркурия это 43″ в век; здесь усилено в тысячи раз, чтобы увидеть глазом.</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <label>сила ОТО-члена</label>
+    <input id="k" type="range" min="0" max="0.25" step="0.005" value="0.12">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">выключи член — эллипс замкнут, перигелий на месте. включаешь — частота косинуса орбиты падает ниже 1, за 2π он не успевает вернуться в максимум, ось эллипса ползёт. тот же синус, только чуть медленнее.</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502,H=520;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.height=H+'px';
+  ctx.scale(DPR,DPR);
+  const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+
+  let g=0.12, t0=performance.now();
+  const E=0.45, P=80;                       // эксцентриситет, фокальный параметр (px)
+  const OC={x:W/2,y:206}, osc={x:46,y:410,w:W-70,h:96};
+  const rOf=(phi,om)=>P/(1+E*Math.cos(om*phi));
+  const TWO=2*Math.PI;
+
+  function panel(){
+    const om=1-g, closed=g<0.003;
+    kv.textContent=g.toFixed(3); kv.style.color=COL.ink; kEl.style.accentColor=COL.ink;
+    const perOrbit=(1/om-1)*360;
+    fx.innerHTML='<b>r(φ) = p / (1 + e·cos(ωφ))</b>&nbsp;·&nbsp;ω = 1 − '+g.toFixed(3)+' = '+om.toFixed(3)
+                +(closed?'  → эллипс замкнут':' &lt; 1');
+    rd.innerHTML = closed
+      ? '<span class="reg" style="color:'+COL.gray+'">ОТО-член выключен.</span> ω = 1 — косинус ровно в такт обороту, эллипс замыкается, перигелий стоит на месте.'
+      : '<span class="reg" style="color:'+COL.coral+'">Перигелий ползёт: '+perOrbit.toFixed(1)+'° за оборот.</span> Косинус орбиты медленнее оборота (ω&lt;1): за 2π он не доходит до максимума, ось эллипса поворачивается. У Меркурия тот же эффект — только 0.1″ (0.00003°) за оборот, тут усилено в тысячи раз.';
+  }
+
+  function frame(now){
+    const om=1-g, phi=TWO*(now-t0)/1500;    // один оборот за 1.5 с
+    ctx.clearRect(0,0,W,H);
+
+    // солнце
+    ctx.fillStyle='#e6a91f';
+    ctx.beginPath(); ctx.arc(OC.x,OC.y,7,0,7); ctx.fill();
+
+    // след — последние ~5 оборотов, гаснут к хвосту (розетка)
+    const dPhi=5*TWO, NS=300, n=parseInt(COL.coral.slice(1),16);
+    let px=0,py=0;
+    for(let i=0;i<=NS;i++){
+      const ph=phi-dPhi*(1-i/NS), r=rOf(ph,om), x=OC.x+r*Math.cos(ph), y=OC.y+r*Math.sin(ph);
+      if(i){ ctx.strokeStyle='rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+(0.05+0.75*i/NS).toFixed(3)+')';
+        ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(x,y); ctx.stroke(); }
+      px=x; py=y;
+    }
+
+    // ось абсид (перигелий ↔ афелий), угол α = φ·g
+    const al=phi*g, rp=P/(1+E), ra=P/(1-E);
+    ctx.strokeStyle='#cbc9c2'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(OC.x+ra*Math.cos(al+Math.PI),OC.y+ra*Math.sin(al+Math.PI));
+    ctx.lineTo(OC.x+ra*Math.cos(al),OC.y+ra*Math.sin(al)); ctx.stroke(); ctx.setLineDash([]);
+    // перигелий-метка
+    ctx.fillStyle=COL.coral;
+    ctx.beginPath(); ctx.arc(OC.x+rp*Math.cos(al),OC.y+rp*Math.sin(al),4,0,7); ctx.fill();
+    ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('перигелий',OC.x+rp*Math.cos(al)+7,OC.y+rp*Math.sin(al)-6);
+
+    // планета
+    const r=rOf(phi,om), x=OC.x+r*Math.cos(phi), y=OC.y+r*Math.sin(phi);
+    ctx.fillStyle=COL.ink; ctx.beginPath(); ctx.arc(x,y,5.5,0,7); ctx.fill();
+
+    // нижняя полоса: 1+e·cos(ωφ) за последние 3 оборота + линии границ оборотов
+    const y0=osc.y+osc.h/2, X=ph2x=>osc.x+((ph2x-(phi-3*TWO))/(3*TWO))*osc.w;
+    ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('пики (перигелий) отстают от границ оборота ▸',osc.x+4,osc.y-2);
+    // границы оборотов φ = 2π·k
+    ctx.strokeStyle='#e2e0d9'; ctx.lineWidth=1;
+    const k0=Math.ceil((phi-3*TWO)/TWO);
+    for(let k=k0;k*TWO<=phi;k++){ const xx=X(k*TWO);
+      ctx.beginPath(); ctx.moveTo(xx,osc.y); ctx.lineTo(xx,osc.y+osc.h); ctx.stroke(); }
+    // кривая u∝1+e·cos(ωφ)
+    ctx.save(); ctx.beginPath(); ctx.rect(osc.x,osc.y-2,osc.w+2,osc.h+4); ctx.clip();
+    ctx.beginPath();
+    const M=200;
+    for(let i=0;i<=M;i++){ const ph=phi-3*TWO+3*TWO*i/M, v=E*Math.cos(om*ph);
+      const xx=X(ph), yy=y0-v*(osc.h*0.42); i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+    ctx.strokeStyle=COL.coral; ctx.lineWidth=2; ctx.stroke();
+    ctx.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  kEl.addEventListener('input',()=>{g=+kEl.value; panel();});
+  panel(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
