@@ -9,7 +9,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
        display:flex;justify-content:center;padding:18px 10px}
-  .card{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
         box-shadow:0 8px 30px rgba(0,0,0,.10)}
   h1{font-size:18px;line-height:1.25;margin:0 0 6px}
   .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
@@ -27,7 +27,7 @@
 </style>
 </head>
 <body>
-<div class="card">
+<div class="pen">
   <h1>Спагеттификация: sinh тянет, sin жмёт</h1>
   <div class="sub">кружок свободно падающих частиц у массивного тела. вдоль падения его тянет, поперёк — сжимает. это и есть спагеттификация — оба знака кривизны разом.</div>
   <div class="formula" id="fx"></div>
@@ -66,7 +66,7 @@
   }
 
   function frame(now){
-    const ph=((now-t0)/5000)%1, p=ph<0.5?ph*2:2*(1-ph), tau=p*TAU_MAX, N=200;   // бумеранг: круг→спагетти→круг
+    const ph=((now-t0)/10000)%1, p=ph<0.5?ph*2:2*(1-ph), tau=p*TAU_MAX, N=200;   // бумеранг: круг→спагетти→круг (замедлено ×2)
     const rC={x:cx, y:scene.y+scene.h*0.42};
     const massY=scene.y+scene.h-4;
     const AVMAX=scene.h*0.40, YTOP=osc.y+6;
