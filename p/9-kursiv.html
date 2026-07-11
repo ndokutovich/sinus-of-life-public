@@ -65,17 +65,24 @@ function formulas(){
     +'<br><span class="mut">\u043e\u0434\u043d\u0430 \u0442\u0430\u0431\u043b\u0438\u0446\u0430 (r,\u03c6): x \u0447\u0438\u0442\u0430\u0435\u0442 \u0435\u0451 \u043a\u043e\u0441\u0438\u043d\u0443\u0441\u0430\u043c\u0438, y \u2014 \u0441\u0438\u043d\u0443\u0441\u0430\u043c\u0438</span>';
 }
 function rebuild(){trace=[];for(var m=0;m<=700;m++)trace.push(pt(m/700,N));formulas();}
-nn.addEventListener('input',function(){N=+nn.value;nv.textContent=N;rebuild();});
+nn.addEventListener('input',function(){if(window.__GIF)return;N=+nn.value;nv.textContent=N;rebuild();});
 nv.textContent=N;rebuild();
 var ghost=[];(function(){for(var m=0;m<=700;m++)ghost.push(pt(m/700,C.length));})();
 var ss=document.getElementById('ss'),sv=document.getElementById('sv');
 var SPD=1;
 function updSpd(){SPD=Math.pow(10,(+ss.value-100)/50);sv.textContent='\u00d7'+(SPD>=0.1?SPD.toFixed(2):SPD.toFixed(3));}
 ss.addEventListener('input',updSpd);updSpd();
-var vt=0,prev=performance.now();
+var vt=0,prev=performance.now(),GIFN=[8,30,161],GIFPER=4000,curGifN=-1;
 (function loop(now){
-  vt+=(now-prev)*SPD;prev=now;
-  var t=(vt/14000)%1;
+  var t;
+  if(window.__GIF){                         // гифка: пороги из статьи — 8 (сейсмограмма) / 30 (почерк врача) / 161 (пропись), пауза-акцент на каждом
+    var ri=Math.floor(now/GIFPER)%3;
+    if(ri!==curGifN){curGifN=ri;N=GIFN[ri];nv.textContent=N;nn.value=N;rebuild();}
+    t=(now%GIFPER)/GIFPER;
+  } else {
+    vt+=(now-prev)*SPD;prev=now;
+    t=(vt/14000)%1;
+  }
   cx.clearRect(0,0,cv.width,cv.height);
   cx.strokeStyle='#eceadf';cx.lineWidth=3;cx.beginPath();
   for(var m=0;m<ghost.length;m++){if(m)cx.lineTo(ghost[m][0],ghost[m][1]);else cx.moveTo(ghost[m][0],ghost[m][1]);}
@@ -102,17 +109,21 @@ var vt=0,prev=performance.now();
   // осциллограммы: те же N гармоник как два колебания руки
   var LX=40,LW=960,S0=575,SH=240,MID=S0+SH/2,AMP=SH/2-14,RX=3.362786,RY=1.672879;
   cx.strokeStyle='#e4e2da';cx.lineWidth=1;cx.beginPath();cx.moveTo(LX,MID);cx.lineTo(LX+LW,MID);cx.stroke();
+  // волна слова рисуется ОДИН раз (прямой проход, 0..350); на возврате метка идёт по ней справа налево
+  var HALF=350;
   cx.strokeStyle='rgba(71,58,163,0.9)';cx.lineWidth=2;cx.beginPath();
-  for(var m=0;m<trace.length;m++){var u=((trace[m][2]-(0.039143))/RX*2-1)*AMP,xx=LX+LW*m/700;if(m)cx.lineTo(xx,MID-u);else cx.moveTo(xx,MID-u);}
+  for(var m=0;m<=HALF;m++){var u=((trace[m][2]-(0.039143))/RX*2-1)*AMP,xx=LX+LW*m/HALF;if(m)cx.lineTo(xx,MID-u);else cx.moveTo(xx,MID-u);}
   cx.stroke();
   cx.strokeStyle='#d65f37';cx.lineWidth=2;cx.beginPath();
-  for(m=0;m<trace.length;m++){var v=((trace[m][3]-(-0.719162))/RY*2-1)*AMP,x2=LX+LW*m/700;if(m)cx.lineTo(x2,MID-v);else cx.moveTo(x2,MID-v);}
+  for(m=0;m<=HALF;m++){var v=((trace[m][3]-(-0.719162))/RY*2-1)*AMP,x2=LX+LW*m/HALF;if(m)cx.lineTo(x2,MID-v);else cx.moveTo(x2,MID-v);}
   cx.stroke();
-  var mx=LX+LW*t;
+  var back=t>=0.5, mf=back?2*(1-t):2*t, mx=LX+LW*mf;   // прямой ход слева-направо, обратный — тем же следом назад
   cx.strokeStyle='rgba(21,23,31,0.35)';cx.lineWidth=1;cx.beginPath();cx.moveTo(mx,S0);cx.lineTo(mx,S0+SH);cx.stroke();
   var cu=((re-(0.039143))/RX*2-1)*AMP, cv2=((im-(-0.719162))/RY*2-1)*AMP;
   cx.fillStyle='#473aa3';cx.beginPath();cx.arc(mx,MID-cu,4,0,7);cx.fill();
   cx.fillStyle='#d65f37';cx.beginPath();cx.arc(mx,MID-cv2,4,0,7);cx.fill();
+  cx.font='19px ui-monospace,Consolas,monospace';cx.fillStyle='#8a8e9c';
+  cx.fillText(back?'← перо возвращается по тому же следу':'перо пишет слово →',LX,S0+SH+22);
   cx.font='21px ui-monospace,Consolas,monospace';
   cx.fillStyle='#473aa3';cx.fillText('x(t) \u2014 \u0440\u0443\u043a\u0430 \u0432\u043f\u0440\u0430\u0432\u043e-\u0432\u043b\u0435\u0432\u043e',LX,S0-6);
   cx.fillStyle='#9c3f1f';cx.fillText('y(t) \u2014 \u0432\u0432\u0435\u0440\u0445-\u0432\u043d\u0438\u0437',LX+660,S0-6);
