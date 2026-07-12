@@ -20,7 +20,7 @@
   .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
   .row label{min-width:118px;color:#3a3a36}
   input[type=range]{flex:1;accent-color:var(--ink);height:22px}
-  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;min-width:88px;text-align:right;font-weight:600}
   .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:4.6em}
   .read .reg{font-weight:600}
   .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
@@ -63,7 +63,10 @@
     return (Math.hypot(ax,ay)-Math.hypot(bx,by))/R0; }
 
   function panel(){
-    kv.textContent=Q.toFixed(2); kv.style.color=COL.ink; kEl.style.accentColor=COL.ink;
+    const nm = Q<0.12?'линейная' : Q>0.88?'круговая' : 'эллиптическая';
+    kv.textContent=nm;
+    kv.style.color = Q<0.12?COL.coral : Q>0.88?COL.violet : COL.gray;
+    kEl.style.accentColor = kv.style.color;
     fx.innerHTML='<b>h₊ = h·cos ωt</b>&nbsp;·&nbsp;<b>h× = q·h·sin ωt</b><br>'
                 +'δx = ½(h₊·x + h×·y),&nbsp; δy = ½(h×·x − h₊·y) &nbsp;— то же уравнение девиации, только K бежит волной';
     rd.innerHTML = Q<0.12
