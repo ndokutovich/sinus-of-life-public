@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Комплексный маятник: оба синуса в одной орбите</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+       box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.75;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  .row label{min-width:130px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:5.6em}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="pen">
+  <h1>Комплексный маятник: оба синуса в одной орбите</h1>
+  <div class="sub">берём обычное уравнение маятника — и делаем угол комплексным. одно уравнение распадается на два, и в них стоят оба близнеца: круговой синус правит вещественной осью, гиперболический — мнимой. рисуем след точки на плоскости Z.</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <label>мнимая часть старта</label>
+    <input id="k" type="range" min="0" max="0.12" step="0.005" value="0.06">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">интегрируется честно: RK4, шаг 0.02, никаких замкнутых формул — уравнение нелинейно. диссипации нет (поток сохраняет объём), поэтому это не аттрактор, а квазипериодическая намотка: два интеграла — Re и Im от E = ½Ż² − a·cos Z — держат движение на торе.</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502,HT=420;
+  cv.width=W*DPR; cv.height=HT*DPR; cv.style.height=HT+'px';
+  ctx.scale(DPR,DPR);
+  const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+
+  const A=0.3, X0=0.4, U0=0.2, H=0.02, YCAP=4.6, S=55;
+  // прогон зависит от режима: завиткам хватает t≈430 (витки ещё различимы),
+  // а улёт наступает лишь к t≈780…1150 — обрубать раньше значило бы врать подписью
+  let STEP=60, TMAX=430;
+  const OC={x:W/2,y:HT/2};
+  // накопительный слой для следа: полилинию в 20k точек нельзя перерисовывать каждый кадр
+  const tr=document.createElement('canvas'); tr.width=W*DPR; tr.height=HT*DPR;
+  const tc=tr.getContext('2d'); tc.scale(DPR,DPR);
+  let Y0=0.06, st=[X0,U0,Y0,0], T=0, gone=false, done=false, hold=0, px=0, py=0;
+
+  const SX=x=>OC.x+x*S, SY=y=>OC.y-y*S;
+  function dv(s){ const [x,u,y,v]=s;
+    return [u, -A*Math.sin(x)*Math.cosh(y), v, -A*Math.cos(x)*Math.sinh(y)]; }
+  function rk4(s,h){ const k1=dv(s),
+    k2=dv(s.map((q,i)=>q+0.5*h*k1[i])), k3=dv(s.map((q,i)=>q+0.5*h*k2[i])), k4=dv(s.map((q,i)=>q+h*k3[i]));
+    return s.map((q,i)=>q+h/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i])); }
+  function reset(){ st=[X0,U0,Y0,0]; T=0; gone=false; done=false; hold=0;
+    const esc = Y0>=0.08;
+    TMAX = esc?1400:430; STEP = esc?140:60;
+    tc.clearRect(0,0,W,HT); px=SX(X0); py=SY(Y0); }
+
+  function panel(){
+    const lin=Y0<0.005, esc=Y0>=0.08;
+    kv.textContent=Y0.toFixed(3); kv.style.color = lin?COL.gray : esc?COL.violet : COL.coral;
+    kEl.style.accentColor=kv.style.color;
+    fx.innerHTML='<b>Z̈ = −a·sin Z</b>,&nbsp; a = 0.3,&nbsp; Z = x + i·y<br>'
+                +'ẍ = −a·<b>sin x</b>·<b>cosh y</b>&nbsp;&nbsp;·&nbsp;&nbsp;ÿ = −a·<b>cos x</b>·<b>sinh y</b>';
+    rd.innerHTML = lin
+      ? '<span class="reg" style="color:'+COL.gray+'">Мнимой части нет.</span> sinh 0 = 0 — гиперболическая половина выключена, остаётся обычный маятник. Орбита прижата к вещественной оси: <b>отрезок</b>. Круговой синус ограничен, качание длится вечно.'
+      : esc
+      ? '<span class="reg" style="color:'+COL.violet+'">Мнимого слишком много — орбита уходит в бесконечность.</span> У cosh и sinh <b>нет потолка</b>: чем дальше от вещественной оси, тем сильнее их гонит прочь. Гиперболический близнец побеждает, и решение взрывается за конечное время. У синуса потолок есть — у sinh нет.'
+      : '<span class="reg" style="color:'+COL.coral+'">Оба близнеца работают — завитки.</span> sin·cosh качает вдоль вещественной оси, cos·sinh тянет по мнимой. Орбита наматывается, не замыкаясь: <b>бесконечные завитки</b>. Это не аттрактор — движение квазипериодично, его держат на торе два интеграла (Re E и Im E).';
+  }
+
+  function frame(){
+    const c = Y0<0.005?COL.gray : Y0>=0.08?COL.violet : COL.coral;   // цвет по режиму, а не по моменту улёта
+    window.__done = (done||gone);                   // хук для детерминированного снимка
+    if(gone||done){ if(++hold>200) reset(); }       // дать посмотреть на готовую картину
+    else if(T>=TMAX){ done=true; }
+    else {
+      tc.strokeStyle=c; tc.lineWidth=0.9; tc.globalAlpha=0.55;
+      tc.beginPath(); tc.moveTo(px,py);
+      for(let i=0;i<STEP;i++){
+        st=rk4(st,H); T+=H;
+        if(!isFinite(st[0])||!isFinite(st[2])||Math.abs(st[2])>YCAP){ gone=true; break; }
+        px=SX(st[0]); py=SY(st[2]); tc.lineTo(px,py);
+      }
+      tc.stroke(); tc.globalAlpha=1;
+    }
+
+    ctx.clearRect(0,0,W,HT);
+    // оси
+    ctx.strokeStyle='#e2e0d9'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,OC.y); ctx.lineTo(W,OC.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(OC.x,0); ctx.lineTo(OC.x,HT); ctx.stroke();
+    ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif';
+    ctx.textAlign='right'; ctx.fillText('Re Z  (обычный маятник живёт здесь)',W-8,OC.y-6);
+    ctx.textAlign='left';  ctx.fillText('Im Z',OC.x+7,14);
+
+    ctx.drawImage(tr,0,0,W,HT);                       // накопленный след
+
+    ctx.fillStyle='#9a988f'; ctx.beginPath(); ctx.arc(SX(X0),SY(Y0),3.5,0,7); ctx.fill();
+    if(!gone && Math.abs(st[2])<YCAP){ ctx.fillStyle=c;
+      ctx.beginPath(); ctx.arc(px,py,4.5,0,7); ctx.fill(); }
+    if(gone){ ctx.fillStyle=COL.violet; ctx.font='600 12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('орбита ушла в бесконечность',OC.x,HT-12); }
+
+    requestAnimationFrame(frame);
+  }
+
+  kEl.addEventListener('input',()=>{ Y0=+kEl.value; panel(); reset(); });
+  panel(); reset(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
