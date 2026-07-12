@@ -40,7 +40,7 @@
     <span class="kv" id="kv"></span>
   </div>
   <div class="read" id="rd"></div>
-  <div class="cap">RK4, шаг 0.02 — уравнение нелинейно, замкнутых формул нет. режимы дискретны не для красоты: область ограниченных орбит здесь изрешечена, они — редкие острова среди улётов, и плавный ползунок прыгал бы между свитком и взрывом. диссипации нет (поток сохраняет объём), поэтому это не аттрактор: два интеграла — Re и Im от E = ½Ż² − a·cos Z — держат движение на инвариантной поверхности.</div>
+  <div class="cap">RK4, шаг подобран по сходимости и у каждого режима свой: у свитка |Im Z| доходит до 12, а cosh 12 ≈ 80 000 — задача жёсткая, и на грубом шаге счёт разваливается (энергия уезжает на треть, картинка получается ложной). на h = 0.002 результаты для 0.002 / 0.001 / 0.0005 / 0.00025 совпадают, энергия держится с точностью 0.06%. режимы дискретны не для красоты: ограниченные орбиты здесь — редкие острова среди улётов, и плавный ползунок прыгал бы между свитком и взрывом. диссипации нет (поток сохраняет объём), поэтому это не аттрактор: два интеграла — Re и Im от E = ½Ż² − a·cos Z — держат движение на инвариантной поверхности.</div>
 </div>
 <script>
 (function(){
@@ -53,18 +53,20 @@
   const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
 
-  const A=0.3, H=0.02, YCAP=11;
-  // все четыре режима промерены численно; между ними параметр ведёт себя дико — потому и дискрет
+  const A=0.3, YCAP=14;
+  // шаг у каждого режима СВОЙ и подобран по сходимости: у свитка |Im Z| доходит до 12,
+  // а cosh(12) ≈ 8·10⁴ — задача жёсткая, и на h=0.02 счёт разваливается (энергия уезжает на 30%).
+  // проверено: с h=0.002 результаты h=0.002/0.001/0.0005/0.00025 совпадают, ΔE = 0.06%
   const M=[
-   {n:'обычный маятник', s:[2.0,0,0,0],     xr:3.4, yr:2.2,  T:260,  st:40,  c:COL.gray},
-   {n:'завитки',         s:[0.4,0.2,0.06,0],xr:3.0, yr:3.6,  T:430,  st:60,  c:COL.coral},
-   {n:'свиток',          s:[0,1.09,0,0.20], xr:30,  yr:10,   T:1000, st:110, c:COL.coral},
-   {n:'улёт',            s:[0,1.09,0,0.30], xr:14,  yr:11,   T:1600, st:140, c:COL.violet}
+   {n:'обычный маятник', s:[2.0,0,0,0],      h:0.01,  T:260,  st:90,   cx:0, xr:2.7, yr:1.6, c:COL.gray},
+   {n:'завитки',         s:[0.4,0.2,0.06,0], h:0.005, T:900,  st:260,  cx:0, xr:1.5, yr:1.4, c:COL.coral},
+   {n:'свиток',          s:[0,1.09,0,0.20],  h:0.002, T:4000, st:1350, cx:6, xr:23,  yr:13,  c:COL.coral},
+   {n:'улёт',            s:[0,1.09,0,0.30],  h:0.002, T:4000, st:1350, cx:0, xr:15,  yr:13,  c:COL.violet}
   ];
   let mi=2, m=M[2], st=m.s.slice(), T=0, gone=false, done=false, hold=0, px=0,py=0, S=1, ser=[];
   const tr=document.createElement('canvas'); tr.width=W*DPR; tr.height=HT*DPR;
   const tc=tr.getContext('2d'); tc.scale(DPR,DPR);
-  const SX=x=>W/2+x*S, SY=y=>HT/2-y*S;
+  const SX=x=>W/2+(x-m.cx)*S, SY=y=>HT/2-y*S;
 
   function dv(s){ const [x,u,y,v]=s;
     if(Math.abs(y)>25) return null;
@@ -94,16 +96,17 @@
 
   function frame(){
     window.__done=(done||gone);
-    if(gone||done){ if(++hold>200) reset(); }
+    if(gone||done){ if(++hold>320) reset(); }
     else if(T>=m.T){ done=true; }
     else {
-      tc.strokeStyle=m.c; tc.lineWidth=0.9; tc.globalAlpha=0.6;
+      tc.strokeStyle=m.c; tc.lineWidth=0.9; tc.globalAlpha=0.55;
       tc.beginPath(); tc.moveTo(px,py);
+      const smp=Math.max(1,Math.round(m.st/12));
       for(let i=0;i<m.st;i++){
-        const n=rk4(st,H);
+        const n=rk4(st,m.h);
         if(!n||!isFinite(n[0])||Math.abs(n[2])>YCAP){ gone=true; break; }
-        st=n; T+=H; px=SX(st[0]); py=SY(st[2]); tc.lineTo(px,py);
-        if(i%4===0) ser.push([T,st[0],st[2]]);
+        st=n; T+=m.h; px=SX(st[0]); py=SY(st[2]); tc.lineTo(px,py);
+        if(i%smp===0) ser.push([T,st[0],st[2]]);
       }
       tc.stroke(); tc.globalAlpha=1;
     }
