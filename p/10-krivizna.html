@@ -53,7 +53,7 @@
   const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')';};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
 
-  let K=0.45, t0=performance.now();
+  let K=+kEl.value, t0=performance.now();
   const XI0=1, SMAX=6.3, PXU=64, OSCU=38;
   const f=(s,k)=>{ if(Math.abs(k)<0.02) return 1;
                    if(k>0){const r=Math.sqrt(k);return Math.cos(r*s);}

@@ -63,7 +63,7 @@
    {n:'свиток',          s:[0,1.09,0,0.20],  h:0.002, T:4000, st:1350, cx:6, xr:23,  yr:13,  c:COL.coral},
    {n:'улёт',            s:[0,1.09,0,0.30],  h:0.002, T:4000, st:1350, cx:0, xr:15,  yr:13,  c:COL.violet}
   ];
-  let mi=2, m=M[2], st=m.s.slice(), T=0, gone=false, done=false, hold=0, px=0,py=0, S=1, ser=[];
+  let mi=+document.getElementById("k").value, m=M[mi], st=m.s.slice(), T=0, gone=false, done=false, hold=0, px=0,py=0, S=1, ser=[];
   const tr=document.createElement('canvas'); tr.width=W*DPR; tr.height=HT*DPR;
   const tc=tr.getContext('2d'); tc.scale(DPR,DPR);
   const SX=x=>W/2+(x-m.cx)*S, SY=y=>HT/2-y*S;

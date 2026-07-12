@@ -50,7 +50,7 @@
   const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
 
-  let g=0.12, t0=performance.now();
+  let g=+kEl.value, t0=performance.now();
   const E=0.45, P=80;                       // эксцентриситет, фокальный параметр (px)
   const OC={x:W/2,y:206}, osc={x:46,y:410,w:W-70,h:96};
   const rOf=(phi,om)=>P/(1+E*Math.cos(om*phi));

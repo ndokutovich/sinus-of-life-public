@@ -50,7 +50,7 @@
   const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
 
-  let Q=0, t0=performance.now();
+  let Q=+kEl.value, t0=performance.now();
   const A=0.32, PER=4000, OM=2*Math.PI/PER;   // усиленная амплитуда; период волны
   const R0=88, OC={x:W/2,y:152}, osc={x:46,y:342,w:W-70,h:110}, WIN=2.6*PER;
 

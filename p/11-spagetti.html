@@ -52,7 +52,7 @@
   const scene={x:0,y:40,w:W,h:332}, osc={x:46,y:406,w:W-70,h:120};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
 
-  let G=0.5, t0=performance.now();
+  let G=+kEl.value, t0=performance.now();
   const R0=0.7, PXU_B=36, OSCU_B=32, TAU_MAX=1.55;              // фикс. окно «прожитого» времени падения
   const rateR=g=>Math.sqrt(2*g), rateT=g=>Math.sqrt(g);         // приливные собств.значения +2g, −g
   const xir=(tau,g)=>R0*Math.cosh(rateR(g)*tau);               // радиально: тянет (sinh)
