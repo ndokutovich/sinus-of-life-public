@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Мозаика Пенроуза: сложи пять косинусов</title>
+<title>Мозаика Пенроуза: из пяти семейств прямых</title>
 <style>
   :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
   *{box-sizing:border-box}
@@ -13,90 +13,160 @@
        box-shadow:0 8px 30px rgba(0,0,0,.10)}
   h1{font-size:18px;line-height:1.25;margin:0 0 6px}
   .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
-  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
-           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.75;color:#2a2c36}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:12.5px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.7;color:#2a2c36}
   .formula b{color:var(--ink)}
-  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
-  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
-  .row label{min-width:104px;color:#3a3a36}
+  .cl{font-size:11px;color:#8a8a86;margin:10px 0 2px;text-align:center;letter-spacing:.02em}
+  canvas{display:block;width:100%;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:12px}
+  .row label{min-width:112px;color:#3a3a36}
   input[type=range]{flex:1;accent-color:var(--ink);height:22px}
-  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;min-width:112px;text-align:right;font-weight:600}
-  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:6.2em}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;min-width:104px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:6em}
   .read .reg{font-weight:600}
   .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
 </style>
 </head>
 <body>
 <div class="pen">
-  <h1>Мозаика Пенроуза: сложи пять косинусов</h1>
-  <div class="sub">берём N плоских волн — просто косинусы, — разворачиваем их веером на равные углы и складываем. светлое там, где гребни сошлись. ползунок крутит число волн.</div>
+  <h1>Мозаика Пенроуза: из пяти семейств прямых</h1>
+  <div class="sub">де Брёйн (1981): берём N семейств параллельных прямых, развёрнутых веером. каждое <b>пересечение</b> двух прямых превращается в один <b>ромб</b>. пять семейств дают мозаику Пенроуза.</div>
   <div class="formula" id="fx"></div>
-  <canvas id="c"></canvas>
+
+  <div class="cl">СВЕРХУ: сетка из N семейств прямых · синяя точка — одно пересечение</div>
+  <canvas id="g"></canvas>
+  <div class="cl">СНИЗУ: она же, пересчитанная в ромбы · синий ромб — из той самой точки</div>
+  <canvas id="t"></canvas>
+
   <div class="row">
-    <label>число волн N</label>
-    <input id="k" type="range" min="1" max="7" step="1" value="5">
+    <label>семейств&nbsp;N</label>
+    <input id="k" type="range" min="3" max="7" step="1" value="5">
     <span class="kv" id="kv"></span>
   </div>
   <div class="read" id="rd"></div>
-  <div class="cap">это не сама мозаика Пенроуза, а её остов: де Брёйн (1981) строит её ровно из пяти семейств параллельных прямых — а гребни пяти волн и есть эти пять семейств. пересечения дают ромбы. и глубже: квазикристалл — косой срез периодической решётки из пяти измерений. наверху скучный кристалл, тень внизу — не повторяется никогда.</div>
+  <div class="cap">а где тут синус: семейство равноотстоящих параллельных прямых — это гребни плоской волны, косинуса. пять семейств = пять косинусов, развёрнутых веером. и золотое сечение внутри плитки — тоже он: φ = 2·cos 36° = 1.618…</div>
 </div>
 <script>
 (function(){
-  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
-  const W=502,H=430;
-  cv.width=W; cv.height=H; cv.style.height=H+'px';
-  const COL={coral:[224,90,60], paper:[246,245,240], ink:[21,23,31], violet:[107,79,196], gray:[138,138,134]};
+  const cg=document.getElementById('g'), gx=cg.getContext('2d');
+  const ct=document.getElementById('t'), tx=ct.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502, HG=250, HT=280;
+  cg.width=W*DPR; cg.height=HG*DPR; cg.style.height=HG+'px'; gx.scale(DPR,DPR);
+  ct.width=W*DPR; ct.height=HT*DPR; ct.style.height=HT+'px'; tx.scale(DPR,DPR);
+  const C={coral:'#e05a3c', violet:'#6b4fc4', ink:'#15171f', faint:'#cbc9c2', gray:'#8a8a86', blue:'#2f6fd0'};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
   let N=+kEl.value;
+  const MMAX=8, RMAX=4.6;   // индексы с запасом, а отбираем узлы по РАДИУСУ — иначе патч рвётся
 
-  const K=0.135;                        // волновое число (≈47 px на период)
-  const img=ctx.createImageData(W,H);
+  // e_j — нормали семейств, веером через 180°/N. смещения γ с суммой 0 (условие де Брёйна)
+  function setup(n){
+    const e=[], g=[];
+    for(let j=0;j<n;j++){ const th=Math.PI*j/n; e.push([Math.cos(th),Math.sin(th)]); }
+    let s=0; for(let j=0;j<n;j++){ const v=((j*0.37)%1)-0.5; g.push(v); s+=v; }
+    for(let j=0;j<n;j++) g[j]-=s/n;               // Σγ = 0
+    return {e,g};
+  }
 
-  function render(){
-    const cs=[], sn=[];
-    for(let k=0;k<N;k++){ const th=Math.PI*k/N; cs.push(Math.cos(th)); sn.push(Math.sin(th)); }
-    const per = N<=3;                   // 2N-кратная симметрия: 2,4,6 — решётке можно; 8,10,12,14 — запрещено
-    const C = per?COL.gray:(N===5?COL.coral:COL.violet);
-    const d=img.data;
-    for(let y=0;y<H;y++){
-      const yy=y-H/2;
-      for(let x=0;x<W;x++){
-        const xx=x-W/2;
-        let f=0;
-        for(let k=0;k<N;k++) f+=Math.cos(K*(xx*cs[k]+yy*sn[k]));
-        const v=f/N;                                  // −1..1
-        let t=(v-0.18)/0.10; t=t<0?0:(t>1?1:t);       // мягкий порог: гребни сошлись
-        const i=(y*W+x)*4;
-        d[i  ]=COL.paper[0]+(C[0]-COL.paper[0])*t;
-        d[i+1]=COL.paper[1]+(C[1]-COL.paper[1])*t;
-        d[i+2]=COL.paper[2]+(C[2]-COL.paper[2])*t;
-        d[i+3]=255;
+  function rhombs(n){
+    const {e,g}=setup(n), out=[];
+    for(let j=0;j<n;j++) for(let k=j+1;k<n;k++){
+      const det=e[j][0]*e[k][1]-e[j][1]*e[k][0];
+      if(Math.abs(det)<1e-9) continue;
+      for(let m=-MMAX;m<=MMAX;m++) for(let q=-MMAX;q<=MMAX;q++){
+        const c1=m+g[j], c2=q+g[k];
+        const x=(c1*e[k][1]-e[j][1]*c2)/det, y=(e[j][0]*c2-c1*e[k][0])/det;   // точка пересечения
+        if(x*x+y*y > RMAX*RMAX) continue;                                     // берём связный кусок сетки
+        const K=[];
+        for(let i=0;i<n;i++) K.push(i===j?m : i===k?q : Math.ceil(x*e[i][0]+y*e[i][1]-g[i]));
+        const V=[];
+        for(const [dj,dk] of [[0,0],[1,0],[1,1],[0,1]]){                       // четыре клетки вокруг узла
+          let vx=0, vy=0;
+          for(let i=0;i<n;i++){
+            const ki = i===j?K[j]+dj : i===k?K[k]+dk : K[i];
+            vx+=ki*e[i][0]; vy+=ki*e[i][1];
+          }
+          V.push([vx,vy]);
+        }
+        let d=Math.abs(j-k); d=Math.min(d,n-d);                                // тип ромба
+        out.push({V, d, cx:x, cy:y});
       }
     }
-    ctx.putImageData(img,0,0);
+    return out;
+  }
+
+  function draw(){
+    const {e,g}=setup(N), R=rhombs(N);
+    // ближайшее к центру пересечение — его и подсветим в обоих окнах
+    let best=0, bd=1e9;
+    for(let i=0;i<R.length;i++){ const dd=R[i].cx*R[i].cx+R[i].cy*R[i].cy; if(dd<bd){bd=dd;best=i;} }
+
+    // --- СЕТКА ---
+    gx.clearRect(0,0,W,HG);
+    const GS=Math.min(W,HG)/(2*(RMAX+0.5));       // масштаб сетки — под ту же область
+    const GX=x=>W/2+x*GS, GY=y=>HG/2-y*GS;
+    gx.save(); gx.beginPath(); gx.rect(0,0,W,HG); gx.clip();
+    for(let j=0;j<N;j++){
+      const [a,b]=e[j];
+      gx.strokeStyle = j===0?'rgba(224,90,60,.55)' : 'rgba(21,23,31,.28)';
+      gx.lineWidth=1;
+      for(let m=-MMAX;m<=MMAX;m++){
+        const c=m+g[j];
+        // прямая a·x+b·y=c → рисуем длинный отрезок вдоль (−b,a)
+        const px=c*a, py=c*b, L=40;
+        gx.beginPath();
+        gx.moveTo(GX(px-b*L),GY(py+a*L));
+        gx.lineTo(GX(px+b*L),GY(py-a*L));
+        gx.stroke();
+      }
+    }
+    const P=R[best];
+    gx.fillStyle=C.blue; gx.beginPath(); gx.arc(GX(P.cx),GY(P.cy),5,0,7); gx.fill();
+    gx.restore();
+
+    // --- МОЗАИКА ---
+    tx.clearRect(0,0,W,HT);
+    let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+    for(const r of R) for(const v of r.V){ mnx=Math.min(mnx,v[0]); mxx=Math.max(mxx,v[0]); mny=Math.min(mny,v[1]); mxy=Math.max(mxy,v[1]); }
+    const S=Math.min((W-16)/(mxx-mnx), (HT-16)/(mxy-mny));
+    const ox=(mnx+mxx)/2, oy=(mny+mxy)/2;
+    const TX=x=>W/2+(x-ox)*S, TY=y=>HT/2-(y-oy)*S;
+    const dmax=Math.floor(N/2);
+    for(const r of R){
+      const t=(r.d-1)/Math.max(1,dmax-1);                                       // толстый ↔ тонкий
+      const cr=Math.round(224+(107-224)*t), cg2=Math.round(90+(79-90)*t), cb=Math.round(60+(196-60)*t);
+      tx.beginPath();
+      tx.moveTo(TX(r.V[0][0]),TY(r.V[0][1]));
+      for(let i=1;i<4;i++) tx.lineTo(TX(r.V[i][0]),TY(r.V[i][1]));
+      tx.closePath();
+      tx.fillStyle='rgba('+cr+','+cg2+','+cb+',0.30)'; tx.fill();
+      tx.strokeStyle='rgba('+cr+','+cg2+','+cb+',0.85)'; tx.lineWidth=0.8; tx.stroke();
+    }
+    tx.beginPath();
+    tx.moveTo(TX(P.V[0][0]),TY(P.V[0][1]));
+    for(let i=1;i<4;i++) tx.lineTo(TX(P.V[i][0]),TY(P.V[i][1]));
+    tx.closePath(); tx.fillStyle='rgba(47,111,208,.55)'; tx.fill();
+    tx.strokeStyle=C.blue; tx.lineWidth=2; tx.stroke();
   }
 
   function panel(){
     const sym=2*N, per=N<=3;
-    const C = per?'#8a8a86':(N===5?'#e05a3c':'#6b4fc4');
-    kv.textContent=N+' → '+sym+'-кратн.'; kv.style.color=C; kEl.style.accentColor=C;
-    fx.innerHTML='<b>f(x,y) = Σ cos( K·(x·cos θ<sub>j</sub> + y·sin θ<sub>j</sub>) )</b>,&nbsp; θ<sub>j</sub> = 180°·j/N<br>'
-                +'— просто сумма N косинусов, развёрнутых веером.<br>'
-                +'а золотое сечение внутри плитки: <b>φ = 2·cos 36° = 1.618…</b> — удвоенный косинус';
+    const col = per?C.gray : (N===5?C.coral:C.violet);
+    kv.textContent=N+' → '+sym+'-кратн.'; kv.style.color=col; kEl.style.accentColor=col;
+    fx.innerHTML='<b>семейство j:</b> все прямые, где&nbsp; x·cos θ<sub>j</sub> + y·sin θ<sub>j</sub> = m + γ<sub>j</sub>,&nbsp; m ∈ ℤ<br>'
+                +'θ<sub>j</sub> = 180°·j/N &nbsp;·&nbsp; Σγ<sub>j</sub> = 0 &nbsp;→&nbsp; <b>каждое пересечение = один ромб</b>';
     const R={
-     1:'<span class="reg" style="color:#8a8a86">Одна волна — полосы.</span> Косинус в чистом виде: гребень, впадина, гребень. Период есть, узор повторяется.',
-     2:'<span class="reg" style="color:#8a8a86">Две волны — 4-кратная симметрия.</span> Квадратная решётка. Периодично, и решётке это <b>разрешено</b>: обычный кристалл.',
-     3:'<span class="reg" style="color:#8a8a86">Три волны — 6-кратная.</span> Гексагональная решётка (соты, графен). Периодично, <b>разрешено</b>. Это последняя честная решётка.',
-     4:'<span class="reg" style="color:#6b4fc4">Четыре волны — 8-кратная. Запрещено!</span> Периодическая решётка может иметь только 2-, 3-, 4- и 6-кратную симметрию (кристаллографическое ограничение). Восьмёрки в списке нет — значит узор <b>никогда не повторится</b>. И при этом он идеально упорядочен: квазикристалл.',
-     5:'<span class="reg" style="color:#e05a3c">Пять волн — 10-кратная. Это Пенроуз.</span> Пятерная симметрия для кристалла <b>запрещена</b> — именно поэтому дифракционная картина Шехтмана (1982) сочли ошибкой, а спустя тридцать лет дали Нобелевку. Узор апериодичен, но спектр у него — <b>острые пики</b>. А острые пики означают одно: структура <b>и есть сумма синусов</b>, просто с несоизмеримыми частотами.',
-     6:'<span class="reg" style="color:#6b4fc4">Шесть волн — 12-кратная.</span> Тоже запрещена решётке, тоже квазикристалл (додекагональные реально найдены в сплавах).',
-     7:'<span class="reg" style="color:#6b4fc4">Семь волн — 14-кратная.</span> Запрещено, апериодично. Чем больше волн, тем гуще узор — и тем очевиднее, что он не повторяется.'
+     3:'<span class="reg" style="color:'+C.gray+'">Три семейства — 6-кратная.</span> Ромбы складываются в <b>периодическую</b> мозаику: сдвинь её на нужный вектор — совпадёт сама с собой. Обычный кристалл, решётке такая симметрия разрешена.',
+     4:'<span class="reg" style="color:'+C.violet+'">Четыре — 8-кратная. Аммann—Бенкер.</span> Восьмёрка периодической решётке <b>запрещена</b> (можно только 2, 3, 4 и 6). Значит мозаика <b>не повторяется никогда</b> — и всё равно построена из двух видов ромбов по жёсткому правилу.',
+     5:'<span class="reg" style="color:'+C.coral+'">Пять — 10-кратная. Это Пенроуз.</span> Два ромба: толстый (72°) и тонкий (36°). Пятерная симметрия решётке <b>запрещена</b> — поэтому мозаика апериодична, а дифракция от такой структуры даёт <b>острые пики</b>. Именно её увидел Шехтман в 1982-м, ему не поверили, а в 2011-м дали Нобелевку.',
+     6:'<span class="reg" style="color:'+C.violet+'">Шесть — 12-кратная.</span> Тоже запрещена, тоже апериодична. Додекагональные квазикристаллы реально находят в сплавах.',
+     7:'<span class="reg" style="color:'+C.violet+'">Семь — 14-кратная.</span> Больше семейств — больше типов ромбов и гуще мозаика. И по-прежнему ни одного повтора.'
     };
     rd.innerHTML=R[N];
   }
 
-  kEl.addEventListener('input',()=>{ N=+kEl.value; panel(); render(); });
-  panel(); render();
+  kEl.addEventListener('input',()=>{ N=+kEl.value; panel(); draw(); });
+  panel(); draw();
 })();
 </script>
 </body>
