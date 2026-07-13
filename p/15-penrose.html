@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мозаика Пенроуза: сложи пять косинусов</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+       box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.75;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  .row label{min-width:104px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;min-width:112px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:6.2em}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="pen">
+  <h1>Мозаика Пенроуза: сложи пять косинусов</h1>
+  <div class="sub">берём N плоских волн — просто косинусы, — разворачиваем их веером на равные углы и складываем. светлое там, где гребни сошлись. ползунок крутит число волн.</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <label>число волн N</label>
+    <input id="k" type="range" min="1" max="7" step="1" value="5">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">это не сама мозаика Пенроуза, а её остов: де Брёйн (1981) строит её ровно из пяти семейств параллельных прямых — а гребни пяти волн и есть эти пять семейств. пересечения дают ромбы. и глубже: квазикристалл — косой срез периодической решётки из пяти измерений. наверху скучный кристалл, тень внизу — не повторяется никогда.</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const W=502,H=430;
+  cv.width=W; cv.height=H; cv.style.height=H+'px';
+  const COL={coral:[224,90,60], paper:[246,245,240], ink:[21,23,31], violet:[107,79,196], gray:[138,138,134]};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+  let N=+kEl.value;
+
+  const K=0.135;                        // волновое число (≈47 px на период)
+  const img=ctx.createImageData(W,H);
+
+  function render(){
+    const cs=[], sn=[];
+    for(let k=0;k<N;k++){ const th=Math.PI*k/N; cs.push(Math.cos(th)); sn.push(Math.sin(th)); }
+    const per = N<=3;                   // 2N-кратная симметрия: 2,4,6 — решётке можно; 8,10,12,14 — запрещено
+    const C = per?COL.gray:(N===5?COL.coral:COL.violet);
+    const d=img.data;
+    for(let y=0;y<H;y++){
+      const yy=y-H/2;
+      for(let x=0;x<W;x++){
+        const xx=x-W/2;
+        let f=0;
+        for(let k=0;k<N;k++) f+=Math.cos(K*(xx*cs[k]+yy*sn[k]));
+        const v=f/N;                                  // −1..1
+        let t=(v-0.18)/0.10; t=t<0?0:(t>1?1:t);       // мягкий порог: гребни сошлись
+        const i=(y*W+x)*4;
+        d[i  ]=COL.paper[0]+(C[0]-COL.paper[0])*t;
+        d[i+1]=COL.paper[1]+(C[1]-COL.paper[1])*t;
+        d[i+2]=COL.paper[2]+(C[2]-COL.paper[2])*t;
+        d[i+3]=255;
+      }
+    }
+    ctx.putImageData(img,0,0);
+  }
+
+  function panel(){
+    const sym=2*N, per=N<=3;
+    const C = per?'#8a8a86':(N===5?'#e05a3c':'#6b4fc4');
+    kv.textContent=N+' → '+sym+'-кратн.'; kv.style.color=C; kEl.style.accentColor=C;
+    fx.innerHTML='<b>f(x,y) = Σ cos( K·(x·cos θ<sub>j</sub> + y·sin θ<sub>j</sub>) )</b>,&nbsp; θ<sub>j</sub> = 180°·j/N<br>'
+                +'— просто сумма N косинусов, развёрнутых веером.<br>'
+                +'а золотое сечение внутри плитки: <b>φ = 2·cos 36° = 1.618…</b> — удвоенный косинус';
+    const R={
+     1:'<span class="reg" style="color:#8a8a86">Одна волна — полосы.</span> Косинус в чистом виде: гребень, впадина, гребень. Период есть, узор повторяется.',
+     2:'<span class="reg" style="color:#8a8a86">Две волны — 4-кратная симметрия.</span> Квадратная решётка. Периодично, и решётке это <b>разрешено</b>: обычный кристалл.',
+     3:'<span class="reg" style="color:#8a8a86">Три волны — 6-кратная.</span> Гексагональная решётка (соты, графен). Периодично, <b>разрешено</b>. Это последняя честная решётка.',
+     4:'<span class="reg" style="color:#6b4fc4">Четыре волны — 8-кратная. Запрещено!</span> Периодическая решётка может иметь только 2-, 3-, 4- и 6-кратную симметрию (кристаллографическое ограничение). Восьмёрки в списке нет — значит узор <b>никогда не повторится</b>. И при этом он идеально упорядочен: квазикристалл.',
+     5:'<span class="reg" style="color:#e05a3c">Пять волн — 10-кратная. Это Пенроуз.</span> Пятерная симметрия для кристалла <b>запрещена</b> — именно поэтому дифракционная картина Шехтмана (1982) сочли ошибкой, а спустя тридцать лет дали Нобелевку. Узор апериодичен, но спектр у него — <b>острые пики</b>. А острые пики означают одно: структура <b>и есть сумма синусов</b>, просто с несоизмеримыми частотами.',
+     6:'<span class="reg" style="color:#6b4fc4">Шесть волн — 12-кратная.</span> Тоже запрещена решётке, тоже квазикристалл (додекагональные реально найдены в сплавах).',
+     7:'<span class="reg" style="color:#6b4fc4">Семь волн — 14-кратная.</span> Запрещено, апериодично. Чем больше волн, тем гуще узор — и тем очевиднее, что он не повторяется.'
+    };
+    rd.innerHTML=R[N];
+  }
+
+  kEl.addEventListener('input',()=>{ N=+kEl.value; panel(); render(); });
+  panel(); render();
+})();
+</script>
+</body>
+</html>
