@@ -30,7 +30,7 @@
 <body>
 <div class="pen">
   <h1>Струна: частицы — это ноты петли</h1>
-  <div class="sub">замкнутая струна — это ряд Фурье по петле. каждая гармоника дрожит со своей частотой, и чем выше возбуждённая нота, тем тяжелее частица. внизу — спектр: из каких гармоник сложена форма.</div>
+  <div class="sub">замкнутая струна — это ряд Фурье по петле. каждая гармоника — вращающаяся стрелка; их сумма (кончик последней) чертит форму струны. чем выше возбуждённая нота, тем тяжелее частица. внизу — спектр: из каких стрелок сложена петля.</div>
   <div class="formula" id="fx"></div>
   <canvas id="c"></canvas>
   <canvas id="s"></canvas>
@@ -81,28 +81,38 @@
   }
 
   function frame(now){
-    const tau=(now-t0)/1000*0.9, M=modes(n);
+    const el=(now-t0)/1000, tau=el*0.6, M=modes(n);
+    const sp=(el/4)%1, sig=sp*TWO;                 // «перо» обходит петлю за 4 с, чертя её стрелками
     ctx.clearRect(0,0,W,H);
+
     // призрак основной петли
     ctx.strokeStyle=C.faint; ctx.lineWidth=1;
     ctx.beginPath(); ctx.arc(OC.x,OC.y,R,0,7); ctx.stroke();
-    // сама струна
-    ctx.beginPath();
-    for(let i=0;i<=400;i++){ const s=i/400*TWO, [x,y]=Z(s,tau,M);
-      i?ctx.lineTo(OC.x+x,OC.y-y):ctx.moveTo(OC.x+x,OC.y-y); }
-    ctx.closePath();
-    ctx.fillStyle='rgba(224,90,60,.10)'; ctx.fill();
-    ctx.strokeStyle=C.coral; ctx.lineWidth=2.4; ctx.stroke();
-    // метка на струне: точка σ=0 и её след
-    const [mx,my]=Z(0,tau,M);
-    ctx.strokeStyle='rgba(107,79,196,.45)'; ctx.lineWidth=1;
-    ctx.beginPath();
-    for(let i=0;i<=120;i++){ const tt=tau-TWO*0.5*(1-i/120), [x,y]=Z(0,tt,M);
-      i?ctx.lineTo(OC.x+x,OC.y-y):ctx.moveTo(OC.x+x,OC.y-y); }
-    ctx.stroke();
-    ctx.fillStyle=C.violet; ctx.beginPath(); ctx.arc(OC.x+mx,OC.y-my,5,0,7); ctx.fill();
+
+    // струна: уже прочерченная часть (до текущего σ) — ярко, остаток — бледно
+    const drawArc=(s0,s1,style,wid)=>{ ctx.beginPath();
+      const steps=Math.max(2,Math.round((s1-s0)/TWO*400));
+      for(let i=0;i<=steps;i++){ const s=s0+(s1-s0)*i/steps, [x,y]=Z(s,tau,M);
+        i?ctx.lineTo(OC.x+x,OC.y-y):ctx.moveTo(OC.x+x,OC.y-y); }
+      ctx.strokeStyle=style; ctx.lineWidth=wid; ctx.stroke(); };
+    drawArc(sig,TWO,'rgba(224,90,60,.22)',1.4);     // ещё не прочерчено
+    drawArc(0,sig,C.coral,2.6);                      // уже прочерчено
+
+    // ЭПИЦИКЛЫ: цепочка вращающихся стрелок от центра до пера — их сумма и есть точка струны
+    let cxp=OC.x, cyp=OC.y;
+    for(const c of M){
+      const ph=c.m*sig - Math.abs(c.m)*tau, r=Math.abs(c.a);
+      const nx=cxp + c.a*Math.cos(ph), ny=cyp - c.a*Math.sin(ph);
+      ctx.strokeStyle='rgba(107,79,196,.22)'; ctx.lineWidth=1;                 // круг-орбита стрелки
+      ctx.beginPath(); ctx.arc(cxp,cyp,r,0,7); ctx.stroke();
+      ctx.strokeStyle=C.violet; ctx.lineWidth=1.6;                             // сама стрелка
+      ctx.beginPath(); ctx.moveTo(cxp,cyp); ctx.lineTo(nx,ny); ctx.stroke();
+      ctx.fillStyle=C.violet; ctx.beginPath(); ctx.arc(nx,ny,2.2,0,7); ctx.fill();
+      cxp=nx; cyp=ny;
+    }
+    ctx.fillStyle=C.coral; ctx.beginPath(); ctx.arc(cxp,cyp,4.5,0,7); ctx.fill();   // перо = сумма стрелок
     ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('одна точка струны и её след',OC.x, H-10);
+    ctx.fillText('сумма '+(n<=1?'одной стрелки':'трёх вращающихся стрелок')+' чертит струну',OC.x, H-10);
 
     // спектр: из каких гармоник сложена форма
     sx.clearRect(0,0,W,HS);
