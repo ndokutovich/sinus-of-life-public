@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Струна: частицы — это ноты петли</title>
+<style>
+  :root{ --paper:#f6f5f0; --ink:#15171f; --faint:#c9c7c0; --coral:#e05a3c; --violet:#6b4fc4; --gray:#8a8a86; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;padding:18px 10px}
+  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+       box-shadow:0 8px 30px rgba(0,0,0,.10)}
+  h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+  .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
+  .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:12.5px;
+           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.75;color:#2a2c36}
+  .formula b{color:var(--ink)}
+  canvas{display:block;width:100%;border-radius:10px}
+  canvas+canvas{margin-top:4px}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:10px}
+  .row label{min-width:126px;color:#3a3a36}
+  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;min-width:96px;text-align:right;font-weight:600}
+  .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:5.6em}
+  .read .reg{font-weight:600}
+  .cap{font-size:12px;color:#6a6a63;margin-top:12px;font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="pen">
+  <h1>Струна: частицы — это ноты петли</h1>
+  <div class="sub">замкнутая струна — это ряд Фурье по петле. каждая гармоника дрожит со своей частотой, и чем выше возбуждённая нота, тем тяжелее частица. внизу — спектр: из каких гармоник сложена форма.</div>
+  <div class="formula" id="fx"></div>
+  <canvas id="c"></canvas>
+  <canvas id="s"></canvas>
+  <div class="row">
+    <label>возбуждённая нота</label>
+    <input id="k" type="range" min="1" max="7" step="1" value="3">
+    <span class="kv" id="kv"></span>
+  </div>
+  <div class="read" id="rd"></div>
+  <div class="cap">каждая гармоника — это ПАРА встречных волн: правая бежит по петле в одну сторону, левая в другую. ровно как вещественный синус есть две встречные вращающиеся стрелки: e^(iθ) + e^(−iθ) = 2·cos θ. струна не «использует» синус — она из него сложена. (честно: показана классическая форма струны; сам спектр масс — уже квантовый счёт.)</div>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const cs=document.getElementById('s'), sx=cs.getContext('2d');
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  const W=502, H=330, HS=96;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.height=H+'px'; ctx.scale(DPR,DPR);
+  cs.width=W*DPR; cs.height=HS*DPR; cs.style.height=HS+'px'; sx.scale(DPR,DPR);
+  const C={coral:'#e05a3c', violet:'#6b4fc4', ink:'#15171f', faint:'#cbc9c2', gray:'#8a8a86'};
+  const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
+
+  let n=+kEl.value, t0=performance.now();
+  const R=92, A=30, OC={x:W/2, y:H/2}, TWO=2*Math.PI;
+
+  // Z(σ,τ) = Σ c_m · e^{i(mσ − |m|τ)} — решение волнового уравнения для замкнутой петли.
+  // при τ=0 набор гармоник {1, 1+n, 1−n} даёт (R + A·cos nσ)·e^{iσ}: петлю с n лепестками.
+  function modes(nn){
+    if(nn<=1) return [{m:1, a:R}];
+    return [{m:1, a:R}, {m:1+nn, a:A/2}, {m:1-nn, a:A/2}];
+  }
+  function Z(sig, tau, M){
+    let x=0, y=0;
+    for(const c of M){ const ph=c.m*sig - Math.abs(c.m)*tau;
+      x+=c.a*Math.cos(ph); y+=c.a*Math.sin(ph); }
+    return [x,y];
+  }
+
+  function panel(){
+    const col = n<=1?C.gray:C.coral;
+    kv.textContent = n<=1?'основная':('n = '+n);
+    kv.style.color=col; kEl.style.accentColor=col;
+    fx.innerHTML='<b>Z(σ,τ) = Σ c<sub>m</sub>·e<sup>&thinsp;i(mσ − |m|τ)</sup></b> &nbsp;— форма петли есть ряд Фурье по σ<br>'
+                +'каждая гармоника m дрожит с частотой |m| · уровень <b>N = n</b> · масса: <b>M² ∝ N − 1</b>';
+    rd.innerHTML = n<=1
+      ? '<span class="reg" style="color:'+C.gray+'">Основное состояние.</span> Ноты не возбуждены, петля просто идёт по кругу. Уровень N = 0 — самая лёгкая частица спектра.'
+      : '<span class="reg" style="color:'+C.coral+'">Возбуждена нота n = '+n+'.</span> Петля получила <b>'+n+' лепестков</b> и дрожит: гармоника с номером m колеблется с частотой |m|, поэтому лепестки не стоят на месте. Уровень <b>N = '+n+'</b> — и это уже <b>другая, более тяжёлая частица</b>. Спектр частиц = спектр нот петли: вся разница между ними — какую гармонику дёрнули.';
+  }
+
+  function frame(now){
+    const tau=(now-t0)/1000*0.9, M=modes(n);
+    ctx.clearRect(0,0,W,H);
+    // призрак основной петли
+    ctx.strokeStyle=C.faint; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(OC.x,OC.y,R,0,7); ctx.stroke();
+    // сама струна
+    ctx.beginPath();
+    for(let i=0;i<=400;i++){ const s=i/400*TWO, [x,y]=Z(s,tau,M);
+      i?ctx.lineTo(OC.x+x,OC.y-y):ctx.moveTo(OC.x+x,OC.y-y); }
+    ctx.closePath();
+    ctx.fillStyle='rgba(224,90,60,.10)'; ctx.fill();
+    ctx.strokeStyle=C.coral; ctx.lineWidth=2.4; ctx.stroke();
+    // метка на струне: точка σ=0 и её след
+    const [mx,my]=Z(0,tau,M);
+    ctx.strokeStyle='rgba(107,79,196,.45)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<=120;i++){ const tt=tau-TWO*0.5*(1-i/120), [x,y]=Z(0,tt,M);
+      i?ctx.lineTo(OC.x+x,OC.y-y):ctx.moveTo(OC.x+x,OC.y-y); }
+    ctx.stroke();
+    ctx.fillStyle=C.violet; ctx.beginPath(); ctx.arc(OC.x+mx,OC.y-my,5,0,7); ctx.fill();
+    ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('одна точка струны и её след',OC.x, H-10);
+
+    // спектр: из каких гармоник сложена форма
+    sx.clearRect(0,0,W,HS);
+    const y0=HS-22, span=9;                       // m от −8 до 8
+    sx.strokeStyle='#e2e0d9'; sx.lineWidth=1;
+    sx.beginPath(); sx.moveTo(12,y0); sx.lineTo(W-12,y0); sx.stroke();
+    sx.fillStyle='#a9a79e'; sx.font='11px sans-serif'; sx.textAlign='left';
+    sx.fillText('спектр: гармоники m, из которых сложена петля',12,14);
+    for(let m=-span;m<=span;m++){
+      const bx=W/2+(m/(span+0.6))*(W/2-16);
+      const c=M.find(q=>q.m===m);
+      sx.fillStyle='#d9d7d0';
+      sx.fillRect(bx-4,y0-3,8,3);
+      if(c){ const h=Math.max(4,(Math.abs(c.a)/R)*(y0-22));
+        sx.fillStyle = m===1?C.violet:C.coral;
+        sx.fillRect(bx-5,y0-h,10,h);
+        sx.font='600 10px sans-serif'; sx.textAlign='center';
+        sx.fillText(m,bx,y0+13); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  kEl.addEventListener('input',()=>{ n=+kEl.value; panel(); });
+  panel(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
