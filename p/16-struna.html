@@ -81,7 +81,7 @@
   }
 
   function frame(now){
-    const el=(now-t0)/1000, tau=el*0.6, M=modes(n);
+    const el=(now-t0)/1000, tau=el*0.05, M=modes(n);   // τ ползёт очень медленно: n лепестков держатся чёткими весь обход, дрожание — фоном
     const sp=(el/4)%1, sig=sp*TWO;                 // «перо» обходит петлю за 4 с, чертя её стрелками
     ctx.clearRect(0,0,W,H);
 
@@ -98,21 +98,24 @@
     drawArc(sig,TWO,'rgba(224,90,60,.22)',1.4);     // ещё не прочерчено
     drawArc(0,sig,C.coral,2.6);                      // уже прочерчено
 
-    // ЭПИЦИКЛЫ: цепочка вращающихся стрелок от центра до пера — их сумма и есть точка струны
+    // ЭПИЦИКЛЫ: цепочка вращающихся стрелок от центра до пера — их сумма и есть точка струны.
+    // основная (m=1) — фиолетовая; лепестковые (m=1±n) — коралловые и жирнее, чтобы было видно, кто делает лепестки
     let cxp=OC.x, cyp=OC.y;
-    for(const c of M){
-      const ph=c.m*sig - Math.abs(c.m)*tau, r=Math.abs(c.a);
+    M.forEach((c,ix)=>{
+      const base=ix===0, r=Math.abs(c.a);
+      const ph=c.m*sig - Math.abs(c.m)*tau;
       const nx=cxp + c.a*Math.cos(ph), ny=cyp - c.a*Math.sin(ph);
-      ctx.strokeStyle='rgba(107,79,196,.22)'; ctx.lineWidth=1;                 // круг-орбита стрелки
+      ctx.strokeStyle = base?'rgba(107,79,196,.20)':'rgba(224,90,60,.45)'; ctx.lineWidth = base?1:1.2;
       ctx.beginPath(); ctx.arc(cxp,cyp,r,0,7); ctx.stroke();
-      ctx.strokeStyle=C.violet; ctx.lineWidth=1.6;                             // сама стрелка
+      ctx.strokeStyle = base?C.violet:C.coral; ctx.lineWidth = base?1.6:2.4;
       ctx.beginPath(); ctx.moveTo(cxp,cyp); ctx.lineTo(nx,ny); ctx.stroke();
-      ctx.fillStyle=C.violet; ctx.beginPath(); ctx.arc(nx,ny,2.2,0,7); ctx.fill();
+      ctx.fillStyle = base?C.violet:C.coral; ctx.beginPath(); ctx.arc(nx,ny,base?2.4:3,0,7); ctx.fill();
       cxp=nx; cyp=ny;
-    }
-    ctx.fillStyle=C.coral; ctx.beginPath(); ctx.arc(cxp,cyp,4.5,0,7); ctx.fill();   // перо = сумма стрелок
+    });
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(cxp,cyp,4.6,0,7); ctx.fill();     // перо = сумма стрелок
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(cxp,cyp,4.6,0,7); ctx.stroke();
     ctx.fillStyle='#a9a79e'; ctx.font='11px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('сумма '+(n<=1?'одной стрелки':'трёх вращающихся стрелок')+' чертит струну',OC.x, H-10);
+    ctx.fillText(n<=1?'одна стрелка чертит петлю':'фиолетовая стрелка + две коралловые (лепестки) → перо чертит струну',OC.x, H-10);
 
     // спектр: из каких гармоник сложена форма
     sx.clearRect(0,0,W,HS);
