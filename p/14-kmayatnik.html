@@ -101,8 +101,9 @@
     else {
       tc.strokeStyle=m.c; tc.lineWidth=0.9; tc.globalAlpha=0.55;
       tc.beginPath(); tc.moveTo(px,py);
-      const smp=Math.max(1,Math.round(m.st/12));
-      for(let i=0;i<m.st;i++){
+      const stp = window.__GIF ? Math.ceil(m.T/m.h/130) : m.st;   // под гифку: весь свиток за ~130 кадров
+      const smp=Math.max(1,Math.round(stp/12));
+      for(let i=0;i<stp;i++){
         const n=rk4(st,m.h);
         if(!n||!isFinite(n[0])||Math.abs(n[2])>YCAP){ gone=true; break; }
         st=n; T+=m.h; px=SX(st[0]); py=SY(st[2]); tc.lineTo(px,py);
