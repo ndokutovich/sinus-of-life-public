@@ -9,17 +9,17 @@
   *{box-sizing:border-box}
   body{margin:0;background:#e9e8e2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
        display:flex;justify-content:center;padding:18px 10px}
-  .pen{width:100%;max-width:540px;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
+  .pen{width:100%;max-width:540px;min-width:0;background:var(--paper);border-radius:16px;padding:18px 18px 20px;
         box-shadow:0 8px 30px rgba(0,0,0,.10)}
   h1{font-size:18px;line-height:1.25;margin:0 0 6px}
   .sub{font-size:12.5px;color:#5a5a55;margin:0 0 12px;line-height:1.45}
   .formula{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:13px;
-           background:#eeede7;border-radius:9px;padding:9px 11px;line-height:1.7;color:#2a2c36}
+           background:#eeede7;border-radius:9px;overflow-x:auto;padding:9px 11px;line-height:1.7;color:#2a2c36}
   .formula b{color:var(--ink)}
-  canvas{display:block;width:100%;margin:12px 0 6px;border-radius:10px}
-  .row{display:flex;align-items:center;gap:10px;font-size:13px;margin-top:6px}
+  canvas{display:block;width:100%;height:auto;margin:12px 0 6px;border-radius:10px}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;margin-top:6px}
   .row label{min-width:118px;color:#3a3a36}
-  input[type=range]{flex:1;accent-color:var(--ink);height:22px}
+  input[type=range]{flex:1 1 140px;accent-color:var(--ink);height:22px}
   .kv{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;min-width:56px;text-align:right;font-weight:600}
   .read{font-size:13px;line-height:1.5;margin-top:11px;color:#2a2c36;min-height:4.6em}
   .read .reg{font-weight:600}
@@ -45,7 +45,7 @@
   const cv=document.getElementById('c'), ctx=cv.getContext('2d');
   const DPR=Math.min(2,window.devicePixelRatio||1);
   const W=502,H=520;
-  cv.width=W*DPR; cv.height=H*DPR; cv.style.height=H+'px';
+  cv.width=W*DPR; cv.height=H*DPR;
   ctx.scale(DPR,DPR);
   const COL={paper:'#f6f5f0',ink:'#15171f',faint:'#cbc9c2',gray:'#8a8a86',coral:'#e05a3c',violet:'#6b4fc4'};
   const kEl=document.getElementById('k'), kv=document.getElementById('kv'), fx=document.getElementById('fx'), rd=document.getElementById('rd');
